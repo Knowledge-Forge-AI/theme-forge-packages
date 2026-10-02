@@ -1,12 +1,12 @@
 {
   "schema": "tfsb.dist1-bootstrap-projection-binding-v1",
-  "generatedAt": "2026-10-02T00:06:34.594Z",
+  "generatedAt": "2026-10-02T00:41:04.730Z",
   "generator": "tools/distribution/bootstrap-public-repo.mjs",
   "bootstrapState": "bootstrapped-with-production-key",
   "productionPrimaryFingerprint": "7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF",
   "productionSigningSubkeyFingerprint": "C021E00EE3D37C459B0E1CB3199F8028126E8A8C",
   "releaseLockSha256": "567b91e43e9e3d871d19f96abbaa4c593de0f0c99029d56f3fd903b5635b29cc",
-  "treeManifestSha256": "f42aa29f7ffc7bc21912724041efbdf71095c51be6a0ccf80d0678a5f6d5222b",
+  "treeManifestSha256": "5be21e7122bb403c662e630e095fc5dc196870a6995e6b7e141cad2f7e70050f",
   "totalFiles": 65,
   "files": [
     {
@@ -17,7 +17,7 @@
     {
       "path": ".github/workflows/validate.yml",
       "bytes": 24402,
-      "sha256": "67828ba3c25d717a36cae6af2c9e78878431372519316ebb4e1a6eeaf2ea13b0"
+      "sha256": "bc69aeae07c3a0547aab94cc3e1f67b545affb8568fcca5fd658db747e4d7293"
     },
     {
       "path": "AUR-READINESS.md",
