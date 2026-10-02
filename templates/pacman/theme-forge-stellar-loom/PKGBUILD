@@ -1,0 +1,35 @@
+# Maintainer: Theme Forge Distribution Authority <packages@knowledgeforge.ai>
+pkgname=theme-forge-stellar-loom
+pkgver=0.4.0
+pkgrel=1
+pkgdesc="Theme Forge Stellar Loom theme compiler and framework adapter"
+arch=('any')
+url="https://github.com/Knowledge-Forge-AI/theme-forge-packages"
+license=('AGPL-3.0-or-later')
+depends=('nodejs>=22')
+options=('!strip')
+
+source=("https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-stellar-loom/-/theme-forge-stellar-loom-${pkgver}.tgz")
+sha256sums=('4550314d9a6eb9a016c8637eb2a0a98e9a410210ad6546642dfce31c7402c9ec')
+
+package() {
+  local libdir="${pkgdir}/usr/lib/${pkgname}"
+  mkdir -p "${libdir}"
+  cp -r "${srcdir}/package/"* "${libdir}/"
+
+  mkdir -p "${pkgdir}/usr/bin"
+  cat << 'EOF' > "${pkgdir}/usr/bin/tfsl"
+#!/bin/sh
+exec node /usr/lib/theme-forge-stellar-loom/bin/tfsl.js "$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/tfsl"
+
+  cat << 'EOF' > "${pkgdir}/usr/bin/tfsl-batch"
+#!/bin/sh
+exec node /usr/lib/theme-forge-stellar-loom/bin/tfsl-batch.js "$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/tfsl-batch"
+
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -m 644 "${srcdir}/package/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

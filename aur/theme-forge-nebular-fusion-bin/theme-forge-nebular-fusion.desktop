@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Theme Forge Nebular Fusion
+GenericName=Design System Workbench
+Comment=Desktop design system studio and theme compiler workbench
+Exec=tfnf %U
+Icon=theme-forge-nebular-fusion
+Terminal=false
+Type=Application
+Categories=Development;Graphics;IDE;
+StartupWMClass=theme-forge-nebular-fusion
+MimeType=application/json;

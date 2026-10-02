@@ -1,0 +1,12 @@
+pkgbase = theme-forge-stellar-loom
+	pkgdesc = Theme Forge Stellar Loom theme compiler and framework adapter
+	pkgver = 0.4.0
+	pkgrel = 1
+	url = https://github.com/Knowledge-Forge-AI/theme-forge-packages
+	arch = any
+	license = AGPL-3.0-or-later
+	depends = nodejs>=22
+	source = https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-stellar-loom/-/theme-forge-stellar-loom-0.4.0.tgz
+	sha256sums = 4550314d9a6eb9a016c8637eb2a0a98e9a410210ad6546642dfce31c7402c9ec
+
+pkgname = theme-forge-stellar-loom

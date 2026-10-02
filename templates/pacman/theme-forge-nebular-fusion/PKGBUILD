@@ -1,0 +1,58 @@
+# Maintainer: Theme Forge Distribution Authority <packages@knowledgeforge.ai>
+pkgname=theme-forge-nebular-fusion
+pkgver=0.6.1
+pkgrel=1
+pkgdesc="Theme Forge Nebular Fusion design system studio and theme compiler workbench"
+arch=('x86_64')
+url="https://github.com/Knowledge-Forge-AI/theme-forge-packages"
+license=('AGPL-3.0-or-later')
+depends=('gtk3' 'webkit2gtk-4.1' 'glib2' 'cairo' 'pango' 'openssl' 'zlib' 'dbus')
+options=('!strip')
+
+source=(
+  "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v${pkgver}/theme-forge-nebular-fusion-v${pkgver}-x86_64-unknown-linux-gnu.tar.gz"
+  "theme-forge-nebular-fusion.desktop"
+  "icon-16x16.png"
+  "icon-32x32.png"
+  "icon-48x48.png"
+  "icon-64x64.png"
+  "icon-128x128.png"
+  "icon-256x256.png"
+)
+sha256sums=(
+  'd6060f74d6e55ec3a096ac01a1ebadc8b8b1d89a9a51475cd52207b465ca434d'
+  '24b28e715e74ce594c75c13fb865a84399ca5aac168490e1773cbad1f3de0283'
+  'bd1717587999d2c81baeb583022be718b7ac0a9affbdbad16b8d3d53717850ee'
+  'a6b2a188179558e26b24a52c8efeda5ce6d2ca73f33f22b8717844cfd00f98d0'
+  '7268eb032e7e41cb6d48a0b086e1a883b64bf5497845980d87f987984884cfad'
+  'fd68f2da45e40bccf6c8fd447b479c92e041fa5675adb88ce6751cc96d4f2d1f'
+  '8aeb5d5d88b2c3cd5525b8de87359c1b8c248948bd9de7bb83a4f61160cdd5ca'
+  '2d65e8c69a675b6c939ac11757c6a47a123f63b3f83b6d58305aaf7231aca160'
+)
+
+package() {
+  local libdir="${pkgdir}/usr/lib/${pkgname}"
+  mkdir -p "${libdir}"
+
+  # Unpack raw Linux archive preserving exact executable bytes and ../lib/theme-forge-nebular-fusion invariant
+  cp -r "${srcdir}/${pkgname}/"* "${libdir}/"
+
+  # Link public launcher in /usr/bin/
+  # Note: tfsb-studio-service remains private under /usr/lib/${pkgname}/bin to avoid filename collision with Burst
+  mkdir -p "${pkgdir}/usr/bin"
+  ln -s "/usr/lib/${pkgname}/bin/tfnf" "${pkgdir}/usr/bin/tfnf"
+
+  # Install desktop entry
+  mkdir -p "${pkgdir}/usr/share/applications"
+  install -m 644 "${srcdir}/theme-forge-nebular-fusion.desktop" "${pkgdir}/usr/share/applications/theme-forge-nebular-fusion.desktop"
+
+  # Install multi-resolution icons
+  for size in 16 32 48 64 128 256; do
+    mkdir -p "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps"
+    install -m 644 "${srcdir}/icon-${size}x${size}.png" "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/${pkgname}.png"
+  done
+
+  # Install license
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -m 644 "${libdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

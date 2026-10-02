@@ -1,0 +1,130 @@
+{
+  "schema": "tfsb.dist1-package-matrix-v1",
+  "version": 1,
+  "channels": {
+    "nix": {
+      "channel": "nix",
+      "mechanism": "public Nix Flake (github:Knowledge-Forge-AI/theme-forge-packages)",
+      "systems": {
+        "clis": ["x86_64-linux", "aarch64-linux", "aarch64-darwin"],
+        "gui": ["x86_64-linux", "aarch64-linux", "aarch64-darwin"]
+      },
+      "packages": {
+        "theme-forge-stellar-burst": {
+          "mainProgram": "tfsb",
+          "binaries": ["tfsb", "tfsb-studio-service"],
+          "runtime": "nodejs_22",
+          "nativePrebuilds": ["darwin-arm64", "darwin-x64", "linux-arm64-gnu", "linux-x64-gnu"],
+          "offlineDependencies": ["@xmldom/xmldom", "fflate", "smol-toml"]
+        },
+        "theme-forge-stellar-loom": {
+          "mainProgram": "tfsl",
+          "binaries": ["tfsl", "tfsl-batch"],
+          "runtime": "nodejs_22",
+          "offlineDependencies": []
+        },
+        "theme-forge-solar-sail": {
+          "mainProgram": "tfss",
+          "binaries": ["tfss"],
+          "runtime": "nodejs_22",
+          "offlineDependencies": []
+        },
+        "theme-forge-nebular-fusion": {
+          "mainProgram": "tfnf",
+          "binaries": ["tfnf"],
+          "strategy": "binary archive wrapper preserving upstream executable bytes",
+          "runtimeDependencies": ["gtk3", "glib", "webkitgtk_4_1", "libsoup_3", "cairo", "pango", "openssl", "zlib", "dbus"]
+        }
+      }
+    },
+    "pacman": {
+      "channel": "pacman",
+      "repositoryId": "knowledge-forge-ai",
+      "sigLevel": "Required DatabaseRequired TrustedOnly",
+      "serverUrl": "https://knowledge-forge-ai.github.io/theme-forge-packages/arch/x86_64",
+      "architectures": ["x86_64"],
+      "packages": {
+        "theme-forge-stellar-burst": {
+          "arch": ["x86_64"],
+          "depends": ["nodejs>=22"],
+          "binaries": ["tfsb", "tfsb-studio-service"],
+          "installDir": "/usr/lib/theme-forge-stellar-burst"
+        },
+        "theme-forge-stellar-loom": {
+          "arch": ["any"],
+          "depends": ["nodejs>=22"],
+          "binaries": ["tfsl", "tfsl-batch"],
+          "installDir": "/usr/lib/theme-forge-stellar-loom"
+        },
+        "theme-forge-solar-sail": {
+          "arch": ["any"],
+          "depends": ["nodejs>=22"],
+          "binaries": ["tfss"],
+          "installDir": "/usr/lib/theme-forge-solar-sail"
+        },
+        "theme-forge-nebular-fusion": {
+          "arch": ["x86_64"],
+          "depends": ["gtk3", "webkit2gtk-4.1", "glib2", "cairo", "pango", "openssl", "zlib", "dbus"],
+          "binaries": ["tfnf"],
+          "installDir": "/usr/lib/theme-forge-nebular-fusion",
+          "resourceDirInvariant": "../lib/theme-forge-nebular-fusion preserved relative to canonical bin",
+          "desktopEntry": "/usr/share/applications/theme-forge-nebular-fusion.desktop",
+          "icons": "/usr/share/icons/hicolor/*/apps/theme-forge-nebular-fusion.png"
+        }
+      }
+    },
+    "dnf": {
+      "channel": "dnf",
+      "repositoryId": "knowledge-forge-ai",
+      "baseUrl": "https://knowledge-forge-ai.github.io/theme-forge-packages/rpm/$basearch",
+      "gpgcheck": 1,
+      "repoGpgcheck": 1,
+      "gpgkey": "https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc",
+      "supportedFamily": "Fedora 43",
+      "architectures": ["x86_64", "aarch64"],
+      "packages": {
+        "theme-forge-stellar-burst": {
+          "spec": "theme-forge-stellar-burst.spec",
+          "exclusiveArch": ["x86_64", "aarch64"],
+          "requires": ["nodejs >= 1:22"],
+          "binaries": ["tfsb", "tfsb-studio-service"]
+        },
+        "theme-forge-stellar-loom": {
+          "spec": "theme-forge-stellar-loom.spec",
+          "buildArch": "noarch",
+          "requires": ["nodejs >= 1:22"],
+          "binaries": ["tfsl", "tfsl-batch"]
+        },
+        "theme-forge-solar-sail": {
+          "spec": "theme-forge-solar-sail.spec",
+          "buildArch": "noarch",
+          "requires": ["nodejs >= 1:22"],
+          "binaries": ["tfss"]
+        },
+        "theme-forge-nebular-fusion": {
+          "spec": "theme-forge-nebular-fusion.spec",
+          "exclusiveArch": ["x86_64", "aarch64"],
+          "requires": ["gtk3", "webkit2gtk4.1", "glib2", "cairo", "pango", "openssl-libs", "zlib", "dbus"],
+          "binaries": ["tfnf"],
+          "desktopEntry": "/usr/share/applications/theme-forge-nebular-fusion.desktop"
+        }
+      }
+    },
+    "aur": {
+      "channel": "aur",
+      "status": "deferred_readiness_only",
+      "activationDoc": "AUR-READINESS.md",
+      "packages": {
+        "theme-forge-stellar-burst": { "directory": "aur/theme-forge-stellar-burst" },
+        "theme-forge-stellar-loom": { "directory": "aur/theme-forge-stellar-loom" },
+        "theme-forge-solar-sail": { "directory": "aur/theme-forge-solar-sail" },
+        "theme-forge-nebular-fusion-bin": {
+          "directory": "aur/theme-forge-nebular-fusion-bin",
+          "convention": "upstream prebuilt native binary (-bin suffix)",
+          "provides": "theme-forge-nebular-fusion",
+          "conflicts": "theme-forge-nebular-fusion"
+        }
+      }
+    }
+  }
+}

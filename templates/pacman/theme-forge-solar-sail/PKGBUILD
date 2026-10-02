@@ -1,0 +1,29 @@
+# Maintainer: Theme Forge Distribution Authority <packages@knowledgeforge.ai>
+pkgname=theme-forge-solar-sail
+pkgver=0.2.1
+pkgrel=1
+pkgdesc="Theme Forge Solar Sail pairing engine and design token validator"
+arch=('any')
+url="https://github.com/Knowledge-Forge-AI/theme-forge-packages"
+license=('AGPL-3.0-or-later')
+depends=('nodejs>=22')
+options=('!strip')
+
+source=("https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-solar-sail/-/theme-forge-solar-sail-${pkgver}.tgz")
+sha256sums=('ebc4f21d1e61dbc0ac4e87ce81f7ecec4f97d7c15562356e429d4c1a4e9aa5a0')
+
+package() {
+  local libdir="${pkgdir}/usr/lib/${pkgname}"
+  mkdir -p "${libdir}"
+  cp -r "${srcdir}/package/"* "${libdir}/"
+
+  mkdir -p "${pkgdir}/usr/bin"
+  cat << 'EOF' > "${pkgdir}/usr/bin/tfss"
+#!/bin/sh
+exec node /usr/lib/theme-forge-solar-sail/bin/tfss.js "$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/tfss"
+
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -m 644 "${srcdir}/package/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
