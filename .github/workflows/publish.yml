@@ -1,0 +1,593 @@
+name: Publish Distribution Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Confirm production publication snapshot'
+        required: true
+        type: boolean
+        default: false
+      validation_run_id:
+        description: 'Hosted validation (validate.yml) workflow run ID to bind and verify'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  preflight-gate:
+    name: Hosted Validation Gate Preflight
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Safety Assertion
+        run: |
+          if [ "${{ github.event.inputs.publish }}" != "true" ]; then
+            echo "Error: Publication not explicitly confirmed with publish=true." >&2
+            exit 1
+          fi
+
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Verify Hosted Validation Gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node tools/verification/verify-hosted-validation-gate.mjs \
+            --repo "${{ github.repository }}" \
+            --commit "${{ github.sha }}" \
+            --run-id "${{ github.event.inputs.validation_run_id }}" \
+            --release-lock release-lock.json \
+            --projection-binding GENERATOR-PROJECTION-BINDING.json \
+            --projection-dir . \
+            --production-key keys/knowledge-forge-ai-packages.asc \
+            --out HOSTED-VALIDATION-GATE-RECEIPT.json
+
+  preflight-key:
+    name: Production Key Preflight
+    needs: [preflight-gate]
+    runs-on: ubuntu-24.04
+    outputs:
+      signing_fpr: ${{ steps.preflight.outputs.signing_fpr }}
+    steps:
+      - name: Safety Assertion
+        run: |
+          if [ "${{ github.event.inputs.publish }}" != "true" ]; then
+            echo "Error: Publication not explicitly confirmed with publish=true." >&2
+            exit 1
+          fi
+
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Production Key Preflight
+        id: preflight
+        env:
+          PACKAGE_SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          PACKAGE_SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          node tools/verification/preflight-signing-key.mjs keys/knowledge-forge-ai-packages.asc
+
+  build-rpm-x86_64:
+    name: Build & Sign RPM (x86_64 + noarch)
+    needs: [preflight-gate, preflight-key]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Download & Authenticate Upstream Assets
+        run: |
+          set -euo pipefail
+          node tools/verification/fetch-locked-assets.mjs --lock release-lock.json --dest upstream-assets
+          node tools/verification/verify-release-lock.mjs release-lock.json --require-assets --assets-dir upstream-assets
+
+      - name: Build & Sign x86_64 and noarch RPMs (Fedora Container)
+        env:
+          SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+          SIGNING_FPR: ${{ needs.preflight-key.outputs.signing_fpr }}
+        run: |
+          set -euo pipefail
+          mkdir -p build-out/rpm/x86_64 build-out/rpm/noarch
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            -e SIGNING_KEY="$SIGNING_KEY" \
+            -e SIGNING_PASSPHRASE="$SIGNING_PASSPHRASE" \
+            -e SIGNING_FPR="$SIGNING_FPR" \
+            fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42 \
+            sh -c '
+              set -euo pipefail
+              dnf install -y -q rpm-build rpmlint createrepo_c gnupg rpmsign pinentry
+
+              mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+              cp templates/rpm/*.spec /root/rpmbuild/SPECS/
+              cp templates/desktop/* /root/rpmbuild/SOURCES/
+              cp templates/icons/* /root/rpmbuild/SOURCES/
+              cp upstream-assets/* /root/rpmbuild/SOURCES/
+
+              rpmlint /root/rpmbuild/SPECS/*.spec
+
+              # Build noarch CLIs
+              rpmbuild -ba --target noarch /root/rpmbuild/SPECS/theme-forge-stellar-loom.spec
+              rpmbuild -ba --target noarch /root/rpmbuild/SPECS/theme-forge-solar-sail.spec
+              cp /root/rpmbuild/RPMS/noarch/*.rpm build-out/rpm/noarch/
+              cp /root/rpmbuild/RPMS/noarch/*.rpm build-out/rpm/x86_64/
+
+              # Build x86_64 binaries
+              rpmbuild -ba --target x86_64 /root/rpmbuild/SPECS/theme-forge-stellar-burst.spec
+              rpmbuild -ba --target x86_64 /root/rpmbuild/SPECS/theme-forge-nebular-fusion.spec
+              cp /root/rpmbuild/RPMS/x86_64/*.rpm build-out/rpm/x86_64/
+
+              # Import production signing key
+              echo "$SIGNING_KEY" | gpg --batch --import
+
+              mkdir -p /root/.gnupg
+              chmod 700 /root/.gnupg
+              echo "allow-loopback-pinentry" >> /root/.gnupg/gpg-agent.conf
+              echo "pinentry-mode loopback" >> /root/.gnupg/gpg.conf
+              gpgconf --kill gpg-agent || true
+
+              echo "%_signature gpg" > /root/.rpmmacros
+              echo "%_gpg_name ${SIGNING_FPR}!" >> /root/.rpmmacros
+              if [ -z "$SIGNING_PASSPHRASE" ]; then
+                echo "[FAIL] SIGNING_PASSPHRASE is required for RPM package signing" >&2
+                exit 1
+              fi
+              echo "$SIGNING_PASSPHRASE" > /root/.passphrase
+              chmod 600 /root/.passphrase
+              echo "%_gpg_sign_cmd_extra_args --batch --yes --pinentry-mode loopback --passphrase-file /root/.passphrase" >> /root/.rpmmacros
+              echo "%_gpg_sign_cmd %{__gpg} --batch --yes --pinentry-mode loopback --passphrase-file /root/.passphrase --detach-sign --armor --no-secmem-warning -u %{_gpg_name} -sbo %{2} %{1}" >> /root/.rpmmacros
+
+              # Sign all RPMs
+              rpmsign --addsign build-out/rpm/x86_64/*.rpm
+              # Also sign noarch outputs for propagation
+              rpmsign --addsign build-out/rpm/noarch/*.rpm
+
+              if [ -f /root/.passphrase ]; then
+                rm -f /root/.passphrase
+              fi
+
+              # Generate repomd and sign
+              createrepo_c build-out/rpm/x86_64
+              echo "$SIGNING_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -u "${SIGNING_FPR}!" build-out/rpm/x86_64/repodata/repomd.xml
+
+              # Verify with committed public key only
+              rpm --import keys/knowledge-forge-ai-packages.asc
+              rpm --checksig build-out/rpm/x86_64/*.rpm
+              gpg --batch --verify build-out/rpm/x86_64/repodata/repomd.xml.asc build-out/rpm/x86_64/repodata/repomd.xml
+              bash tools/verification/verify-signatures.sh --expected-subkey "$SIGNING_FPR" keys/knowledge-forge-ai-packages.asc build-out/rpm/x86_64
+            '
+
+      - name: Clean-Container Verification Test (x86_64)
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$(pwd)/build-out/rpm/x86_64:/repo:ro" \
+            -v "$(pwd)/keys/knowledge-forge-ai-packages.asc:/etc/pki/rpm-gpg/RPM-GPG-KEY-kfa:ro" \
+            fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42 \
+            sh -c "
+              set -euo pipefail
+              rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-kfa
+              printf '%s\n' \
+                '[local-test]' \
+                'name=Local Test' \
+                'baseurl=file:///repo' \
+                'enabled=1' \
+                'gpgcheck=1' \
+                'repo_gpgcheck=1' \
+                'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-kfa' > /etc/yum.repos.d/local.repo
+
+              dnf install -y -q theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+              tfsb --version | grep '0.6.1'
+              tfsl --version | grep '0.4.0'
+              tfss --version | grep '0.2.1'
+              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+
+              dnf remove -y -q theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+              test ! -e /usr/bin/tfsb && test ! -L /usr/bin/tfsb
+              test ! -e /usr/bin/tfnf && test ! -L /usr/bin/tfnf
+            "
+
+      - name: Upload x86_64 RPM Artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: rpm-x86_64
+          path: build-out/rpm/x86_64/
+          if-no-files-found: error
+
+      - name: Upload noarch RPM Artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: rpm-noarch
+          path: build-out/rpm/noarch/
+          if-no-files-found: error
+
+  build-rpm-aarch64:
+    name: Build & Sign RPM (aarch64)
+    needs: [preflight-gate, preflight-key, build-rpm-x86_64]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Download & Authenticate Upstream Assets
+        run: |
+          set -euo pipefail
+          node tools/verification/fetch-locked-assets.mjs --lock release-lock.json --dest upstream-assets
+          node tools/verification/verify-release-lock.mjs release-lock.json --require-assets --assets-dir upstream-assets
+
+      - name: Download Signed noarch RPMs
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: rpm-noarch
+          path: downloaded-noarch/
+
+      - name: Build & Sign aarch64 RPMs (Fedora Container)
+        env:
+          SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+          SIGNING_FPR: ${{ needs.preflight-key.outputs.signing_fpr }}
+        run: |
+          set -euo pipefail
+          mkdir -p build-out/rpm/aarch64
+          # Copy identical pre-signed noarch RPMs into aarch64 repository
+          cp downloaded-noarch/*.rpm build-out/rpm/aarch64/
+
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            -e SIGNING_KEY="$SIGNING_KEY" \
+            -e SIGNING_PASSPHRASE="$SIGNING_PASSPHRASE" \
+            -e SIGNING_FPR="$SIGNING_FPR" \
+            fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42 \
+            sh -c '
+              set -euo pipefail
+              dnf install -y -q rpm-build rpmlint createrepo_c gnupg rpmsign pinentry
+
+              mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+              cp templates/rpm/*.spec /root/rpmbuild/SPECS/
+              cp templates/desktop/* /root/rpmbuild/SOURCES/
+              cp templates/icons/* /root/rpmbuild/SOURCES/
+              cp upstream-assets/* /root/rpmbuild/SOURCES/
+
+              rpmlint /root/rpmbuild/SPECS/*.spec
+
+              # Build aarch64 architecture-specific packages
+              rpmbuild -ba --target aarch64 /root/rpmbuild/SPECS/theme-forge-stellar-burst.spec
+              rpmbuild -ba --target aarch64 /root/rpmbuild/SPECS/theme-forge-nebular-fusion.spec
+              cp /root/rpmbuild/RPMS/aarch64/*.rpm build-out/rpm/aarch64/
+
+              # Import production signing key
+              echo "$SIGNING_KEY" | gpg --batch --import
+
+              mkdir -p /root/.gnupg
+              chmod 700 /root/.gnupg
+              echo "allow-loopback-pinentry" >> /root/.gnupg/gpg-agent.conf
+              echo "pinentry-mode loopback" >> /root/.gnupg/gpg.conf
+              gpgconf --kill gpg-agent || true
+
+              echo "%_signature gpg" > /root/.rpmmacros
+              echo "%_gpg_name ${SIGNING_FPR}!" >> /root/.rpmmacros
+              if [ -z "$SIGNING_PASSPHRASE" ]; then
+                echo "[FAIL] SIGNING_PASSPHRASE is required for RPM package signing" >&2
+                exit 1
+              fi
+              echo "$SIGNING_PASSPHRASE" > /root/.passphrase
+              chmod 600 /root/.passphrase
+              echo "%_gpg_sign_cmd_extra_args --batch --yes --pinentry-mode loopback --passphrase-file /root/.passphrase" >> /root/.rpmmacros
+              echo "%_gpg_sign_cmd %{__gpg} --batch --yes --pinentry-mode loopback --passphrase-file /root/.passphrase --detach-sign --armor --no-secmem-warning -u %{_gpg_name} -sbo %{2} %{1}" >> /root/.rpmmacros
+
+              # Sign only newly built aarch64 RPMs (noarch RPMs retain exact signature from x86_64 job)
+              rpmsign --addsign build-out/rpm/aarch64/theme-forge-stellar-burst*.aarch64.rpm
+              rpmsign --addsign build-out/rpm/aarch64/theme-forge-nebular-fusion*.aarch64.rpm
+
+              if [ -f /root/.passphrase ]; then
+                rm -f /root/.passphrase
+              fi
+
+              # Generate full repomd indexing all 4 packages (burst, nebular, loom, sail)
+              createrepo_c build-out/rpm/aarch64
+              echo "$SIGNING_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -u "${SIGNING_FPR}!" build-out/rpm/aarch64/repodata/repomd.xml
+
+              # Verify with committed public key only
+              rpm --import keys/knowledge-forge-ai-packages.asc
+              rpm --checksig build-out/rpm/aarch64/*.rpm
+              gpg --batch --verify build-out/rpm/aarch64/repodata/repomd.xml.asc build-out/rpm/aarch64/repodata/repomd.xml
+              bash tools/verification/verify-signatures.sh --expected-subkey "$SIGNING_FPR" keys/knowledge-forge-ai-packages.asc build-out/rpm/aarch64
+            '
+
+      - name: Clean-Container Verification Test (aarch64)
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$(pwd)/build-out/rpm/aarch64:/repo:ro" \
+            -v "$(pwd)/keys/knowledge-forge-ai-packages.asc:/etc/pki/rpm-gpg/RPM-GPG-KEY-kfa:ro" \
+            fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42 \
+            sh -c "
+              set -euo pipefail
+              rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-kfa
+              printf '%s\n' \
+                '[local-test]' \
+                'name=Local Test' \
+                'baseurl=file:///repo' \
+                'enabled=1' \
+                'gpgcheck=1' \
+                'repo_gpgcheck=1' \
+                'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-kfa' > /etc/yum.repos.d/local.repo
+
+              dnf install -y -q theme-forge-stellar-burst theme-forge-nebular-fusion theme-forge-stellar-loom theme-forge-solar-sail
+              tfsb --version | grep '0.6.1'
+              tfsl --version | grep '0.4.0'
+              tfss --version | grep '0.2.1'
+              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+
+              dnf remove -y -q theme-forge-stellar-burst theme-forge-nebular-fusion theme-forge-stellar-loom theme-forge-solar-sail
+              test ! -e /usr/bin/tfsb && test ! -L /usr/bin/tfsb
+              test ! -e /usr/bin/tfnf && test ! -L /usr/bin/tfnf
+            "
+
+      - name: Upload aarch64 RPM Artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: rpm-aarch64
+          path: build-out/rpm/aarch64/
+          if-no-files-found: error
+
+  build-pacman-x86_64:
+    name: Build & Sign Pacman (x86_64)
+    needs: [preflight-gate, preflight-key]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Download & Authenticate Upstream Assets
+        run: |
+          set -euo pipefail
+          node tools/verification/fetch-locked-assets.mjs --lock release-lock.json --dest upstream-assets
+          node tools/verification/verify-release-lock.mjs release-lock.json --require-assets --assets-dir upstream-assets
+
+      - name: Build & Sign Pacman Packages (Arch Container)
+        env:
+          SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+          SIGNING_FPR: ${{ needs.preflight-key.outputs.signing_fpr }}
+        run: |
+          set -euo pipefail
+          mkdir -p build-out/arch/x86_64
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            -e SIGNING_KEY="$SIGNING_KEY" \
+            -e SIGNING_PASSPHRASE="$SIGNING_PASSPHRASE" \
+            -e SIGNING_FPR="$SIGNING_FPR" \
+            archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040 \
+            sh -c "
+              set -euo pipefail
+              pacman -Sy --noconfirm base-devel pacman-contrib gnupg sudo
+
+              useradd -m builder && echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+              chown -R builder:builder /workspace/build-out/arch
+
+              # Securely pass signing key to builder without env leakage
+              echo \"\$SIGNING_KEY\" > /tmp/signing-key.asc
+              chmod 600 /tmp/signing-key.asc
+              chown builder:builder /tmp/signing-key.asc
+              su - builder -c 'gpg --batch --quiet --import /tmp/signing-key.asc'
+              rm -f /tmp/signing-key.asc
+
+              if [ -z \"\$SIGNING_PASSPHRASE\" ]; then
+                echo \"[FAIL] SIGNING_PASSPHRASE is required for Pacman package signing\" >&2
+                exit 1
+              fi
+              echo \"\$SIGNING_PASSPHRASE\" > /home/builder/.passphrase
+              chmod 600 /home/builder/.passphrase
+              chown builder:builder /home/builder/.passphrase
+
+              for pkgdir in templates/pacman/*; do
+                if [ -d \"\$pkgdir\" ]; then
+                  pkgname=\$(basename \"\$pkgdir\")
+                  mkdir -p /home/builder/build/\$pkgname
+                  cp -r \"\$pkgdir/\"* /home/builder/build/\$pkgname/
+                  cp -r /workspace/upstream-assets/* /home/builder/build/\$pkgname/
+                  chown -R builder:builder /home/builder/build/\$pkgname
+
+                  su builder -c \"
+                    set -euo pipefail
+                    cd /home/builder/build/\$pkgname
+                    makepkg -s --noconfirm
+                    cp *.pkg.tar.zst /workspace/build-out/arch/x86_64/
+                  \"
+                fi
+              done
+
+              # Sign packages and create signed repo DB
+              su builder -c \"
+                set -euo pipefail
+                cd /workspace/build-out/arch/x86_64
+                for pkg in *.pkg.tar.zst; do
+                  gpg --batch --yes --pinentry-mode loopback --passphrase-file /home/builder/.passphrase --detach-sign -u \\\"\${SIGNING_FPR}!\\\" \\\"\\\$pkg\\\"
+                done
+                repo-add -s -k \\\"\${SIGNING_FPR}!\\\" knowledge-forge-ai.db.tar.gz *.pkg.tar.zst
+              \"
+
+              if [ -f /home/builder/.passphrase ]; then
+                rm -f /home/builder/.passphrase
+              fi
+
+              # Verify all signatures with committed public key only
+              su builder -c '
+                set -euo pipefail
+                export GNUPGHOME=\$(mktemp -d)
+                gpg --batch --import /workspace/keys/knowledge-forge-ai-packages.asc
+                cd /workspace/build-out/arch/x86_64
+                for sig in *.sig; do
+                  target=\"\${sig%.sig}\"
+                  gpg --batch --verify \"\$sig\" \"\$target\"
+                done
+              '
+            "
+
+      - name: Clean-Container Verification Test (Pacman x86_64)
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$(pwd)/build-out/arch/x86_64:/repo:ro" \
+            -v "$(pwd)/keys/knowledge-forge-ai-packages.asc:/tmp/kfa.asc:ro" \
+            archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040 \
+            sh -c "
+              set -euo pipefail
+              pacman-key --init
+              pacman-key --add /tmp/kfa.asc
+              FPR=\$(gpg --show-keys --with-colons /tmp/kfa.asc | awk -F: '/^fpr/{print \$10; exit}')
+              pacman-key --lsign-key \"\$FPR\"
+
+              printf '%s\n' '' '[knowledge-forge-ai]' 'SigLevel = Required DatabaseRequired TrustedOnly' 'Server = file:///repo' >> /etc/pacman.conf
+
+              pacman -Sy --noconfirm
+              pacman -S --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+
+              tfsb --version | grep '0.6.1'
+              tfsl --version | grep '0.4.0'
+              tfss --version | grep '0.2.1'
+              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+
+              pacman -R --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+              test ! -e /usr/bin/tfsb && test ! -L /usr/bin/tfsb
+              test ! -e /usr/bin/tfnf && test ! -L /usr/bin/tfnf
+            "
+
+      - name: Upload Pacman Artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: pacman-x86_64
+          path: build-out/arch/x86_64/
+          if-no-files-found: error
+
+  aggregate-and-deploy:
+    name: Aggregate Repositories, Attest Provenance & Deploy Pages
+    needs: [preflight-gate, preflight-key, build-rpm-x86_64, build-rpm-aarch64, build-pacman-x86_64]
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Install Host RPM Tooling
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rpm
+
+      - name: Download x86_64 RPM Artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: rpm-x86_64
+          path: downloaded-rpm-x86_64/
+
+      - name: Download aarch64 RPM Artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: rpm-aarch64
+          path: downloaded-rpm-aarch64/
+
+      - name: Download Pacman Artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: pacman-x86_64
+          path: downloaded-pacman-x86_64/
+
+      - name: Assemble Final Replacement Pages Tree
+        run: |
+          set -euo pipefail
+          rm -rf pages-tree
+          mkdir -p pages-tree/{arch/x86_64,rpm/x86_64,rpm/aarch64,keys,config}
+
+          # Base static site & documentation
+          cp -r static/* pages-tree/
+          cp keys/knowledge-forge-ai-packages.asc pages-tree/keys/knowledge-forge-ai-packages.asc
+          cp INSTALL.md README.md pages-tree/
+
+          # Assemble Pacman tree
+          cp -r downloaded-pacman-x86_64/* pages-tree/arch/x86_64/
+
+          # Assemble RPM x86_64 tree
+          cp -r downloaded-rpm-x86_64/* pages-tree/rpm/x86_64/
+
+          # Assemble RPM aarch64 tree (includes identical signed noarch packages and signed repomd)
+          cp -r downloaded-rpm-aarch64/* pages-tree/rpm/aarch64/
+
+      - name: Re-Verify All Package Signatures with Published Public Key ONLY
+        run: |
+          set -euo pipefail
+          bash tools/verification/verify-signatures.sh --expected-subkey "${{ needs.preflight-key.outputs.signing_fpr }}" pages-tree/keys/knowledge-forge-ai-packages.asc pages-tree
+
+      - name: Generate Strict Publication Provenance
+        run: |
+          set -euo pipefail
+          node tools/verification/generate-publication-provenance.mjs \
+            --pages-dir pages-tree \
+            --release-lock release-lock.json \
+            --public-key pages-tree/keys/knowledge-forge-ai-packages.asc \
+            --package-matrix package-matrix.json \
+            --commit-sha "${{ github.sha }}" \
+            --out pages-tree/provenance/publication-provenance.json
+
+      - name: Verify Strict Provenance
+        run: |
+          set -euo pipefail
+          node tools/verification/verify-publication-provenance.mjs pages-tree/provenance/publication-provenance.json pages-tree release-lock.json pages-tree/keys/knowledge-forge-ai-packages.asc package-matrix.json
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: pages-tree/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

@@ -1,0 +1,62 @@
+# Maintainer: Theme Forge Distribution Authority <packages@knowledgeforge.ai>
+pkgname=theme-forge-stellar-burst
+pkgver=0.6.1
+pkgrel=1
+pkgdesc="Theme Forge Stellar Burst design token compiler and validation engine"
+arch=('x86_64')
+url="https://github.com/Knowledge-Forge-AI/theme-forge-packages"
+license=('AGPL-3.0-or-later')
+depends=('nodejs>=22')
+options=('!strip')
+
+source=(
+  "https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-stellar-burst/-/theme-forge-stellar-burst-${pkgver}.tgz"
+  "https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.9.12.tgz"
+  "https://registry.npmjs.org/fflate/-/fflate-0.8.3.tgz"
+  "https://registry.npmjs.org/smol-toml/-/smol-toml-1.8.0.tgz"
+)
+sha256sums=(
+  '53ef41a3de3335e042f2c4b1d299b1155b64bfc6556a84baf6a62cb28bcca209'
+  '08245e18c248b957b4c6e07f8549ad5f55ae11b7a8abd4c1113a0fd61ddc67ee'
+  '38c2cd824402407b43153c782274aec2ea83ea688e4aa0b743c5f2c305857d92'
+  '1fc995be91cdb777fc13e20c2edfebaaf60ef4e4d2d5331caef2837b04d37892'
+)
+
+package() {
+  local libdir="${pkgdir}/usr/lib/${pkgname}"
+  mkdir -p "${libdir}"
+  cp -r "${srcdir}/package/"* "${libdir}/"
+
+  # Vendor lock-bound runtime dependencies offline
+  mkdir -p "${libdir}/node_modules/@xmldom/xmldom"
+  tar -xzf "${srcdir}/xmldom-0.9.12.tgz" --strip-components=1 -C "${libdir}/node_modules/@xmldom/xmldom"
+
+  mkdir -p "${libdir}/node_modules/fflate"
+  tar -xzf "${srcdir}/fflate-0.8.3.tgz" --strip-components=1 -C "${libdir}/node_modules/fflate"
+
+  mkdir -p "${libdir}/node_modules/smol-toml"
+  tar -xzf "${srcdir}/smol-toml-1.8.0.tgz" --strip-components=1 -C "${libdir}/node_modules/smol-toml"
+
+  # Install binary wrappers preserving dist/ and native/ sibling relationship
+  mkdir -p "${pkgdir}/usr/bin"
+  cat << 'EOF' > "${pkgdir}/usr/bin/tfsb"
+#!/bin/sh
+exec node /usr/lib/theme-forge-stellar-burst/dist/cli.js "$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/tfsb"
+
+  cat << 'EOF' > "${pkgdir}/usr/bin/tfsb-studio-service"
+#!/bin/sh
+exec node /usr/lib/theme-forge-stellar-burst/dist/service-protocol/server-cli.js "$@"
+EOF
+  chmod 755 "${pkgdir}/usr/bin/tfsb-studio-service"
+
+  # Assert CLI entrypoints and native prebuild exist
+  test -f "${libdir}/dist/cli.js"
+  test -f "${libdir}/dist/service-protocol/server-cli.js"
+  test -f "${libdir}/native/directory-snapshot/prebuilds/linux-x64-gnu/native-addon-posix-openat-v1.node"
+
+  # Install license
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -m 644 "${srcdir}/package/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

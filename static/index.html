@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Forge Packages — Project Self-Distribution</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #38bdf8;
+      --code-bg: #030712;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    h1 {
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .channel-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .channel-card h2 {
+      margin-top: 0;
+      color: #e5e7eb;
+    }
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9rem;
+      color: #e2e8f0;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--accent);
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: #1e293b;
+      color: #94a3b8;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Theme Forge Packages</h1>
+      <p>Official, signed, reproducible self-distribution channels for the Theme Forge product family:</p>
+      <div>
+        <span class="badge">Stellar Burst 0.6.1</span>
+        <span class="badge">Stellar Loom 0.4.0</span>
+        <span class="badge">Solar Sail 0.2.1</span>
+        <span class="badge">Nebular Fusion 0.6.1</span>
+      </div>
+    </header>
+
+    <div class="channel-card">
+      <h2>Channel 1: Nix Flake</h2>
+      <p>Install directly from GitHub via Nix Flakes on Linux (x86_64, aarch64) or macOS (Apple Silicon / Intel):</p>
+      <pre><code># Install CLI tools
+nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-stellar-burst
+nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-stellar-loom
+nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-solar-sail
+
+# Install Nebular Fusion GUI workbench
+nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-nebular-fusion
+
+# Run without installation
+nix run github:Knowledge-Forge-AI/theme-forge-packages#tfnf -- --help</code></pre>
+      <p><strong>Upgrade:</strong> <code>nix profile upgrade '.*'</code></p>
+      <p><strong>Uninstall:</strong> <code>nix profile remove theme-forge-stellar-burst</code></p>
+    </div>
+
+    <div class="channel-card">
+      <h2>Channel 2: Pacman (Arch Linux)</h2>
+      <p>Import and verify the distribution OpenPGP signing key, then configure the custom repository in <code>/etc/pacman.conf</code>:</p>
+      <pre><code># 1. Download and import repository signing key
+curl -sSfL -o /tmp/kfa-packages.asc https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc
+sudo pacman-key --add /tmp/kfa-packages.asc
+FPR=$(gpg --show-keys --with-colons /tmp/kfa-packages.asc | awk -F: '/^fpr/{print $10; exit}')
+sudo pacman-key --lsign-key "$FPR"
+rm /tmp/kfa-packages.asc
+
+# 2. Append repository block to /etc/pacman.conf
+sudo tee -a /etc/pacman.conf &lt;&lt; 'EOF'
+
+[knowledge-forge-ai]
+SigLevel = Required DatabaseRequired TrustedOnly
+Server = https://knowledge-forge-ai.github.io/theme-forge-packages/arch/x86_64
+EOF
+
+# 3. Synchronize and install
+sudo pacman -Sy
+sudo pacman -S theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion</code></pre>
+      <p><strong>Upgrade:</strong> <code>sudo pacman -Syu</code></p>
+      <p><strong>Uninstall:</strong> <code>sudo pacman -R theme-forge-stellar-burst</code></p>
+    </div>
+
+    <div class="channel-card">
+      <h2>Channel 3: DNF / RPM (Fedora Linux)</h2>
+      <p>Add the signed repository configuration and install packages using native DNF:</p>
+      <pre><code># 1. Install repository definition
+sudo tee /etc/yum.repos.d/knowledge-forge-ai.repo &lt;&lt; 'EOF'
+[knowledge-forge-ai]
+name=Theme Forge Packages
+baseurl=https://knowledge-forge-ai.github.io/theme-forge-packages/rpm/$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc
+EOF
+
+# 2. Install packages
+sudo dnf install theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion</code></pre>
+      <p><strong>Upgrade:</strong> <code>sudo dnf upgrade</code></p>
+      <p><strong>Uninstall:</strong> <code>sudo dnf remove theme-forge-stellar-burst</code></p>
+    </div>
+
+    <div class="channel-card">
+      <h2>Cryptographic Trust & Provenance</h2>
+      <p>All package archives, RPM metadata, and pacman databases are cryptographically signed. Public key bundle: <a href="keys/knowledge-forge-ai-packages.asc"><code>keys/knowledge-forge-ai-packages.asc</code></a></p>
+      <p>Detailed build provenance for each deployment: <a href="provenance/publication-provenance.json"><code>provenance/publication-provenance.json</code></a></p>
+    </div>
+  </div>
+</body>
+</html>

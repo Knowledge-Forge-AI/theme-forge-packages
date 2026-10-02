@@ -1,0 +1,7 @@
+[knowledge-forge-ai]
+name=Theme Forge Packages
+baseurl=https://knowledge-forge-ai.github.io/theme-forge-packages/rpm/$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc

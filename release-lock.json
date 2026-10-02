@@ -1,0 +1,118 @@
+{
+  "schema": "tfsb.dist1-release-lock-v1",
+  "lockVersion": 1,
+  "description": "Cryptographically authenticated upstream release artifact and dependency lock for Theme Forge distribution.",
+  "products": {
+    "theme-forge-stellar-burst": {
+      "version": "0.6.1",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-stellar-burst",
+      "asset": "theme-forge-stellar-burst-0.6.1.tgz",
+      "sha256": "53ef41a3de3335e042f2c4b1d299b1155b64bfc6556a84baf6a62cb28bcca209",
+      "bytes": 644313,
+      "bins": [
+        "tfsb",
+        "tfsb-studio-service"
+      ],
+      "nodeEngine": ">=22"
+    },
+    "theme-forge-stellar-loom": {
+      "version": "0.4.0",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-stellar-loom",
+      "asset": "theme-forge-stellar-loom-0.4.0.tgz",
+      "sha256": "4550314d9a6eb9a016c8637eb2a0a98e9a410210ad6546642dfce31c7402c9ec",
+      "bytes": 273462,
+      "bins": [
+        "tfsl",
+        "tfsl-batch"
+      ],
+      "nodeEngine": ">=22"
+    },
+    "theme-forge-solar-sail": {
+      "version": "0.2.1",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-solar-sail",
+      "asset": "theme-forge-solar-sail-0.2.1.tgz",
+      "sha256": "ebc4f21d1e61dbc0ac4e87ce81f7ecec4f97d7c15562356e429d4c1a4e9aa5a0",
+      "bytes": 110658,
+      "bins": [
+        "tfss"
+      ],
+      "nodeEngine": ">=22"
+    },
+    "theme-forge-nebular-fusion": {
+      "version": "0.6.1",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-nebular-fusion",
+      "releaseCommit": "49e2c4919b6b4ec9bd4ed5d7e7ced90921e00f5e",
+      "releaseTree": "203a80b33fc94c776c9c184f8cac4f1609cb0f2b",
+      "bins": [
+        "tfnf"
+      ],
+      "rawArchives": {
+        "aarch64-darwin": {
+          "asset": "theme-forge-nebular-fusion-v0.6.1-aarch64-apple-darwin.app.tar.gz",
+          "sha256": "e5ab9c5ce5dd7fb02274b11b223db9db7ac1f3b2167334ee2f322abd3c8ec4be",
+          "executablePath": "Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion",
+          "executableSha256": "663c60a675165287e3157a279988bcd4bce556cf3c2a69d4bfd5ab937f60d867"
+        },
+        "aarch64-linux": {
+          "asset": "theme-forge-nebular-fusion-v0.6.1-aarch64-unknown-linux-gnu.tar.gz",
+          "sha256": "5d59a1dfb6b5cec5edced1b098eba7b79e4f77a0dd2a0ab815caa8992b17497f",
+          "executablePath": "theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion",
+          "executableSha256": "5c182d28c02f2d6ea09ed130625ef899a8d0fe4ca080df775d72cdd6cd43b743"
+        },
+        "x86_64-linux": {
+          "asset": "theme-forge-nebular-fusion-v0.6.1-x86_64-unknown-linux-gnu.tar.gz",
+          "sha256": "d6060f74d6e55ec3a096ac01a1ebadc8b8b1d89a9a51475cd52207b465ca434d",
+          "executablePath": "theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion",
+          "executableSha256": "6efc9c12ff9148f9e20763c620b7abb1712c614fc796b1577e01913488c658e0"
+        }
+      }
+    }
+  },
+  "runtimeDependencies": {
+    "@xmldom/xmldom": {
+      "version": "0.9.12",
+      "tarball": "xmldom-0.9.12.tgz",
+      "sha256": "08245e18c248b957b4c6e07f8549ad5f55ae11b7a8abd4c1113a0fd61ddc67ee",
+      "bytes": 109708,
+      "integrity": "sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==",
+      "resolved": "https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.9.12.tgz"
+    },
+    "fflate": {
+      "version": "0.8.3",
+      "tarball": "fflate-0.8.3.tgz",
+      "sha256": "38c2cd824402407b43153c782274aec2ea83ea688e4aa0b743c5f2c305857d92",
+      "bytes": 173034,
+      "integrity": "sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==",
+      "resolved": "https://registry.npmjs.org/fflate/-/fflate-0.8.3.tgz"
+    },
+    "smol-toml": {
+      "version": "1.8.0",
+      "tarball": "smol-toml-1.8.0.tgz",
+      "sha256": "1fc995be91cdb777fc13e20c2edfebaaf60ef4e4d2d5331caef2837b04d37892",
+      "bytes": 23162,
+      "integrity": "sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==",
+      "resolved": "https://registry.npmjs.org/smol-toml/-/smol-toml-1.8.0.tgz"
+    }
+  },
+  "nixDependencyAuthority": {
+    "theme-forge-stellar-burst": {
+      "lockfileSha256": "bdab3e0cbbd31d8c1d22bd030e999b6900bf232a4b464604ab521925d0fadb9f",
+      "npmDepsHash": "sha256-8633Xz/V+2Amu2wRydbQJVlkJgNwkgd3d5aR4/mWlac="
+    },
+    "theme-forge-stellar-loom": {
+      "lockfileSha256": "fe81ac6c5539bb74f3bb3777b5975d1e792e9d9dc42ad669f998aeb27711ec6d",
+      "npmDepsHash": "sha256-DLKVAiTQf9h3kUT4wAIVHML759NmPQ2isRUXTM+CRjw="
+    },
+    "theme-forge-solar-sail": {
+      "lockfileSha256": "7bd7aab2eb8950e8829118e31bb4f04d789a51f096ec22e6421608e277b5e7cc",
+      "npmDepsHash": "sha256-XSYq8QTP3UT/2gz7E65DbT2uvZu1WvUsSEERUXOMXU0="
+    }
+  },
+  "distributionChannels": {
+    "repositoryId": "knowledge-forge-ai",
+    "publicPagesUrl": "https://knowledge-forge-ai.github.io/theme-forge-packages",
+    "publicKeyPath": "keys/knowledge-forge-ai-packages.asc",
+    "archPath": "arch/x86_64",
+    "rpmPath": "rpm/$basearch"
+  }
+}

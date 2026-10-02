@@ -1,0 +1,524 @@
+name: Validate Distribution Packages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-linux:
+    name: Validate Linux Packages (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+            build_pacman: true
+            arch_container: "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040"
+            fedora_container: "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42"
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            build_pacman: false
+            fedora_container: "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71128a80180236703e1a06730d29f # v16
+
+      - name: Real Nix Build & Verification (${{ matrix.arch }}-linux)
+        run: |
+          set -euo pipefail
+          echo "Building Nix packages for ${{ matrix.arch }}-linux..."
+          nix build path:.#tfsb --no-link
+          nix build path:.#tfsl --no-link
+          nix build path:.#tfss --no-link
+          nix build path:.#tfnf --out-link result-tfnf
+          nix build path:.#theme-forge-nebular-fusion.payload --out-link result-tfnf-payload
+          nix flake check path:. -L
+
+          # Verify Nebular binary byte invariance in wrapped output
+          EXPECTED_SHA=$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['${{ matrix.arch }}-linux'].executableSha256")
+          ACTUAL_SHA=$(sha256sum result-tfnf-payload/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | awk '{print $1}')
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+          echo "Nix Nebular executable byte invariance confirmed: $ACTUAL_SHA"
+          rm -f result-tfnf result-tfnf-payload
+
+      - name: Download & Authenticate Locked Upstream Assets
+        run: |
+          set -euo pipefail
+          node tools/verification/fetch-locked-assets.mjs --lock release-lock.json --dest upstream-assets
+
+      - name: Verify Release Lock with Required Assets
+        run: |
+          set -euo pipefail
+          node tools/verification/verify-release-lock.mjs release-lock.json --require-assets --assets-dir upstream-assets
+
+      - name: Validate Committed Production Public Key Trust Anchor
+        run: |
+          set -euo pipefail
+          echo "Validating committed production public key trust anchor..."
+          # 1. Assert plain OpenPGP armor header on line 1 with zero prepended non-armor comments
+          FIRST_LINE=$(head -n 1 keys/knowledge-forge-ai-packages.asc)
+          test "$FIRST_LINE" = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
+
+          # 2. Run first-push gate validator to enforce gpg parsing, non-fixture identity, and signing subkey
+          node tools/verification/verify-public-key-bootstrap.mjs keys/knowledge-forge-ai-packages.asc
+
+          # 3. Clean keyring import test
+          CLEAN_GNUPGHOME=$(mktemp -d)
+          GNUPGHOME="$CLEAN_GNUPGHOME" gpg --batch --quiet --import keys/knowledge-forge-ai-packages.asc
+          rm -rf "$CLEAN_GNUPGHOME"
+          echo "Committed production public key validated successfully."
+
+      - name: Generate Ephemeral Validation Signing Key
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/signing test-fixtures/signing
+          GNUPGHOME="$(pwd)/scratch/signing"
+          export GNUPGHOME
+          printf '%s\n' \
+            '%no-protection' \
+            'Key-Type: RSA' \
+            'Key-Length: 2048' \
+            'Subkey-Type: RSA' \
+            'Subkey-Length: 2048' \
+            'Subkey-Usage: sign' \
+            'Name-Real: Theme Forge Validation Fixture' \
+            'Name-Email: validation@knowledgeforge.ai' \
+            'Expire-Date: 1d' \
+            '%commit' > /tmp/gpg-gen.conf
+          gpg --batch --gen-key /tmp/gpg-gen.conf
+          rm -f /tmp/gpg-gen.conf
+          FIXTURE_FPR=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
+          echo "FIXTURE_FPR=$FIXTURE_FPR" >> "$GITHUB_ENV"
+          gpg --armor --export "$FIXTURE_FPR" > test-fixtures/signing/fixture-public-key.asc
+          gpg --armor --export-secret-keys "$FIXTURE_FPR" > test-fixtures/signing/fixture-signing-key.asc
+          echo "Generated ephemeral validation key with fingerprint: $FIXTURE_FPR"
+
+      - name: Real RPM Build & Sign (Fedora Container)
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/rpm/${{ matrix.arch }}
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            ${{ matrix.fedora_container }} \
+            sh -c "
+              set -euo pipefail
+              dnf install -y -q rpm-build rpmlint createrepo_c gnupg rpmsign
+
+              # Setup rpmbuild trees
+              mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+              cp templates/rpm/*.spec /root/rpmbuild/SPECS/
+              cp templates/desktop/* /root/rpmbuild/SOURCES/
+              cp templates/icons/* /root/rpmbuild/SOURCES/
+              cp upstream-assets/* /root/rpmbuild/SOURCES/
+
+              rpmlint /root/rpmbuild/SPECS/*.spec
+
+              # Build noarch packages on runner
+              rpmbuild -ba --target noarch /root/rpmbuild/SPECS/theme-forge-stellar-loom.spec
+              rpmbuild -ba --target noarch /root/rpmbuild/SPECS/theme-forge-solar-sail.spec
+              cp /root/rpmbuild/RPMS/noarch/*.rpm scratch/rpm/${{ matrix.arch }}/
+
+              # Build architecture-specific packages
+              rpmbuild -ba --target ${{ matrix.arch }} /root/rpmbuild/SPECS/theme-forge-stellar-burst.spec
+              rpmbuild -ba --target ${{ matrix.arch }} /root/rpmbuild/SPECS/theme-forge-nebular-fusion.spec
+              cp /root/rpmbuild/RPMS/${{ matrix.arch }}/*.rpm scratch/rpm/${{ matrix.arch }}/
+
+              # Import fixture keys for signing
+              gpg --batch --import test-fixtures/signing/fixture-signing-key.asc
+              gpg --batch --import test-fixtures/signing/fixture-public-key.asc
+              FPR=\$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print \$10; exit}')
+
+              echo '%_signature gpg' > /root/.rpmmacros
+              echo \"%_gpg_name \$FPR\" >> /root/.rpmmacros
+
+              # Sign every built RPM with fixture key
+              rpmsign --addsign scratch/rpm/${{ matrix.arch }}/*.rpm
+
+              # Generate repository metadata and sign repomd
+              createrepo_c scratch/rpm/${{ matrix.arch }}
+              gpg --batch --yes --detach-sign --armor -u \"\$FPR\" scratch/rpm/${{ matrix.arch }}/repodata/repomd.xml
+
+              # Prove committed production public key imports successfully via RPM path
+              rpm --import /workspace/keys/knowledge-forge-ai-packages.asc
+
+              # Verify RPM internal signatures with only public key
+              rpm --import test-fixtures/signing/fixture-public-key.asc
+              rpm --checksig scratch/rpm/${{ matrix.arch }}/*.rpm
+              gpg --batch --verify scratch/rpm/${{ matrix.arch }}/repodata/repomd.xml.asc scratch/rpm/${{ matrix.arch }}/repodata/repomd.xml
+            "
+
+      - name: Clean-Container RPM Installation & Binary Verification
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$(pwd)/scratch/rpm/${{ matrix.arch }}:/repo:ro" \
+            -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/etc/pki/rpm-gpg/RPM-GPG-KEY-kfa:ro" \
+            -v "$(pwd)/release-lock.json:/workspace/release-lock.json:ro" \
+            ${{ matrix.fedora_container }} \
+            sh -c "
+              set -euo pipefail
+              rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-kfa
+
+              printf '%s\n' \
+                '[local-test]' \
+                'name=Local Test Repository' \
+                'baseurl=file:///repo' \
+                'enabled=1' \
+                'gpgcheck=1' \
+                'repo_gpgcheck=1' \
+                'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-kfa' > /etc/yum.repos.d/local.repo
+
+              dnf install -y -q theme-forge-stellar-burst theme-forge-nebular-fusion theme-forge-stellar-loom theme-forge-solar-sail
+              tfsl --version | grep '0.4.0'
+              tfsl-batch --help >/dev/null
+              tfss --version | grep '0.2.1'
+              tfsb --version | grep '0.6.1'
+              tfsb-studio-service --help >/dev/null
+              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+
+              # Verify Nebular binary byte identity against locked raw binary dynamically
+              ACTUAL_SHA=\$(sha256sum /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | awk '{print \$1}')
+              EXPECTED_SHA=\$(node -p \"require('/workspace/release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['${{ matrix.arch }}-linux'].executableSha256\")
+              test \"\$ACTUAL_SHA\" = \"\$EXPECTED_SHA\"
+              echo 'RPM Nebular binary byte invariance confirmed: '\$ACTUAL_SHA
+
+              # Clean uninstall and readback
+              dnf remove -y -q theme-forge-stellar-burst theme-forge-nebular-fusion theme-forge-stellar-loom theme-forge-solar-sail
+              test ! -e /usr/bin/tfsb && test ! -L /usr/bin/tfsb
+              test ! -e /usr/bin/tfnf && test ! -L /usr/bin/tfnf
+            "
+
+      - name: RPM Signature Tamper Test (Fail-Closed Enforcement)
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/rpm-tamper
+          cp -r scratch/rpm/${{ matrix.arch }}/* scratch/rpm-tamper/
+
+          # Test 1: Corrupt first RPM file
+          TARGET_RPM=$(find scratch/rpm-tamper -name "*.rpm" | head -n 1)
+          echo 'X' >> "$TARGET_RPM"
+
+          docker run --rm \
+            -v "$(pwd)/scratch/rpm-tamper:/repo:ro" \
+            -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/etc/pki/rpm-gpg/RPM-GPG-KEY-kfa:ro" \
+            ${{ matrix.fedora_container }} \
+            sh -c '
+              set -e
+              rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-kfa
+              TARGET=$(ls /repo/*.rpm | head -n 1)
+              OUTPUT=$(rpm --checksig "$TARGET" 2>&1 || true)
+              if echo "$OUTPUT" | grep -qiE "NOT OK|BAD|FAIL|digest mismatch"; then
+                echo "[PASS] rpm --checksig correctly rejected tampered RPM fail-closed: $OUTPUT"
+              else
+                echo "TAMPER ERROR: rpm --checksig did not reject for signature failure. Output: $OUTPUT" >&2
+                exit 1
+              fi
+            '
+
+          # Test 2: Corrupt repomd.xml.asc
+          mkdir -p scratch/rpm-tamper-repomd
+          cp -r scratch/rpm/${{ matrix.arch }}/* scratch/rpm-tamper-repomd/
+          echo 'CORRUPT' >> scratch/rpm-tamper-repomd/repodata/repomd.xml.asc
+
+          docker run --rm \
+            -v "$(pwd)/scratch/rpm-tamper-repomd:/repo:ro" \
+            -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/etc/pki/rpm-gpg/RPM-GPG-KEY-kfa:ro" \
+            ${{ matrix.fedora_container }} \
+            sh -c '
+              set -e
+              printf "%s\n" \
+                "[local-test]" \
+                "name=Local Test" \
+                "baseurl=file:///repo" \
+                "enabled=1" \
+                "gpgcheck=1" \
+                "repo_gpgcheck=1" \
+                "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-kfa" > /etc/yum.repos.d/local.repo
+              OUTPUT=$(dnf --refresh check-update 2>&1 || true)
+              if echo "$OUTPUT" | grep -qiE "signature|GPG|key|repomd|verification failed|BAD"; then
+                echo "[PASS] DNF rejected corrupted repomd.xml.asc fail-closed: $OUTPUT"
+              else
+                echo "TAMPER ERROR: DNF did not fail for repomd signature reason: $OUTPUT" >&2
+                exit 1
+              fi
+            '
+          rm -rf scratch/rpm-tamper scratch/rpm-tamper-repomd
+
+      - name: Real Pacman Build, Sign, and Repository Assembly (Arch Container)
+        if: matrix.build_pacman
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/arch/x86_64
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            ${{ matrix.arch_container }} \
+            sh -c "
+              set -euo pipefail
+              pacman -Sy --noconfirm base-devel pacman-contrib gnupg sudo
+
+              useradd -m builder && echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+              chown -R builder:builder /workspace/scratch/arch
+
+              # Import fixture keys for builder
+              su builder -c '
+                set -euo pipefail
+                gpg --batch --import /workspace/test-fixtures/signing/fixture-signing-key.asc
+                gpg --batch --import /workspace/test-fixtures/signing/fixture-public-key.asc
+              '
+
+              # Build all 4 packages using real makepkg
+              for pkgdir in templates/pacman/*; do
+                if [ -d \"\$pkgdir\" ]; then
+                  pkgname=\$(basename \"\$pkgdir\")
+                  echo \"Building Pacman package: \$pkgname\"
+                  mkdir -p /home/builder/build/\$pkgname
+                  cp -r \"\$pkgdir/\"* /home/builder/build/\$pkgname/
+                  cp -r /workspace/upstream-assets/* /home/builder/build/\$pkgname/
+                  chown -R builder:builder /home/builder/build/\$pkgname
+
+                  su builder -c \"
+                    set -euo pipefail
+                    cd /home/builder/build/\$pkgname
+                    makepkg -s --noconfirm
+                    cp *.pkg.tar.zst /workspace/scratch/arch/x86_64/
+                  \"
+                fi
+              done
+
+              # Sign each built package with fixture key
+              su builder -c '
+                set -euo pipefail
+                cd /workspace/scratch/arch/x86_64
+                FPR=\$(gpg --list-secret-keys --with-colons | awk -F: '\''/^fpr/{print \$10; exit}'\'')
+                for pkg in *.pkg.tar.zst; do
+                  gpg --batch --yes --detach-sign -u \"\$FPR\" \"\$pkg\"
+                done
+                repo-add -s -k \"\$FPR\" knowledge-forge-ai.db.tar.gz *.pkg.tar.zst
+              '
+
+              # Verify all detached signatures with public key only
+              su builder -c '
+                set -euo pipefail
+                export GNUPGHOME=\$(mktemp -d)
+                gpg --batch --import /workspace/test-fixtures/signing/fixture-public-key.asc
+                cd /workspace/scratch/arch/x86_64
+                for sig in *.sig; do
+                  target=\"\${sig%.sig}\"
+                  gpg --batch --verify \"\$sig\" \"\$target\"
+                done
+                echo \"[PASS] All pacman package and DB signatures verified with fixture public key.\"
+              '
+            "
+
+      - name: Clean-Container Pacman Installation & Binary Verification
+        if: matrix.build_pacman
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$(pwd)/scratch/arch/x86_64:/repo:ro" \
+            -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/tmp/kfa.asc:ro" \
+            -v "$(pwd)/keys/knowledge-forge-ai-packages.asc:/tmp/prod-key.asc:ro" \
+            -v "$(pwd)/release-lock.json:/workspace/release-lock.json:ro" \
+            ${{ matrix.arch_container }} \
+            sh -c "
+              set -euo pipefail
+              pacman-key --init
+              # Prove committed production public key imports successfully via pacman-key path
+              pacman-key --add /tmp/prod-key.asc
+
+              # Import ephemeral fixture key to trust locally built validation packages
+              pacman-key --add /tmp/kfa.asc
+              FPR=\$(gpg --show-keys --with-colons /tmp/kfa.asc | awk -F: '/^fpr/{print \$10; exit}')
+              pacman-key --lsign-key \"\$FPR\"
+
+              printf '%s\n' '' '[knowledge-forge-ai]' 'SigLevel = Required DatabaseRequired TrustedOnly' 'Server = file:///repo' >> /etc/pacman.conf
+
+              pacman -Sy --noconfirm
+              pacman -S --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+
+              tfsb --version | grep '0.6.1'
+              tfsb-studio-service --help >/dev/null
+              tfsl --version | grep '0.4.0'
+              tfsl-batch --help >/dev/null
+              tfss --version | grep '0.2.1'
+              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+
+              ACTUAL_SHA=\$(sha256sum /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | awk '{print \$1}')
+              EXPECTED_SHA=\$(node -p \"require('/workspace/release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['x86_64-linux'].executableSha256\")
+              test \"\$ACTUAL_SHA\" = \"\$EXPECTED_SHA\"
+              echo 'Pacman Nebular binary byte invariance confirmed: '\$ACTUAL_SHA
+
+              # Clean uninstall and readback
+              pacman -R --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+              test ! -e /usr/bin/tfsb && test ! -L /usr/bin/tfsb
+              test ! -e /usr/bin/tfnf && test ! -L /usr/bin/tfnf
+            "
+
+      - name: Pacman Tamper Test (Fail-Closed Signature Rejection)
+        if: matrix.build_pacman
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/arch-tamper
+          cp -r scratch/arch/x86_64/* scratch/arch-tamper/
+
+          # Test 1: Corrupt one package
+          TARGET_PKG=$(find scratch/arch-tamper -name "*.pkg.tar.zst" | head -n 1)
+          echo 'CORRUPT' >> "$TARGET_PKG"
+
+          docker run --rm \
+            -v "$(pwd)/scratch/arch-tamper:/repo:ro" \
+            -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/tmp/kfa.asc:ro" \
+            -e TARGET_PKG="$(basename "$TARGET_PKG")" \
+            ${{ matrix.arch_container }} \
+            sh -c '
+              set -e
+              pacman-key --init
+              pacman-key --add /tmp/kfa.asc
+              FPR=$(gpg --show-keys --with-colons /tmp/kfa.asc | awk -F: '\''/^fpr/{print $10; exit}'\'')
+              pacman-key --lsign-key "$FPR"
+
+              printf "%s\n" "" "[knowledge-forge-ai]" "SigLevel = Required DatabaseRequired TrustedOnly" "Server = file:///repo" >> /etc/pacman.conf
+
+              pacman -Sy --noconfirm
+              PKG_BASE=$(echo "$TARGET_PKG" | sed -E "s/-[0-9].*//")
+              OUTPUT=$(pacman -S --noconfirm "$PKG_BASE" 2>&1 || true)
+              if echo "$OUTPUT" | grep -qiE "invalid or corrupted|corrupted|PGP signature|error: failed to commit transaction"; then
+                echo "[PASS] pacman rejected tampered package fail-closed: $OUTPUT"
+              else
+                echo "TAMPER ERROR: pacman did not reject for corruption/signature reason: $OUTPUT" >&2
+                exit 1
+              fi
+            '
+
+          # Test 2: Corrupt DB signature
+          mkdir -p scratch/arch-tamper-db
+          cp -r scratch/arch/x86_64/* scratch/arch-tamper-db/
+          echo 'CORRUPT' >> scratch/arch-tamper-db/knowledge-forge-ai.db.tar.gz.sig
+
+          docker run --rm \
+            -v "$(pwd)/scratch/arch-tamper-db:/repo:ro" \
+            -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/tmp/kfa.asc:ro" \
+            ${{ matrix.arch_container }} \
+            sh -c '
+              set -e
+              pacman-key --init
+              pacman-key --add /tmp/kfa.asc
+              FPR=$(gpg --show-keys --with-colons /tmp/kfa.asc | awk -F: '\''/^fpr/{print $10; exit}'\'')
+              pacman-key --lsign-key "$FPR"
+
+              printf "%s\n" "" "[knowledge-forge-ai]" "SigLevel = Required DatabaseRequired TrustedOnly" "Server = file:///repo" >> /etc/pacman.conf
+
+              OUTPUT=$(pacman -Sy --noconfirm 2>&1 || true)
+              if echo "$OUTPUT" | grep -qiE "invalid or corrupted|corrupted|PGP signature|failed to update"; then
+                echo "[PASS] pacman rejected corrupted DB signature fail-closed: $OUTPUT"
+              else
+                echo "TAMPER ERROR: pacman did not reject for DB signature reason: $OUTPUT" >&2
+                exit 1
+              fi
+            '
+          rm -rf scratch/arch-tamper scratch/arch-tamper-db
+
+      - name: Real AUR Validation in Arch Container
+        if: matrix.build_pacman
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            ${{ matrix.arch_container }} \
+            sh -c "
+              set -euo pipefail
+              pacman -Sy --noconfirm base-devel pacman-contrib namcap sudo
+
+              useradd -m builder && echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+              for dir in aur/*; do
+                if [ -d \"\$dir\" ]; then
+                  echo \"=== Validating AUR recipe: \$dir ===\"
+                  mkdir -p /home/builder/aurbuild
+                  cp -a \"\$dir/.\" /home/builder/aurbuild/
+                  cp -r /workspace/upstream-assets/* /home/builder/aurbuild/
+                  chown -R builder:builder /home/builder/aurbuild
+
+                  su builder -c '
+                    set -euo pipefail
+                    cd /home/builder/aurbuild
+                    makepkg --verifysource
+                    makepkg --printsrcinfo > .SRCINFO.gen
+                    diff -u .SRCINFO .SRCINFO.gen
+                    echo \"[PASS] .SRCINFO is bit-for-bit identical to committed .SRCINFO\"
+                    namcap PKGBUILD
+                  '
+                  rm -rf /home/builder/aurbuild
+                fi
+              done
+            "
+
+      - name: Retain Validation Receipts
+        run: |
+          set -euo pipefail
+          mkdir -p scratch/provenance
+          echo "{\"validationTimestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"arch\": \"${{ matrix.arch }}\", \"status\": \"PASS\"}" > scratch/provenance/validation-receipt-${{ matrix.arch }}.json
+
+      - name: Upload Test Verification Receipts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: validation-receipts-${{ matrix.arch }}
+          path: scratch/provenance/
+          if-no-files-found: error
+
+  validate-nix-darwin:
+    name: Validate Hosted Nix on macOS (aarch64-darwin)
+    runs-on: macos-15
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71128a80180236703e1a06730d29f # v16
+
+      - name: Real Nix Build & Verification (aarch64-darwin)
+        run: |
+          set -euo pipefail
+          echo "Building Nix packages on macOS 15..."
+          nix build path:.#tfsb --no-link
+          nix build path:.#tfsl --no-link
+          nix build path:.#tfss --no-link
+          nix build path:.#tfnf --out-link result-tfnf
+          nix flake check path:. -L
+
+          # Verify Darwin .app structure and launcher
+          APP_PATH="result-tfnf/Applications/Theme Forge Nebular Fusion.app"
+          test -d "$APP_PATH"
+          test -L "result-tfnf/bin/tfnf"
+
+          # Verify actual executable launch and version output
+          ./result-tfnf/bin/tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+
+          # Verify binary byte identity against locked Darwin executable
+          RAW_EXE="$APP_PATH/Contents/MacOS/theme-forge-nebular-fusion"
+          ACTUAL_SHA=$(shasum -a 256 "$RAW_EXE" | awk '{print $1}')
+          EXPECTED_SHA=$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['aarch64-darwin'].executableSha256")
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+          echo "[PASS] macOS Nebular binary byte invariance confirmed: $ACTUAL_SHA"
+          rm -f result-tfnf

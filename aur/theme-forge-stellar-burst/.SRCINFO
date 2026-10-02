@@ -1,0 +1,19 @@
+pkgbase = theme-forge-stellar-burst
+	pkgdesc = Theme Forge Stellar Burst design token compiler and validation engine
+	pkgver = 0.6.1
+	pkgrel = 1
+	url = https://github.com/Knowledge-Forge-AI/theme-forge-packages
+	arch = x86_64
+	arch = aarch64
+	license = AGPL-3.0-or-later
+	depends = nodejs>=22
+	source = https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-stellar-burst/-/theme-forge-stellar-burst-0.6.1.tgz
+	source = https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.9.12.tgz
+	source = https://registry.npmjs.org/fflate/-/fflate-0.8.3.tgz
+	source = https://registry.npmjs.org/smol-toml/-/smol-toml-1.8.0.tgz
+	sha256sums = 53ef41a3de3335e042f2c4b1d299b1155b64bfc6556a84baf6a62cb28bcca209
+	sha256sums = 08245e18c248b957b4c6e07f8549ad5f55ae11b7a8abd4c1113a0fd61ddc67ee
+	sha256sums = 38c2cd824402407b43153c782274aec2ea83ea688e4aa0b743c5f2c305857d92
+	sha256sums = 1fc995be91cdb777fc13e20c2edfebaaf60ef4e4d2d5331caef2837b04d37892
+
+pkgname = theme-forge-stellar-burst

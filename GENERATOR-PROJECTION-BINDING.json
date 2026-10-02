@@ -1,0 +1,338 @@
+{
+  "schema": "tfsb.dist1-bootstrap-projection-binding-v1",
+  "generatedAt": "2026-10-02T00:06:34.594Z",
+  "generator": "tools/distribution/bootstrap-public-repo.mjs",
+  "bootstrapState": "bootstrapped-with-production-key",
+  "productionPrimaryFingerprint": "7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF",
+  "productionSigningSubkeyFingerprint": "C021E00EE3D37C459B0E1CB3199F8028126E8A8C",
+  "releaseLockSha256": "567b91e43e9e3d871d19f96abbaa4c593de0f0c99029d56f3fd903b5635b29cc",
+  "treeManifestSha256": "f42aa29f7ffc7bc21912724041efbdf71095c51be6a0ccf80d0678a5f6d5222b",
+  "totalFiles": 65,
+  "files": [
+    {
+      "path": ".github/workflows/publish.yml",
+      "bytes": 25819,
+      "sha256": "91cf4e36233febc4fa2c1e788a4f183b123c3beb30a18ed4d1d1f14ed5ac1386"
+    },
+    {
+      "path": ".github/workflows/validate.yml",
+      "bytes": 24402,
+      "sha256": "67828ba3c25d717a36cae6af2c9e78878431372519316ebb4e1a6eeaf2ea13b0"
+    },
+    {
+      "path": "AUR-READINESS.md",
+      "bytes": 3084,
+      "sha256": "f84f3cbc2d369b6164f42016c9e78d85225ea52f3f171df2aaa00e5bf2c768fa"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/.SRCINFO",
+      "bytes": 1856,
+      "sha256": "6ee2f94de19ae89a27fa592026cc09b6eb3413c3af1a1c2aa177af6dcb08ff97"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/icon-128x128.png",
+      "bytes": 5740,
+      "sha256": "8aeb5d5d88b2c3cd5525b8de87359c1b8c248948bd9de7bb83a4f61160cdd5ca"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/icon-16x16.png",
+      "bytes": 624,
+      "sha256": "bd1717587999d2c81baeb583022be718b7ac0a9affbdbad16b8d3d53717850ee"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/icon-256x256.png",
+      "bytes": 8814,
+      "sha256": "2d65e8c69a675b6c939ac11757c6a47a123f63b3f83b6d58305aaf7231aca160"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/icon-32x32.png",
+      "bytes": 1298,
+      "sha256": "a6b2a188179558e26b24a52c8efeda5ce6d2ca73f33f22b8717844cfd00f98d0"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/icon-48x48.png",
+      "bytes": 1964,
+      "sha256": "7268eb032e7e41cb6d48a0b086e1a883b64bf5497845980d87f987984884cfad"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/icon-64x64.png",
+      "bytes": 2702,
+      "sha256": "fd68f2da45e40bccf6c8fd447b479c92e041fa5675adb88ce6751cc96d4f2d1f"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/PKGBUILD",
+      "bytes": 2916,
+      "sha256": "1912edfa8e783ed558a728899205f31197c417b53fc5485c62803b6054456019"
+    },
+    {
+      "path": "aur/theme-forge-nebular-fusion-bin/theme-forge-nebular-fusion.desktop",
+      "bytes": 333,
+      "sha256": "24b28e715e74ce594c75c13fb865a84399ca5aac168490e1773cbad1f3de0283"
+    },
+    {
+      "path": "aur/theme-forge-solar-sail/.SRCINFO",
+      "bytes": 494,
+      "sha256": "349e9f1f089e6880f2be054140cb5bc316995875550c0f3047f8e34020784590"
+    },
+    {
+      "path": "aur/theme-forge-solar-sail/PKGBUILD",
+      "bytes": 998,
+      "sha256": "2da6339db6e5efb65e3318f7158c359f1a2f9678e4a9516af2e740f335ba1679"
+    },
+    {
+      "path": "aur/theme-forge-stellar-burst/.SRCINFO",
+      "bytes": 971,
+      "sha256": "af777b014fc1fa9d605041dd85b23ffdc9f9fbfbbab119d21048b44c97b8fa97"
+    },
+    {
+      "path": "aur/theme-forge-stellar-burst/PKGBUILD",
+      "bytes": 2085,
+      "sha256": "1dc9001ca66318de7555891311c409c831906373c08979e6db06dc3e005a80bc"
+    },
+    {
+      "path": "aur/theme-forge-stellar-loom/.SRCINFO",
+      "bytes": 499,
+      "sha256": "0a925a5fdc641417d3b3dc15b3d3dc67679507882e22cc0e7b68a74a289bf878"
+    },
+    {
+      "path": "aur/theme-forge-stellar-loom/PKGBUILD",
+      "bytes": 1176,
+      "sha256": "2b69d33543ba889547a71ce712944126155a556b4a034ed0ca0cc195a8cf14e5"
+    },
+    {
+      "path": "flake.lock",
+      "bytes": 569,
+      "sha256": "ed928e945c79e3d7f19d37b13a05f0d97b98440b38661d97bf77844e40606431"
+    },
+    {
+      "path": "flake.nix",
+      "bytes": 3733,
+      "sha256": "2a16ce397ec89270d12e247274eeb75b3c10903d81331ec54d8289b8e18c7c91"
+    },
+    {
+      "path": "INSTALL.md",
+      "bytes": 4035,
+      "sha256": "93943f5e9975c32deb1fdea59b3ba0b06a8a5889395bb23c55295f8259a74d83"
+    },
+    {
+      "path": "keys/KEY-METADATA.json",
+      "bytes": 280,
+      "sha256": "fa7c4ef262aac68d407ef3f40bea67e491fa8d6aeab98facec075a35b994c3da"
+    },
+    {
+      "path": "keys/knowledge-forge-ai-packages.asc",
+      "bytes": 3947,
+      "sha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95"
+    },
+    {
+      "path": "package-matrix.json",
+      "bytes": 5179,
+      "sha256": "489e620882a06f4ed687e496f0377a9af1722c7074e2be69269a6f30cdfb32a4"
+    },
+    {
+      "path": "PACKAGE-SIGNING-BOOTSTRAP.md",
+      "bytes": 13886,
+      "sha256": "04ac488f38d7cf44638ad195ac7446b020b5638cc321334bdb83e947ea32a50d"
+    },
+    {
+      "path": "packages/nebular-fusion.nix",
+      "bytes": 4865,
+      "sha256": "0c217de505993e7f1c5089651016c273d8f027d6a7a2971e8e4b7750bc0dccb3"
+    },
+    {
+      "path": "packages/solar-sail.nix",
+      "bytes": 1161,
+      "sha256": "8e175f41f226485dd738e79f9fe2c875cd8df01e4b96db7142928997e494badc"
+    },
+    {
+      "path": "packages/stellar-burst.nix",
+      "bytes": 2582,
+      "sha256": "af9e61d2c81c268428157793c2d6c3f68843983e97bfb9f68a9feadba17fd1db"
+    },
+    {
+      "path": "packages/stellar-loom.nix",
+      "bytes": 1303,
+      "sha256": "e2fce9c7364ab914aa953d471b36cec01da3045c31225aa5c1ba76248944bcf0"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5590,
+      "sha256": "a50e8723b5bb32a45ba5a2135f9c308b2097837ac44a97be8a6055bd48aaeece"
+    },
+    {
+      "path": "release-lock.json",
+      "bytes": 5065,
+      "sha256": "567b91e43e9e3d871d19f96abbaa4c593de0f0c99029d56f3fd903b5635b29cc"
+    },
+    {
+      "path": "static/config/knowledge-forge-ai.repo",
+      "bytes": 266,
+      "sha256": "28dcdef1e49dd4865d1451e8b78be011bcfbf3fd05f39891a878f8c9530a3ae9"
+    },
+    {
+      "path": "static/config/pacman.conf",
+      "bytes": 149,
+      "sha256": "a2142382686394bee137377bd24b1c528c99536db237e96c22d77cb2af5e4291"
+    },
+    {
+      "path": "static/index.html",
+      "bytes": 5963,
+      "sha256": "bb88af01416386d912e0ea30af6c00e25e671966e6c6eb4b07274b894b9c9f15"
+    },
+    {
+      "path": "templates/desktop/theme-forge-nebular-fusion.desktop",
+      "bytes": 333,
+      "sha256": "24b28e715e74ce594c75c13fb865a84399ca5aac168490e1773cbad1f3de0283"
+    },
+    {
+      "path": "templates/icons/icon-128x128.png",
+      "bytes": 5740,
+      "sha256": "8aeb5d5d88b2c3cd5525b8de87359c1b8c248948bd9de7bb83a4f61160cdd5ca"
+    },
+    {
+      "path": "templates/icons/icon-16x16.png",
+      "bytes": 624,
+      "sha256": "bd1717587999d2c81baeb583022be718b7ac0a9affbdbad16b8d3d53717850ee"
+    },
+    {
+      "path": "templates/icons/icon-256x256.png",
+      "bytes": 8814,
+      "sha256": "2d65e8c69a675b6c939ac11757c6a47a123f63b3f83b6d58305aaf7231aca160"
+    },
+    {
+      "path": "templates/icons/icon-32x32.png",
+      "bytes": 1298,
+      "sha256": "a6b2a188179558e26b24a52c8efeda5ce6d2ca73f33f22b8717844cfd00f98d0"
+    },
+    {
+      "path": "templates/icons/icon-48x48.png",
+      "bytes": 1964,
+      "sha256": "7268eb032e7e41cb6d48a0b086e1a883b64bf5497845980d87f987984884cfad"
+    },
+    {
+      "path": "templates/icons/icon-64x64.png",
+      "bytes": 2702,
+      "sha256": "fd68f2da45e40bccf6c8fd447b479c92e041fa5675adb88ce6751cc96d4f2d1f"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/icon-128x128.png",
+      "bytes": 5740,
+      "sha256": "8aeb5d5d88b2c3cd5525b8de87359c1b8c248948bd9de7bb83a4f61160cdd5ca"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/icon-16x16.png",
+      "bytes": 624,
+      "sha256": "bd1717587999d2c81baeb583022be718b7ac0a9affbdbad16b8d3d53717850ee"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/icon-256x256.png",
+      "bytes": 8814,
+      "sha256": "2d65e8c69a675b6c939ac11757c6a47a123f63b3f83b6d58305aaf7231aca160"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/icon-32x32.png",
+      "bytes": 1298,
+      "sha256": "a6b2a188179558e26b24a52c8efeda5ce6d2ca73f33f22b8717844cfd00f98d0"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/icon-48x48.png",
+      "bytes": 1964,
+      "sha256": "7268eb032e7e41cb6d48a0b086e1a883b64bf5497845980d87f987984884cfad"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/icon-64x64.png",
+      "bytes": 2702,
+      "sha256": "fd68f2da45e40bccf6c8fd447b479c92e041fa5675adb88ce6751cc96d4f2d1f"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/PKGBUILD",
+      "bytes": 2476,
+      "sha256": "9cbbe0c1d04d900fdd1a0207c733d575f3104ad6b7f473e5658ccb688d16422e"
+    },
+    {
+      "path": "templates/pacman/theme-forge-nebular-fusion/theme-forge-nebular-fusion.desktop",
+      "bytes": 333,
+      "sha256": "24b28e715e74ce594c75c13fb865a84399ca5aac168490e1773cbad1f3de0283"
+    },
+    {
+      "path": "templates/pacman/theme-forge-solar-sail/PKGBUILD",
+      "bytes": 1017,
+      "sha256": "5827815f77844b19086993a518a91aeb996ffa1714ffebc6a01b622c208e900a"
+    },
+    {
+      "path": "templates/pacman/theme-forge-stellar-burst/PKGBUILD",
+      "bytes": 2495,
+      "sha256": "2d3ef7b13229919bf1d97deccb0f352181c71409ea1ff83bcaae658828fc6789"
+    },
+    {
+      "path": "templates/pacman/theme-forge-stellar-loom/PKGBUILD",
+      "bytes": 1195,
+      "sha256": "6d2cddbb05c0ac98fbae6e5eb95ca5f3b187399335abc1b55d897a91635b0dc5"
+    },
+    {
+      "path": "templates/rpm/theme-forge-nebular-fusion.spec",
+      "bytes": 3267,
+      "sha256": "47249b94cc91d8bdb445aa692d5f6b2d036ed7ac515d5c93dddd392d20bfbdbb"
+    },
+    {
+      "path": "templates/rpm/theme-forge-solar-sail.spec",
+      "bytes": 1216,
+      "sha256": "c1345d7e3327d9930a9266a078c145188ee38ca49e56fdc30104727a0a230cb0"
+    },
+    {
+      "path": "templates/rpm/theme-forge-stellar-burst.spec",
+      "bytes": 2862,
+      "sha256": "4bbf2b2d4f91ccb81312972c70f8df2ab0939e1f8b94bb70c2eed363b532cb5c"
+    },
+    {
+      "path": "templates/rpm/theme-forge-stellar-loom.spec",
+      "bytes": 1412,
+      "sha256": "98375c2ce2cd9e29e0e2308d07cd3c658ee8de03cbca9036e83947f4890d123d"
+    },
+    {
+      "path": "tools/verification/fetch-locked-assets.mjs",
+      "bytes": 7125,
+      "sha256": "355661445b68024a50eac3bce4f93b54e5d1caf4a8b4886bb0b896c25fbdeafc"
+    },
+    {
+      "path": "tools/verification/generate-publication-provenance.mjs",
+      "bytes": 7797,
+      "sha256": "1fd13ff84ca4267fb2d2207f006fb966e910426d7555528d115a9afd9119b695"
+    },
+    {
+      "path": "tools/verification/preflight-signing-key.mjs",
+      "bytes": 17951,
+      "sha256": "b22da9b717400c53b320dde0d59a93d3525cd2ec68e6f91b6e6777f44e1ec2bf"
+    },
+    {
+      "path": "tools/verification/projection-identity.mjs",
+      "bytes": 3352,
+      "sha256": "8fdb31e336964be5390197e5c101ebc710d01e8673961b55d3366207aa8c1d6e"
+    },
+    {
+      "path": "tools/verification/verify-hosted-validation-gate.mjs",
+      "bytes": 30286,
+      "sha256": "a3659707727800da6301dbf23d2f81fc398607dae24baba9708b90e2913585b1"
+    },
+    {
+      "path": "tools/verification/verify-public-key-bootstrap.mjs",
+      "bytes": 9536,
+      "sha256": "ddbe0af2faaf582845b58b86221478007f9302533a5594a2447b88fe5f7c744b"
+    },
+    {
+      "path": "tools/verification/verify-publication-provenance.mjs",
+      "bytes": 15746,
+      "sha256": "50abdc435dc2a34bdc8a7511329f7fe9baad7c3554a7eecdab258c004145ef87"
+    },
+    {
+      "path": "tools/verification/verify-release-lock.mjs",
+      "bytes": 6319,
+      "sha256": "7b8705af42123cb982df598f3cf7607943c01c3a7f3b3324a5344012d3700a03"
+    },
+    {
+      "path": "tools/verification/verify-signatures.sh",
+      "bytes": 8025,
+      "sha256": "9fa1dbd691caf924c6004aceea1fa07743b0472b2cc0b1b9a66ca0e6a42ea62c"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+pkgbase = theme-forge-solar-sail
+	pkgdesc = Theme Forge Solar Sail pairing engine and design token validator
+	pkgver = 0.2.1
+	pkgrel = 1
+	url = https://github.com/Knowledge-Forge-AI/theme-forge-packages
+	arch = any
+	license = AGPL-3.0-or-later
+	depends = nodejs>=22
+	source = https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-solar-sail/-/theme-forge-solar-sail-0.2.1.tgz
+	sha256sums = ebc4f21d1e61dbc0ac4e87ce81f7ecec4f97d7c15562356e429d4c1a4e9aa5a0
+
+pkgname = theme-forge-solar-sail
