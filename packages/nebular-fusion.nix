@@ -50,6 +50,8 @@ let
 
     dontStrip = true;
     dontPatchELF = true;
+    # Preserve the authenticated archive, including the sealed Darwin launcher.
+    dontFixup = true;
 
     installPhase = ''
       runHook preInstall
@@ -57,7 +59,7 @@ let
       cp -r "Theme Forge Nebular Fusion.app" "$out/Applications/"
 
       mkdir -p "$out/bin"
-      ln -s "$out/Applications/Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion" "$out/bin/tfnf"
+      ln -s "$out/Applications/Theme Forge Nebular Fusion.app/Contents/Resources/bin/tfnf" "$out/bin/tfnf"
       runHook postInstall
     '';
 
@@ -83,6 +85,8 @@ let
 
     dontStrip = true;
     dontPatchELF = true;
+    # The FHS environment supplies dependencies without rewriting release bytes.
+    dontFixup = true;
 
     installPhase = ''
       runHook preInstall

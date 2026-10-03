@@ -36,6 +36,20 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71c2dd0aa4218de8f4afa59f8f81d # v16
 
+      - name: Checkout Locked Nebular Qualification Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: Knowledge-Forge-AI/theme-forge-nebular-fusion
+          ref: 49e2c4919b6b4ec9bd4ed5d7e7ced90921e00f5e
+          path: scratch/nebular-release-source
+          persist-credentials: false
+
+      - name: Authenticate Nebular Qualification Source
+        run: |
+          set -euo pipefail
+          test "$(git -C scratch/nebular-release-source rev-parse HEAD)" = "$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].releaseCommit")"
+          test "$(git -C scratch/nebular-release-source rev-parse HEAD^{tree})" = "$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].releaseTree")"
+
       - name: Real Nix Build & Verification (${{ matrix.arch }}-linux)
         run: |
           set -euo pipefail
@@ -52,6 +66,21 @@ jobs:
           ACTUAL_SHA=$(sha256sum result-tfnf-payload/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | awk '{print $1}')
           test "$ACTUAL_SHA" = "$EXPECTED_SHA"
           echo "Nix Nebular executable byte invariance confirmed: $ACTUAL_SHA"
+
+          # Runner-host wrapper probes; bubblewrap must never run in a Nix build check.
+          if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+          EXPECTED_VERSION=$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].version")
+          test "$(./result-tfnf/bin/tfnf --version)" = "theme-forge-nebular-fusion $EXPECTED_VERSION"
+          test "$(./result-tfnf/bin/tfnf --path)" = "$(realpath result-tfnf-payload/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion)"
+          # The locked 0.6.1 activation contract refuses before Tauri when no smoke directory exists.
+          set +e
+          timeout --kill-after=5s 30s env -u TFNF_RELEASE_SMOKE_DIR ./result-tfnf/bin/tfnf --nebular-release-smoke=A > nebular-refusal.log 2>&1
+          PROBE_STATUS=$?
+          set -e
+          test "$PROBE_STATUS" -eq 2
+          test "$(cat nebular-refusal.log)" = 'TFSB Studio release smoke refused: release smoke directory is not set'
           rm -f result-tfnf result-tfnf-payload
 
       - name: Download & Authenticate Locked Upstream Assets
@@ -65,6 +94,9 @@ jobs:
           node tools/verification/verify-release-lock.mjs release-lock.json --require-assets --assets-dir upstream-assets
 
       - name: Validate Committed Production Public Key Trust Anchor
+        env:
+          PRODUCTION_PRIMARY_FPR: 7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF
+          PRODUCTION_SIGNING_SUBKEY_FPR: C021E00EE3D37C459B0E1CB3199F8028126E8A8C
         run: |
           set -euo pipefail
           echo "Validating committed production public key trust anchor..."
@@ -72,13 +104,21 @@ jobs:
           FIRST_LINE=$(head -n 1 keys/knowledge-forge-ai-packages.asc)
           test "$FIRST_LINE" = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 
-          # 2. Run first-push gate validator to enforce gpg parsing, non-fixture identity, and signing subkey
-          node tools/verification/verify-public-key-bootstrap.mjs keys/knowledge-forge-ai-packages.asc
+          # 2. The reviewed workflow pins production identity; metadata is explanatory.
+          node tools/verification/verify-public-key-bootstrap.mjs keys/knowledge-forge-ai-packages.asc --expected-fpr "$PRODUCTION_PRIMARY_FPR"
 
           # 3. Clean keyring import test
           CLEAN_GNUPGHOME=$(mktemp -d)
+          trap 'gpgconf --homedir "$CLEAN_GNUPGHOME" --kill all; rm -rf "$CLEAN_GNUPGHOME"' EXIT
           GNUPGHOME="$CLEAN_GNUPGHOME" gpg --batch --quiet --import keys/knowledge-forge-ai-packages.asc
-          rm -rf "$CLEAN_GNUPGHOME"
+          GNUPGHOME="$CLEAN_GNUPGHOME" gpg --batch --quiet --with-colons --with-subkey-fingerprint --list-keys > "$CLEAN_GNUPGHOME/keys.colons"
+          awk -F: -v primary="$PRODUCTION_PRIMARY_FPR" -v signing="$PRODUCTION_SIGNING_SUBKEY_FPR" '
+            $1 == "pub" { pubs++; current = "pub"; next }
+            $1 == "sub" { current = "sub"; valid = ($2 !~ /^[red]$/ && $12 ~ /[sS]/ && ($7 == "" || $7 > systime())); next }
+            $1 == "fpr" && current == "pub" { primary_ok = ($10 == primary); current = ""; next }
+            $1 == "fpr" && current == "sub" { if (valid && $10 == signing) signing_ok = 1; current = "" }
+            END { exit !(pubs == 1 && primary_ok && signing_ok) }
+          ' "$CLEAN_GNUPGHOME/keys.colons"
           echo "Committed production public key validated successfully."
 
       - name: Generate Ephemeral Validation Signing Key
@@ -164,10 +204,13 @@ jobs:
       - name: Clean-Container RPM Installation & Binary Verification
         run: |
           set -euo pipefail
-          docker run --rm \
+          mkdir -p scratch/nebular-smoke
+          docker run --rm --init \
             -v "$(pwd)/scratch/rpm/${{ matrix.arch }}:/repo:ro" \
             -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/etc/pki/rpm-gpg/RPM-GPG-KEY-kfa:ro" \
             -v "$(pwd)/release-lock.json:/workspace/release-lock.json:ro" \
+            -v "$(pwd)/scratch/nebular-release-source:/nebular-source:ro" \
+            -v "$(pwd)/scratch/nebular-smoke:/smoke-evidence" \
             ${{ matrix.fedora_container }} \
             sh -c "
               set -euo pipefail
@@ -184,17 +227,43 @@ jobs:
 
               dnf install -y -q theme-forge-stellar-burst theme-forge-nebular-fusion theme-forge-stellar-loom theme-forge-solar-sail
               tfsl --version | grep '0.4.0'
-              tfsl-batch --help >/dev/null
+              set +e
+              tfsl-batch </dev/null > /tmp/loom-empty.json
+              BATCH_STATUS=\$?
+              set -e
+              test \"\$BATCH_STATUS\" -eq 1
+              node -e 'const assert = require(\"node:assert/strict\"); const r = require(\"/tmp/loom-empty.json\"); assert.equal(r.error.code, \"EMPTY_INPUT\"); assert.equal(r.status, \"error\"); assert.equal(r.valid, false);'
               tfss --version | grep '0.2.1'
               tfsb --version | grep '0.6.1'
-              tfsb-studio-service --help >/dev/null
-              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+              tfsb-studio-service </dev/null >/dev/null
+              # The public entry must target the released shell launcher, never the GUI.
+              test \"\$(readlink /usr/bin/tfnf)\" = /usr/lib/theme-forge-nebular-fusion/bin/tfnf
+              test -x /usr/lib/theme-forge-nebular-fusion/bin/tfnf
+              test -x /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion
+              test -x /usr/lib/theme-forge-nebular-fusion/bin/tfsb-studio-service
+              EXPECTED_VERSION=\$(node -p \"require('/workspace/release-lock.json').products['theme-forge-nebular-fusion'].version\")
+              test \"\$(tfnf --version)\" = \"theme-forge-nebular-fusion \$EXPECTED_VERSION\"
+              test \"\$(tfnf --path)\" = /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion
 
               # Verify Nebular binary byte identity against locked raw binary dynamically
               ACTUAL_SHA=\$(sha256sum /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | awk '{print \$1}')
               EXPECTED_SHA=\$(node -p \"require('/workspace/release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['${{ matrix.arch }}-linux'].executableSha256\")
               test \"\$ACTUAL_SHA\" = \"\$EXPECTED_SHA\"
               echo 'RPM Nebular binary byte invariance confirmed: '\$ACTUAL_SHA
+
+              # Locked 0.6.1 refusal path loads the GUI without initializing Tauri.
+              set +e
+              timeout --kill-after=5s 30s env -u TFNF_RELEASE_SMOKE_DIR tfnf --nebular-release-smoke=A > /tmp/nebular-refusal.log 2>&1
+              PROBE_STATUS=\$?
+              set -e
+              test \"\$PROBE_STATUS\" -eq 2
+              test \"\$(cat /tmp/nebular-refusal.log)\" = 'TFSB Studio release smoke refused: release smoke directory is not set'
+
+              # Reuse the released root-container Xvfb/dbus contract on the installed payload.
+              dnf install -y -q xorg-x11-server-Xvfb xorg-x11-xauth dbus-daemon procps-ng
+              mkdir -p /smoke-evidence/rpm-${{ matrix.arch }}
+              env WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 xvfb-run -a -s \"-screen 0 1280x800x24\" dbus-run-session -- node /nebular-source/tools/native-rc-smoke.mjs --platform ${{ matrix.arch == 'x86_64' && 'linux-x64' || 'linux-arm64' }} --scenario ${{ matrix.arch == 'x86_64' && 'C' || 'B' }} --launch-root /usr/lib/theme-forge-nebular-fusion --checkout /nebular-source --evidence /smoke-evidence/rpm-${{ matrix.arch }} --source dist1-rpm --label rpm-${{ matrix.arch }}
+              test \"\$(sha256sum /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | cut -d ' ' -f 1)\" = \"\$EXPECTED_SHA\"
 
               # Clean uninstall and readback
               dnf remove -y -q theme-forge-stellar-burst theme-forge-nebular-fusion theme-forge-stellar-loom theme-forge-solar-sail
@@ -269,7 +338,7 @@ jobs:
             ${{ matrix.arch_container }} \
             sh -c "
               set -euo pipefail
-              pacman -Sy --noconfirm base-devel pacman-contrib gnupg sudo
+              pacman -Syu --noconfirm base-devel pacman-contrib gnupg sudo
 
               useradd -m builder && echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
               chown -R builder:builder /workspace/scratch/arch
@@ -329,11 +398,14 @@ jobs:
         if: matrix.build_pacman
         run: |
           set -euo pipefail
-          docker run --rm \
+          mkdir -p scratch/nebular-smoke
+          docker run --rm --init \
             -v "$(pwd)/scratch/arch/x86_64:/repo:ro" \
             -v "$(pwd)/test-fixtures/signing/fixture-public-key.asc:/tmp/kfa.asc:ro" \
             -v "$(pwd)/keys/knowledge-forge-ai-packages.asc:/tmp/prod-key.asc:ro" \
             -v "$(pwd)/release-lock.json:/workspace/release-lock.json:ro" \
+            -v "$(pwd)/scratch/nebular-release-source:/nebular-source:ro" \
+            -v "$(pwd)/scratch/nebular-smoke:/smoke-evidence" \
             ${{ matrix.arch_container }} \
             sh -c "
               set -euo pipefail
@@ -348,20 +420,46 @@ jobs:
 
               printf '%s\n' '' '[knowledge-forge-ai]' 'SigLevel = Required DatabaseRequired TrustedOnly' 'Server = file:///repo' >> /etc/pacman.conf
 
-              pacman -Sy --noconfirm
-              pacman -S --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
+              # Keep the pinned base synchronized before installing extra smoke tools.
+              pacman -Syu --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
 
               tfsb --version | grep '0.6.1'
-              tfsb-studio-service --help >/dev/null
+              tfsb-studio-service </dev/null >/dev/null
               tfsl --version | grep '0.4.0'
-              tfsl-batch --help >/dev/null
+              set +e
+              tfsl-batch </dev/null > /tmp/loom-empty.json
+              BATCH_STATUS=\$?
+              set -e
+              test \"\$BATCH_STATUS\" -eq 1
+              node -e 'const assert = require(\"node:assert/strict\"); const r = require(\"/tmp/loom-empty.json\"); assert.equal(r.error.code, \"EMPTY_INPUT\"); assert.equal(r.status, \"error\"); assert.equal(r.valid, false);'
               tfss --version | grep '0.2.1'
-              tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+              # The public entry must target the released shell launcher, never the GUI.
+              test \"\$(readlink /usr/bin/tfnf)\" = /usr/lib/theme-forge-nebular-fusion/bin/tfnf
+              test -x /usr/lib/theme-forge-nebular-fusion/bin/tfnf
+              test -x /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion
+              test -x /usr/lib/theme-forge-nebular-fusion/bin/tfsb-studio-service
+              EXPECTED_VERSION=\$(node -p \"require('/workspace/release-lock.json').products['theme-forge-nebular-fusion'].version\")
+              test \"\$(tfnf --version)\" = \"theme-forge-nebular-fusion \$EXPECTED_VERSION\"
+              test \"\$(tfnf --path)\" = /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion
 
               ACTUAL_SHA=\$(sha256sum /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | awk '{print \$1}')
               EXPECTED_SHA=\$(node -p \"require('/workspace/release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['x86_64-linux'].executableSha256\")
               test \"\$ACTUAL_SHA\" = \"\$EXPECTED_SHA\"
               echo 'Pacman Nebular binary byte invariance confirmed: '\$ACTUAL_SHA
+
+              # Locked 0.6.1 refusal path loads the GUI without initializing Tauri.
+              set +e
+              timeout --kill-after=5s 30s env -u TFNF_RELEASE_SMOKE_DIR tfnf --nebular-release-smoke=A > /tmp/nebular-refusal.log 2>&1
+              PROBE_STATUS=\$?
+              set -e
+              test \"\$PROBE_STATUS\" -eq 2
+              test \"\$(cat /tmp/nebular-refusal.log)\" = 'TFSB Studio release smoke refused: release smoke directory is not set'
+
+              # Reuse the released root-container Xvfb/dbus contract on the installed payload.
+              pacman -S --noconfirm xorg-server-xvfb xorg-xauth dbus procps-ng
+              mkdir -p /smoke-evidence/pacman-x86_64
+              env WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 xvfb-run -a -s \"-screen 0 1280x800x24\" dbus-run-session -- node /nebular-source/tools/native-rc-smoke.mjs --platform linux-x64 --scenario C --launch-root /usr/lib/theme-forge-nebular-fusion --checkout /nebular-source --evidence /smoke-evidence/pacman-x86_64 --source dist1-pacman --label pacman-x86_64
+              test \"\$(sha256sum /usr/lib/theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion | cut -d ' ' -f 1)\" = \"\$EXPECTED_SHA\"
 
               # Clean uninstall and readback
               pacman -R --noconfirm theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
@@ -443,7 +541,7 @@ jobs:
             ${{ matrix.arch_container }} \
             sh -c "
               set -euo pipefail
-              pacman -Sy --noconfirm base-devel pacman-contrib namcap sudo
+              pacman -Syu --noconfirm base-devel pacman-contrib namcap sudo
 
               useradd -m builder && echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
@@ -470,17 +568,29 @@ jobs:
             "
 
       - name: Retain Validation Receipts
+        if: always()
+        env:
+          VALIDATION_STATUS: ${{ job.status }}
         run: |
           set -euo pipefail
           mkdir -p scratch/provenance
-          echo "{\"validationTimestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"arch\": \"${{ matrix.arch }}\", \"status\": \"PASS\"}" > scratch/provenance/validation-receipt-${{ matrix.arch }}.json
+          echo "{\"validationTimestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"arch\": \"${{ matrix.arch }}\", \"status\": \"$VALIDATION_STATUS\"}" > scratch/provenance/validation-receipt-${{ matrix.arch }}.json
 
       - name: Upload Test Verification Receipts
+        if: always()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: validation-receipts-${{ matrix.arch }}
           path: scratch/provenance/
           if-no-files-found: error
+
+      - name: Upload Nebular Runtime Smoke Evidence
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: nebular-smoke-linux-${{ matrix.arch }}
+          path: scratch/nebular-smoke/
+          if-no-files-found: warn
 
   validate-nix-darwin:
     name: Validate Hosted Nix on macOS (aarch64-darwin)
@@ -497,6 +607,20 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71c2dd0aa4218de8f4afa59f8f81d # v16
 
+      - name: Checkout Locked Nebular Qualification Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: Knowledge-Forge-AI/theme-forge-nebular-fusion
+          ref: 49e2c4919b6b4ec9bd4ed5d7e7ced90921e00f5e
+          path: scratch/nebular-release-source
+          persist-credentials: false
+
+      - name: Authenticate Nebular Qualification Source
+        run: |
+          set -euo pipefail
+          test "$(git -C scratch/nebular-release-source rev-parse HEAD)" = "$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].releaseCommit")"
+          test "$(git -C scratch/nebular-release-source rev-parse HEAD^{tree})" = "$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].releaseTree")"
+
       - name: Real Nix Build & Verification (aarch64-darwin)
         run: |
           set -euo pipefail
@@ -512,8 +636,13 @@ jobs:
           test -d "$APP_PATH"
           test -L "result-tfnf/bin/tfnf"
 
-          # Verify actual executable launch and version output
-          ./result-tfnf/bin/tfnf --version | grep 'theme-forge-nebular-fusion 0.6.1'
+          # Assert the launcher target before any invocation; metadata must not start the GUI.
+          test "$(readlink result-tfnf/bin/tfnf)" = "$(realpath "$APP_PATH")/Contents/Resources/bin/tfnf"
+          test -x "$APP_PATH/Contents/Resources/bin/tfnf"
+          test -x "$APP_PATH/Contents/MacOS/tfsb-studio-service"
+          EXPECTED_VERSION=$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].version")
+          test "$(./result-tfnf/bin/tfnf --version)" = "theme-forge-nebular-fusion $EXPECTED_VERSION"
+          test "$(./result-tfnf/bin/tfnf --path)" = "$(realpath "$APP_PATH/Contents/MacOS/theme-forge-nebular-fusion")"
 
           # Verify binary byte identity against locked Darwin executable
           RAW_EXE="$APP_PATH/Contents/MacOS/theme-forge-nebular-fusion"
@@ -521,4 +650,19 @@ jobs:
           EXPECTED_SHA=$(node -p "require('./release-lock.json').products['theme-forge-nebular-fusion'].rawArchives['aarch64-darwin'].executableSha256")
           test "$ACTUAL_SHA" = "$EXPECTED_SHA"
           echo "[PASS] macOS Nebular binary byte invariance confirmed: $ACTUAL_SHA"
+
+          # Node supplies a bounded process timeout on macOS (no GNU timeout dependency).
+          node -e 'const {spawnSync} = require("node:child_process"); const assert = require("node:assert/strict"); const env = {...process.env}; delete env.TFNF_RELEASE_SMOKE_DIR; const r = spawnSync(process.argv[1], ["--nebular-release-smoke=A"], {env, encoding: "utf8", timeout: 30000, killSignal: "SIGKILL"}); assert.ifError(r.error); assert.equal(r.signal, null); assert.equal(r.status, 2); assert.equal(r.stdout, ""); assert.equal(r.stderr.trim(), "TFSB Studio release smoke refused: release smoke directory is not set");' ./result-tfnf/bin/tfnf
+
+          # Real application runtime qualification uses the released harness on the store bundle.
+          node scratch/nebular-release-source/tools/native-rc-smoke.mjs --platform darwin-arm64 --scenario A --launch-root "$(realpath result-tfnf/Applications)" --checkout scratch/nebular-release-source --evidence scratch/nebular-smoke/darwin --source dist1-nix-darwin --label nix-darwin
+          test "$(shasum -a 256 "$RAW_EXE" | awk '{print $1}')" = "$EXPECTED_SHA"
           rm -f result-tfnf
+
+      - name: Upload Nebular Runtime Smoke Evidence
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: nebular-smoke-darwin-aarch64
+          path: scratch/nebular-smoke/
+          if-no-files-found: warn
