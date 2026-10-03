@@ -12,15 +12,17 @@
  * 6. Primary key must NOT be revoked or expired.
  * 7. Must contain at least one valid, unrevoked, unexpired signing-capable subkey ('s').
  * 8. Supports positive pinning against expected production primary fingerprint.
+ * 9. Requires exactly one primary public key ('pub') record; rejects multi-key bundles.
+ * 10. Cleans up isolated temporary GPG agent processes using gpgconf --kill all.
  *
  * Exit codes:
  *   0: Production key bootstrap verified and valid.
  *   1: Verification failed; first public push is blocked.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const FIXTURE_FINGERPRINT = "F51DA0906E548DA39E267AFA64D6C54B40CC3656";
@@ -34,6 +36,29 @@ export function resolveGpg(options = {}) {
       return candidate;
     }
   } catch {}
+  return null;
+}
+
+// gpgconf is resolved next to the resolved gpg binary first, then from PATH.
+export function resolveGpgconf(gpgBin = "gpg") {
+  const candidates = [];
+  try {
+    const gpgPath = gpgBin.includes("/")
+      ? gpgBin
+      : spawnSync("which", [gpgBin], { encoding: "utf8" }).stdout.trim();
+    if (gpgPath) {
+      candidates.push(join(dirname(gpgPath), "gpgconf"));
+      try {
+        candidates.push(join(dirname(realpathSync(gpgPath)), "gpgconf"));
+      } catch {}
+    }
+  } catch {}
+  candidates.push("gpgconf");
+  for (const c of candidates) {
+    try {
+      if (spawnSync(c, ["--version"], { encoding: "utf8" }).status === 0) return c;
+    } catch {}
+  }
   return null;
 }
 
@@ -69,6 +94,26 @@ export async function verifyPublicKeyBootstrap(pubkeyPath, options = {}) {
     throw new Error(`[GATE BLOCKED] ${resolvedPubkey} does not contain closing '-----END PGP PUBLIC KEY BLOCK-----'.`);
   }
 
+  // Pin validation: library supports omitted pin, but validates explicitly supplied empty or malformed pin
+  const rawExpectedFpr = options.expectedFingerprint;
+
+  let normalizedExpectedFpr = null;
+  if (rawExpectedFpr !== undefined) {
+    if (typeof rawExpectedFpr !== "string") {
+      throw new Error("[GATE BLOCKED] Expected fingerprint must be a string.");
+    }
+    const trimmed = rawExpectedFpr.trim();
+    if (trimmed.length === 0) {
+      throw new Error("[GATE BLOCKED] Expected fingerprint is empty. A valid 40-character hexadecimal fingerprint is required.");
+    }
+    normalizedExpectedFpr = rawExpectedFpr.replace(/\s+/g, "").toUpperCase();
+    if (!/^[0-9A-F]{40}$/.test(normalizedExpectedFpr)) {
+      throw new Error(
+        `[GATE BLOCKED] Expected fingerprint is malformed: '${rawExpectedFpr}'. Exactly 40 hexadecimal characters required.`
+      );
+    }
+  }
+
   const gpgBin = resolveGpg(options);
   if (!gpgBin) {
     throw new Error(
@@ -76,10 +121,10 @@ export async function verifyPublicKeyBootstrap(pubkeyPath, options = {}) {
     );
   }
 
-  return verifyWithGpg(resolvedPubkey, gpgBin, options);
+  return verifyWithGpg(resolvedPubkey, gpgBin, normalizedExpectedFpr);
 }
 
-function verifyWithGpg(resolvedPubkey, gpgBin, options = {}) {
+function verifyWithGpg(resolvedPubkey, gpgBin, normalizedExpectedFpr) {
   const tempGnuPg = mkdtempSync(join(tmpdir(), "gpg-bootstrap-check-"));
   const env = { ...process.env, GNUPGHOME: tempGnuPg };
 
@@ -90,9 +135,14 @@ function verifyWithGpg(resolvedPubkey, gpgBin, options = {}) {
       throw new Error(`[GATE BLOCKED] Failed to import public key with gpg: ${importRes.stderr || "Unknown gpg error"}`);
     }
 
-    const pubColons = execFileSync(gpgBin, ["--batch", "--quiet", "--list-keys", "--with-colons"], { env, encoding: "utf8" });
+    const pubColons = execFileSync(
+      gpgBin,
+      ["--batch", "--quiet", "--list-keys", "--with-colons", "--with-subkey-fingerprint"],
+      { env, encoding: "utf8" }
+    );
     const colonLines = pubColons.split("\n");
 
+    let pubCount = 0;
     let primaryFpr = null;
     let primaryKeyId = null;
     let primaryStatus = null;
@@ -106,14 +156,24 @@ function verifyWithGpg(resolvedPubkey, gpgBin, options = {}) {
       const recordType = parts[0];
 
       if (recordType === "pub") {
-        primaryStatus = parts[1]; // 'r' = revoked, 'e' = expired, 'd' = disabled, 'v' = valid
-        primaryKeyId = parts[4];
-        primaryExpires = parts[6] ? parseInt(parts[6], 10) : null;
-      } else if (recordType === "fpr" && !primaryFpr) {
-        primaryFpr = parts[9];
-      } else if (recordType === "uid") {
+        pubCount++;
+        if (pubCount === 1) {
+          primaryStatus = parts[1]; // 'r' = revoked, 'e' = expired, 'd' = disabled, 'v' = valid
+          primaryKeyId = parts[4];
+          primaryExpires = parts[6] ? parseInt(parts[6], 10) : null;
+        }
+        currentSubkey = null;
+      } else if (recordType === "fpr") {
+        if (currentSubkey) {
+          if (!currentSubkey.fpr) {
+            currentSubkey.fpr = parts[9];
+          }
+        } else if (pubCount === 1 && !primaryFpr) {
+          primaryFpr = parts[9];
+        }
+      } else if (recordType === "uid" && pubCount === 1) {
         uids.push(parts[9]);
-      } else if (recordType === "sub") {
+      } else if (recordType === "sub" && pubCount === 1) {
         currentSubkey = {
           status: parts[1], // 'r' = revoked, 'e' = expired, 'd' = disabled
           keyId: parts[4],
@@ -123,9 +183,17 @@ function verifyWithGpg(resolvedPubkey, gpgBin, options = {}) {
           fpr: null,
         };
         subkeys.push(currentSubkey);
-      } else if (recordType === "fpr" && currentSubkey && !currentSubkey.fpr) {
-        currentSubkey.fpr = parts[9];
       }
+    }
+
+    if (pubCount === 0) {
+      throw new Error("[GATE BLOCKED] No public key record ('pub') found in OpenPGP bundle. Exactly one primary public key is required.");
+    }
+
+    if (pubCount > 1) {
+      throw new Error(
+        `[GATE BLOCKED] Multiple public key records (${pubCount}) detected in OpenPGP bundle. Exactly one primary public key is required.`
+      );
     }
 
     if (!primaryFpr) {
@@ -161,12 +229,11 @@ function verifyWithGpg(resolvedPubkey, gpgBin, options = {}) {
     }
 
     // Positive primary fingerprint verification
-    if (options.expectedFingerprint) {
-      const expNorm = options.expectedFingerprint.replace(/\s+/g, "").toUpperCase();
+    if (normalizedExpectedFpr) {
       const actualNorm = primaryFpr.replace(/\s+/g, "").toUpperCase();
-      if (expNorm !== actualNorm) {
+      if (normalizedExpectedFpr !== actualNorm) {
         throw new Error(
-          `[GATE BLOCKED] Primary public key fingerprint mismatch: expected ${expNorm}, found ${actualNorm}. Refusing unpinned public key.`
+          `[GATE BLOCKED] Primary public key fingerprint mismatch: expected ${normalizedExpectedFpr}, found ${actualNorm}. Refusing unpinned public key.`
         );
       }
     }
@@ -195,39 +262,112 @@ function verifyWithGpg(resolvedPubkey, gpgBin, options = {}) {
       totalSigningSubkeys: validSigningSubkeys.length,
     };
   } finally {
+    try {
+      const gpgconfBin = resolveGpgconf(gpgBin);
+      if (gpgconfBin && existsSync(tempGnuPg)) {
+        spawnSync(gpgconfBin, ["--homedir", tempGnuPg, "--kill", "all"], { env, stdio: "ignore" });
+      }
+    } catch {}
     rmSync(tempGnuPg, { recursive: true, force: true });
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2);
+export function parseCliArgs(argv) {
   let pubkeyArg = null;
-  let expectedFpr = null;
+  let expectedFprRaw = null;
+  let expectedFprProvided = false;
   let gpgBin = null;
+  const extraPositional = [];
+  const unknownArgs = [];
 
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--expected-fpr" && args[i + 1]) {
-      expectedFpr = args[++i];
-    } else if (args[i] === "--gpg-bin" && args[i + 1]) {
-      gpgBin = args[++i];
-    } else if (!args[i].startsWith("--") && !pubkeyArg) {
-      pubkeyArg = args[i];
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--expected-fpr") {
+      if (expectedFprProvided) {
+        throw new Error("[GATE BLOCKED] Duplicate --expected-fpr argument.");
+      }
+      expectedFprProvided = true;
+      if (i + 1 < argv.length && !argv[i + 1].startsWith("--")) {
+        expectedFprRaw = argv[++i];
+      } else {
+        expectedFprRaw = "";
+      }
+    } else if (arg.startsWith("--expected-fpr=")) {
+      if (expectedFprProvided) {
+        throw new Error("[GATE BLOCKED] Duplicate --expected-fpr argument.");
+      }
+      expectedFprProvided = true;
+      expectedFprRaw = arg.slice("--expected-fpr=".length);
+    } else if (arg === "--gpg-bin") {
+      if (i + 1 < argv.length && !argv[i + 1].startsWith("--")) {
+        gpgBin = argv[++i];
+      } else {
+        throw new Error("[GATE BLOCKED] Missing value for --gpg-bin argument.");
+      }
+    } else if (arg.startsWith("--gpg-bin=")) {
+      gpgBin = arg.slice("--gpg-bin=".length);
+    } else if (arg.startsWith("-")) {
+      unknownArgs.push(arg);
+    } else {
+      if (!pubkeyArg) {
+        pubkeyArg = arg;
+      } else {
+        extraPositional.push(arg);
+      }
     }
   }
 
-  if (!pubkeyArg) {
-    console.error("Usage: node verify-public-key-bootstrap.mjs <path-to-public-key.asc> [--expected-fpr <FPR>] [--gpg-bin <path>]");
-    process.exit(1);
+  if (unknownArgs.length > 0) {
+    throw new Error(`[GATE BLOCKED] Unknown argument(s): ${unknownArgs.join(", ")}`);
   }
 
-  verifyPublicKeyBootstrap(pubkeyArg, { expectedFingerprint: expectedFpr, gpgBin })
-    .then((res) => {
-      console.log(`[PASS] Production public key bootstrap verified: primary ${res.primaryFingerprint}, signing subkey ${res.signingSubkeyFingerprint}`);
-      process.exit(0);
-    })
-    .catch((err) => {
-      console.error(err.message);
-      process.exit(1);
-    });
+  if (extraPositional.length > 0) {
+    throw new Error(`[GATE BLOCKED] Extra positional argument(s): ${extraPositional.join(", ")}`);
+  }
+
+  if (!pubkeyArg) {
+    throw new Error(
+      "[GATE BLOCKED] Missing required public key path argument. Usage: node verify-public-key-bootstrap.mjs <path-to-public-key.asc> [--expected-fpr <FPR>] [--gpg-bin <path>]"
+    );
+  }
+
+  if (!expectedFprProvided) return { pubkeyArg, expectedFpr: undefined, gpgBin };
+
+  if (typeof expectedFprRaw !== "string" || expectedFprRaw.trim().length === 0) {
+    throw new Error(
+      "[GATE BLOCKED] Empty --expected-fpr argument. A valid 40-character hexadecimal fingerprint is required."
+    );
+  }
+
+  const normalizedFpr = expectedFprRaw.replace(/\s+/g, "").toUpperCase();
+  if (!/^[0-9A-F]{40}$/.test(normalizedFpr)) {
+    throw new Error(
+      `[GATE BLOCKED] Malformed --expected-fpr argument: '${expectedFprRaw}'. Exactly 40 hexadecimal characters required.`
+    );
+  }
+
+  return { pubkeyArg, expectedFpr: normalizedFpr, gpgBin };
 }
 
+const isMain = process.argv[1] && (
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url) ||
+  (existsSync(process.argv[1]) && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url))
+);
+
+if (isMain) {
+  try {
+    const { pubkeyArg, expectedFpr, gpgBin } = parseCliArgs(process.argv.slice(2));
+    verifyPublicKeyBootstrap(pubkeyArg, { expectedFingerprint: expectedFpr, gpgBin })
+      .then((res) => {
+        console.log(`[PASS] Production public key bootstrap verified: primary ${res.primaryFingerprint}, signing subkey ${res.signingSubkeyFingerprint}`);
+        process.exit(0);
+      })
+      .catch((err) => {
+        console.error(err.message);
+        process.exit(1);
+      });
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+  }
+}

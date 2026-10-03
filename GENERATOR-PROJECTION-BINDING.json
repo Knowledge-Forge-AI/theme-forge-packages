@@ -1,13 +1,13 @@
 {
   "schema": "tfsb.dist1-bootstrap-projection-binding-v1",
-  "generatedAt": "2026-10-02T00:41:04.730Z",
+  "generatedAt": "2026-10-03T12:59:46.603Z",
   "generator": "tools/distribution/bootstrap-public-repo.mjs",
   "bootstrapState": "bootstrapped-with-production-key",
   "productionPrimaryFingerprint": "7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF",
   "productionSigningSubkeyFingerprint": "C021E00EE3D37C459B0E1CB3199F8028126E8A8C",
   "releaseLockSha256": "567b91e43e9e3d871d19f96abbaa4c593de0f0c99029d56f3fd903b5635b29cc",
-  "treeManifestSha256": "5be21e7122bb403c662e630e095fc5dc196870a6995e6b7e141cad2f7e70050f",
-  "totalFiles": 65,
+  "treeManifestSha256": "8e44cde9f8684cf9a02b0cb0bd3b3599e9d54c6fb721a335d9321668212f4f0b",
+  "totalFiles": 66,
   "files": [
     {
       "path": ".github/workflows/publish.yml",
@@ -16,8 +16,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "bytes": 24402,
-      "sha256": "bc69aeae07c3a0547aab94cc3e1f67b545affb8568fcca5fd658db747e4d7293"
+      "bytes": 35575,
+      "sha256": "f5641a2af997c8aee6b008218d4ce4c990953c288cc23075f5b6d3960016d102"
     },
     {
       "path": "AUR-READINESS.md",
@@ -106,8 +106,8 @@
     },
     {
       "path": "flake.nix",
-      "bytes": 3733,
-      "sha256": "2a16ce397ec89270d12e247274eeb75b3c10903d81331ec54d8289b8e18c7c91"
+      "bytes": 6526,
+      "sha256": "0997b5ad314a8dacb3c01db340359b06adf1e5bc7db08f435cac37bfb89bf311"
     },
     {
       "path": "INSTALL.md",
@@ -136,8 +136,8 @@
     },
     {
       "path": "packages/nebular-fusion.nix",
-      "bytes": 4865,
-      "sha256": "0c217de505993e7f1c5089651016c273d8f027d6a7a2971e8e4b7750bc0dccb3"
+      "bytes": 5056,
+      "sha256": "83519b07071d7fa90140a41d55a4e3ba1efdc9ab78f7054ed768d3f7d4bd6df3"
     },
     {
       "path": "packages/solar-sail.nix",
@@ -290,6 +290,11 @@
       "sha256": "98375c2ce2cd9e29e0e2308d07cd3c658ee8de03cbca9036e83947f4890d123d"
     },
     {
+      "path": "tools/verification/check-nebular-fhs-closure.sh",
+      "bytes": 6416,
+      "sha256": "9724f4ab257d217bb2a556d8abab25c1e3e01d955109b6256d9c1e784cc65947"
+    },
+    {
       "path": "tools/verification/fetch-locked-assets.mjs",
       "bytes": 7125,
       "sha256": "355661445b68024a50eac3bce4f93b54e5d1caf4a8b4886bb0b896c25fbdeafc"
@@ -316,8 +321,8 @@
     },
     {
       "path": "tools/verification/verify-public-key-bootstrap.mjs",
-      "bytes": 9536,
-      "sha256": "ddbe0af2faaf582845b58b86221478007f9302533a5594a2447b88fe5f7c744b"
+      "bytes": 14387,
+      "sha256": "e986be04597dea0e6ab2993b4e6f0ee65c702b8dd370bc9eb68d8154909e3e9b"
     },
     {
       "path": "tools/verification/verify-publication-provenance.mjs",
