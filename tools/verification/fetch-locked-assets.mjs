@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateCandidateContext } from "./current-candidate-context.mjs";
 
 /**
  * Downloads and cryptographically authenticates all locked upstream release assets
@@ -61,9 +62,11 @@ export async function fetchLockedAssets(options = {}) {
     throw new Error(`Release lock not found: ${lockPath}`);
   }
 
-  mkdirSync(destDir, { recursive: true });
 
   const lock = JSON.parse(readFileSync(lockPath, "utf8"));
+  const context = validateCandidateContext(lock, lockPath, options.candidateValidation === true);
+  mkdirSync(destDir, { recursive: true });
+  console.log(JSON.stringify(context));
   console.log(`Fetching locked upstream assets according to ${lockPath}...`);
 
   const downloadTasks = [];
@@ -100,7 +103,7 @@ export async function fetchLockedAssets(options = {}) {
       console.log(`[CACHED] ${dest} (${info.sha256})`);
       authenticatedCount++;
     } else {
-      const url = `https://registry.npmjs.org/@knowledge-forge-ai/${prod}/-/${info.asset}`;
+      const url = context.candidateValidation ? info.url : `https://registry.npmjs.org/@knowledge-forge-ai/${prod}/-/${info.asset}`;
       downloadTasks.push(
         downloadFile(url, dest, info.sha256).then(() => {
           authenticatedCount++;
@@ -158,7 +161,7 @@ export async function fetchLockedAssets(options = {}) {
     }
   }
 
-  return { destDir, totalAssets: authenticatedCount };
+  return { destDir, totalAssets: authenticatedCount, ...context };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -168,7 +171,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const lockIndex = args.indexOf("--lock");
   const lockPath = lockIndex !== -1 ? args[lockIndex + 1] : (args[0] && !args[0].startsWith("--") ? args[0] : "release-lock.json");
 
-  fetchLockedAssets({ destDir, lockPath })
+  fetchLockedAssets({ destDir, lockPath, candidateValidation: args.includes("--candidate-validation") })
     .then(() => {
       console.log("\n[SUCCESS] Upstream assets authenticated successfully.");
       process.exit(0);

@@ -1,160 +1,39 @@
-# Theme Forge Packages (`Knowledge-Forge-AI/theme-forge-packages`)
+# Theme Forge current-four distribution preparation
 
-Official, signed, reproducible self-distribution repository for the Theme Forge software family across Linux and macOS.
+This projection binds the current upstream releases. Current signed repository publication and native installation acceptance are held. See [CURRENT-GENERATION-STATUS.json](CURRENT-GENERATION-STATUS.json). It is a review candidate. Current validate.yml retains the own-native-three jobs with manual dispatch only during the predicate preparation stage; current publish.yml is a dispatch-only explicit refusal while production publication remains held.
 
-## Released Products
+| Product | Upstream version | Commands |
+| --- | --- | --- |
+| theme-forge-stellar-burst | 0.7.0 | tfsb, tfsb-studio-service |
+| theme-forge-stellar-loom | 0.5.0 | tfsl, tfsl-batch |
+| theme-forge-solar-sail | 0.3.0 | tfss |
+| theme-forge-nebular-fusion | 0.7.0 | tfnf |
 
-| Product | Version | Bins / Executables | Runtimes / Dependencies |
-| :--- | :--- | :--- | :--- |
-| **Theme Forge Stellar Burst** | `0.6.1` | `tfsb`, `tfsb-studio-service` | Node.js `>= 22`, native posix-openat addon |
-| **Theme Forge Stellar Loom** | `0.4.0` | `tfsl`, `tfsl-batch` | Node.js `>= 22`, zero external deps |
-| **Theme Forge Solar Sail** | `0.2.1` | `tfss` | Node.js `>= 22`, zero external deps |
-| **Theme Forge Nebular Fusion** | `0.6.1` | `tfnf`, GUI Workbench | Native GTK3/WebKitGTK 4.1 on Linux; macOS `.app` |
+## Channel targets and installation status
 
----
+All four products, including Nebular Fusion GUI, are in scope for Homebrew, Nix, APT, DNF and pacman. AUR remains deferred.
 
-## 1. Nix Flake Distribution
+| Channel | Target | Current installation status |
+| --- | --- | --- |
+| Homebrew | Knowledge-Forge-AI/tap; support determined by its own receipts | Separate current Homebrew work; no acceptance claimed here |
+| Nix | x86_64-linux, aarch64-linux, aarch64-darwin | Current input mapping prepared; evaluation, builds and native acceptance not run |
+| APT | Ubuntu 26.04 resolute; amd64, arm64 | Held pending RS9 unsigned-package bridge, key-preserving signing and repository URL evidence |
+| DNF | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
+| pacman | x86_64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
+| AUR | Deferred | Historical readiness recipes only; no current activation claim |
 
-The repository exposes a self-contained Nix flake that requires no external binary caches or runtime npm fetching.
+Nebular Linux consumes the approximately 54 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
 
-### Supported Systems:
-- **CLIs** (`tfsb`, `tfsl`, `tfss`): `x86_64-linux`, `aarch64-linux`, `aarch64-darwin`, `x86_64-darwin`
-- **Nebular Fusion** (`tfnf`): `x86_64-linux`, `aarch64-linux`, `aarch64-darwin`
+## Installation after acceptance
 
-### Installation:
-```bash
-# Install CLI packages
-nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-stellar-burst
-nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-stellar-loom
-nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-solar-sail
+Do not use historical repository commands as proof that these current versions are published. Before adding current native install commands, bind the qualified unsigned RS9 output, production key continuity, signed repository metadata, exact publication receipt and a native consumer installation receipt. The APT repository URL and Signed-By identity remain unset until that bridge exists.
 
-# Install Nebular Fusion desktop workbench
-nix profile install github:Knowledge-Forge-AI/theme-forge-packages#theme-forge-nebular-fusion
-```
+After the reviewed Nix mapping is promoted and native-three acceptance passes, the package attributes are `theme-forge-stellar-burst`, `theme-forge-stellar-loom`, `theme-forge-solar-sail` and `theme-forge-nebular-fusion` in `github:Knowledge-Forge-AI/theme-forge-packages`. No Nix installation has been qualified by this preparation.
 
-### Direct Execution:
-```bash
-nix run github:Knowledge-Forge-AI/theme-forge-packages#tfsb -- --version
-nix run github:Knowledge-Forge-AI/theme-forge-packages#tfsl -- --version
-nix run github:Knowledge-Forge-AI/theme-forge-packages#tfss -- --version
-nix run github:Knowledge-Forge-AI/theme-forge-packages#tfnf -- --version
-```
+## Preserved authorities
 
-### Upgrading:
-```bash
-nix profile upgrade '.*theme-forge.*'
-```
+The existing theme-forge-packages production repository owns the signer, key continuity and Pages deployer. RS9 supplies qualified unsigned native packages; this preparation creates no APT backend. In this current overlay, validate.yml retains P own-native-three candidate qualification jobs with manual dispatch only during the process-predicate preparation stage, using a Linux user-namespace guard whose repository admission is pending runner-policy approval before remote activation. Current publish.yml is a permissions-empty, dispatch-only explicit refusal awaiting qualified RS9 inputs, P native-three and signing preflight. This is interim current-generation safety routing, not a final production pipeline. Historical default workflow templates and output remain byte-identical; their old validation/signing jobs are not emitted in this current overlay. Legacy RPM/pacman/AUR templates remain historical reference material and are not current build authority. Older releases and receipts remain historical.
 
-### Uninstallation:
-```bash
-nix profile remove theme-forge-stellar-burst
-nix profile remove theme-forge-stellar-loom
-nix profile remove theme-forge-solar-sail
-nix profile remove theme-forge-nebular-fusion
-```
+Burst 0.7.0 requires smol-toml 1.9.1. The exact 31,492-byte registry archive is authenticated against the tagged lockfile SHA512; its SHA-256 is recorded in release-lock.json and the Nix mapping. Build and runtime acceptance remain held. No old npmDepsHash is reused as current qualification.
 
----
-
-## 2. Pacman Custom Signed Repository (Arch Linux)
-
-The `knowledge-forge-ai` pacman repository serves signed Arch Linux packages and signed repository databases.
-
-### Supported Architectures:
-- `x86_64` (official self-hosted repository; community multi-architecture builds available via AUR)
-
-### Trust Bootstrap:
-Import the official project OpenPGP signing key and locally sign/trust it:
-```bash
-# Method A: Direct public key import (Recommended)
-curl -sSfL -o /tmp/kfa-packages.asc https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc
-sudo pacman-key --add /tmp/kfa-packages.asc
-FPR=$(gpg --show-keys --with-colons /tmp/kfa-packages.asc | awk -F: '/^fpr/{print $10; exit}')
-sudo pacman-key --lsign-key "$FPR"
-rm /tmp/kfa-packages.asc
-
-# Method B: Keyserver import (once published to public keyservers by operator)
-# sudo pacman-key --recv-keys --keyserver keyserver.ubuntu.com <DISTRIBUTION_KEY_FINGERPRINT>
-# sudo pacman-key --lsign-key <DISTRIBUTION_KEY_FINGERPRINT>
-```
-
-### Repository Configuration:
-Add the repository to `/etc/pacman.conf` with hardened signature checking:
-```ini
-[knowledge-forge-ai]
-SigLevel = Required DatabaseRequired TrustedOnly
-Server = https://knowledge-forge-ai.github.io/theme-forge-packages/arch/x86_64
-```
-
-### Installation:
-```bash
-sudo pacman -Sy
-sudo pacman -S theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
-```
-
-### Upgrading:
-```bash
-sudo pacman -Syu
-```
-
-### Uninstallation:
-```bash
-sudo pacman -R theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
-```
-
----
-
-## 3. DNF / RPM Repository (Fedora Linux)
-
-The RPM repository provides signed RPMs with signed repository metadata (`repomd.xml.asc`).
-
-### Supported Architectures:
-- `x86_64`
-- `aarch64`
-
-### Repository Setup:
-Create `/etc/yum.repos.d/knowledge-forge-ai.repo`:
-```ini
-[knowledge-forge-ai]
-name=Theme Forge Packages
-baseurl=https://knowledge-forge-ai.github.io/theme-forge-packages/rpm/$basearch
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc
-```
-
-### Installation:
-```bash
-sudo dnf install theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
-```
-
-### Upgrading:
-```bash
-sudo dnf upgrade 'theme-forge-*'
-```
-
-### Uninstallation:
-```bash
-sudo dnf remove theme-forge-stellar-burst theme-forge-stellar-loom theme-forge-solar-sail theme-forge-nebular-fusion
-```
-
----
-
-## 4. Arch User Repository (AUR Readiness)
-
-AUR recipes are fully prepared and linted in `aur/`:
-- `theme-forge-stellar-burst`
-- `theme-forge-stellar-loom`
-- `theme-forge-solar-sail`
-- `theme-forge-nebular-fusion-bin`
-
-See [AUR-READINESS.md](AUR-READINESS.md) for instructions on submitting to the AUR once account registration is open.
-
----
-
-## 5. Security & Verification
-
-- **Offline Primary Key**: Distribution root key is maintained offline. Only revocable signing subkeys are used in GitHub Actions.
-- **Detached Signatures**: All RPMs, Pacman packages, Pacman databases, and repomd metadata have detached signatures.
-- **Standalone Verification Tools**: See `tools/verification/` for offline verification scripts.
-- **Publication Provenance**: Each publication cycle generates a cryptographic provenance file in `provenance/publication-provenance.json`.
+The manual `probe-current-process-predicate.yml` proposal tests the Linux monitor/application predicate on x86_64-linux and aarch64-linux using the locked NixPython test-tool class. Its procfs/pidfd/STOP/CONT/watchdog control policy is PENDING exact owner approval before any hosted run. Both native host results are required before full GUI-controller work. No predicate, GUI, installation or publication acceptance is claimed. See [process-predicate-policy.md](docs/process-predicate-policy.md).

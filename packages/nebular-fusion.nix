@@ -15,22 +15,22 @@
 }:
 
 let
-  version = "0.6.1";
+  version = "0.7.0";
   pname = "theme-forge-nebular-fusion";
   system = stdenv.hostPlatform.system;
 
   sources = {
     "aarch64-darwin" = {
       url = "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v${version}/theme-forge-nebular-fusion-v${version}-aarch64-apple-darwin.app.tar.gz";
-      sha256 = "e5ab9c5ce5dd7fb02274b11b223db9db7ac1f3b2167334ee2f322abd3c8ec4be";
+      sha256 = "52f626bfcbfb4235298675669841ca9fbea8113118e9d25f0310e0a26489a470";
     };
     "aarch64-linux" = {
       url = "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v${version}/theme-forge-nebular-fusion-v${version}-aarch64-unknown-linux-gnu.tar.gz";
-      sha256 = "5d59a1dfb6b5cec5edced1b098eba7b79e4f77a0dd2a0ab815caa8992b17497f";
+      sha256 = "eb15e92e2c6c893748612c3e1e3910acbc57e8e990a4d4d1c89f958e330ce17c";
     };
     "x86_64-linux" = {
       url = "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v${version}/theme-forge-nebular-fusion-v${version}-x86_64-unknown-linux-gnu.tar.gz";
-      sha256 = "d6060f74d6e55ec3a096ac01a1ebadc8b8b1d89a9a51475cd52207b465ca434d";
+      sha256 = "4a4035797ac591854e362404d32e8acc38f79ccdccf7696b31f24060f0b55c27";
     };
   };
 

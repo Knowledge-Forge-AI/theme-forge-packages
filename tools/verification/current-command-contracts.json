@@ -1,0 +1,224 @@
+{
+  "schema": "rs9.command-contracts.v1alpha1",
+  "production_enabled": false,
+  "commands": {
+    "tfsb": {
+      "project": "theme-forge-stellar-burst",
+      "status": "release-source-check-required",
+      "implementation_paths": [
+        "src/cli.ts",
+        "dist/cli.js"
+      ],
+      "source_guards": [
+        "--version",
+        "TOOL_VERSION"
+      ],
+      "evidence": {
+        "repository": "Knowledge-Forge-AI/theme-forge-stellar-burst",
+        "commit": "3edb9d2c40dd19a2b7d97d9309bc210e7fed711c",
+        "tag": "v0.7.0",
+        "research": "authenticated current release archive implementation; static inspection only"
+      },
+      "probes": [
+        {
+          "kind": "argv",
+          "argv": [
+            "--version"
+          ],
+          "input": "",
+          "expect_exit": 0,
+          "stdout_contains": [
+            "0.7.0"
+          ]
+        }
+      ],
+      "implementation_sha256": {
+        "dist/cli.js": "b0a781f63cc4324562b9a1cf98a428da1b8e382f8f70028558486c747f52d4f9"
+      }
+    },
+    "tfsl": {
+      "project": "theme-forge-stellar-loom",
+      "status": "release-source-check-required",
+      "implementation_paths": [
+        "src/cli.ts",
+        "dist/cli.js",
+        "dist/cli-catalog.js"
+      ],
+      "source_guards": [
+        "--version",
+        "version"
+      ],
+      "evidence": {
+        "repository": "Knowledge-Forge-AI/theme-forge-stellar-loom",
+        "commit": "9063fe5d283881f464ab566d8b74296a6ce1b688",
+        "tag": "v0.5.0",
+        "research": "authenticated current release archive implementation; static inspection only"
+      },
+      "probes": [
+        {
+          "kind": "argv",
+          "argv": [
+            "--version"
+          ],
+          "input": "",
+          "expect_exit": 0,
+          "stdout_contains": [
+            "0.5.0"
+          ]
+        }
+      ],
+      "implementation_sha256": {
+        "dist/cli-catalog.js": "70ced8910282683405a8347fdab80cc2c05fb5bfdd903729067715edcd01cdef",
+        "dist/cli.js": "6746f09b71c593d5af715ae47fc018aa4bbdba5321be0c4b255794594fb9120c"
+      }
+    },
+    "tfss": {
+      "project": "theme-forge-solar-sail",
+      "status": "release-source-check-required",
+      "implementation_paths": [
+        "src/cli.ts",
+        "dist/cli.js"
+      ],
+      "source_guards": [
+        "--version",
+        "version"
+      ],
+      "evidence": {
+        "repository": "Knowledge-Forge-AI/theme-forge-solar-sail",
+        "commit": "eafd594af8bce04ef3752c489ae770946b4e0e3b",
+        "tag": "v0.3.0",
+        "research": "authenticated current release archive implementation; static inspection only"
+      },
+      "probes": [
+        {
+          "kind": "argv",
+          "argv": [
+            "--version"
+          ],
+          "input": "",
+          "expect_exit": 0,
+          "stdout_contains": [
+            "0.3.0"
+          ]
+        }
+      ],
+      "implementation_sha256": {
+        "dist/cli.js": "d40a39040af1b75c2c42061e8e992133d1b4f3df598ef39c01cd924deb158159"
+      }
+    },
+    "tfsl-batch": {
+      "project": "theme-forge-stellar-loom",
+      "status": "release-source-check-required",
+      "implementation_paths": [
+        "bin/tfsl-batch.js",
+        "dist/batch.js",
+        "dist/cli-batch.js"
+      ],
+      "source_guards": [
+        "EMPTY_INPUT"
+      ],
+      "evidence": {
+        "repository": "Knowledge-Forge-AI/theme-forge-stellar-loom",
+        "commit": "9063fe5d283881f464ab566d8b74296a6ce1b688",
+        "tag": "v0.5.0",
+        "research": "authenticated current release archive implementation; static inspection only"
+      },
+      "probes": [
+        {
+          "kind": "stdin",
+          "argv": [],
+          "input": "",
+          "expect_exit": 1,
+          "stdout_contains": [
+            "EMPTY_INPUT"
+          ]
+        }
+      ],
+      "implementation_sha256": {
+        "dist/batch.js": "fad0943dd8234f8cb68c11d7ffeafb5724a2e9601b2a9bf40cfeb61320f036c1",
+        "bin/tfsl-batch.js": "b58052712f9426a7669fe7f719aa20c30e19fa4c4d8be6e6a9de41e5b2a081d4"
+      }
+    },
+    "tfsb-studio-service": {
+      "project": "theme-forge-stellar-burst",
+      "status": "release-source-check-required",
+      "implementation_paths": [
+        "src/service-protocol/server-cli.ts",
+        "src/service-protocol/server.ts",
+        "dist/service-protocol/server-cli.js",
+        "dist/service-protocol/server.js"
+      ],
+      "source_guards": [
+        "StudioServer",
+        "initialize",
+        "shutdown"
+      ],
+      "evidence": {
+        "repository": "Knowledge-Forge-AI/theme-forge-stellar-burst",
+        "commit": "3edb9d2c40dd19a2b7d97d9309bc210e7fed711c",
+        "tag": "v0.7.0",
+        "research": "authenticated current release archive implementation; static inspection only"
+      },
+      "probes": [
+        {
+          "kind": "service-protocol",
+          "argv": [],
+          "input": "",
+          "expect_exit": 0,
+          "stdout_contains": [],
+          "exchange": [
+            "initialize",
+            "initialized",
+            "shutdown",
+            "exit"
+          ],
+          "protocol": "tfsb.studio",
+          "selectedVersion": "1.0"
+        }
+      ],
+      "implementation_sha256": {
+        "dist/service-protocol/server-cli.js": "a1b217a25d27c050b147235d6b6a9909456ef27f2244be6f1cf7df8e0bd09c17",
+        "dist/service-protocol/server.js": "aaf1fc147725fd27cfaa0d222b19ae7e1965fd46003c2996b32a2f7644259778",
+        "dist/service-protocol/v1-types.js": "083e59a27e9a0f0f41acdf8b6aa54227517636c648238c0db5ef1bbb07902aa3",
+        "dist/service-protocol/v1-validate.js": "8224764e36a6446daf8de449c53e1e4340f74104a7cec6e6676caa597868f56f",
+        "dist/service-protocol/v1-registry.js": "2db1a9400e157c63efecdfaed7bc18b1e960aaf52cbba03340bc399952df6504"
+      }
+    },
+    "tfnf": {
+      "project": "theme-forge-nebular-fusion",
+      "status": "release-source-check-required",
+      "implementation_paths": [
+        "bin/tfnf",
+        "Contents/Resources/bin/tfnf"
+      ],
+      "source_guards": [
+        "--version",
+        "0.7.0"
+      ],
+      "evidence": {
+        "repository": "Knowledge-Forge-AI/theme-forge-nebular-fusion",
+        "commit": "cadb40c4972f68f314096ff60fbcfb4da950c161",
+        "tag": "v0.7.0",
+        "research": "authenticated current release archive implementation; static inspection only"
+      },
+      "probes": [
+        {
+          "kind": "launcher-metadata",
+          "argv": [
+            "--version"
+          ],
+          "input": "",
+          "expect_exit": 0,
+          "stdout_contains": [
+            "0.7.0"
+          ]
+        }
+      ],
+      "implementation_sha256": {
+        "Contents/Resources/bin/tfnf": "c46bc5c96cd401caf7ba44eaf136927ba2464ee04fd3d59479f63c99d7f8077b",
+        "bin/tfnf": "b15c5e9b15498f62442d3d6fe6793d065c7dfb050554be42ee7fdc8bd247897e"
+      }
+    }
+  },
+  "generation": "theme-forge-current-202610"
+}

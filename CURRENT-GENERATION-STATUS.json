@@ -1,0 +1,32 @@
+{
+  "schema": "theme-forge.current-generation-publication-hold-v1",
+  "generation": "current-four",
+  "productionEnabled": false,
+  "status": "held_pending_rs9_production_bridge",
+  "qualifiedUnsignedPackages": null,
+  "productionBridgeReceipt": null,
+  "hostedAcceptanceReceipt": null,
+  "signedRepositoryPublication": null,
+  "requiredBeforePromotion": [
+    "Review and promote bounded canonical generator/input patch.",
+    "Integrate RS9 qualified unsigned native packages into existing protected signer and Pages deployer with key continuity.",
+    "Bind exact native-three Nix, Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64 qualification receipts.",
+    "Regenerate binding after production public key preservation/bootstrap and final bridge integration."
+  ],
+  "historicalTemplates": [
+    "templates/rpm",
+    "templates/pacman",
+    "aur"
+  ],
+  "historicalTemplatesAreCurrentBuildAuthority": false,
+  "workflowAuthority": "Current validate.yml retains all P native-three jobs but is manual-only while the minimal Linux process-predicate probe is prepared. Separate probe-current-process-predicate.yml is manual-only on x64/ARM64 Linux. New locked Python/procfs/pidfd/STOP/CONT/watchdog policy and P restoring guard admission are PENDING exact owner approval before hosted execution. Current publish.yml remains dispatch-only, permissions-empty and an explicit refusal. Historical DEFAULT output is byte-identical.",
+  "aurStatus": "deferred",
+  "runtimeArchiveEvidence": "smol-toml 1.9.1 exact archive authenticated against current tagged Burst lockfile; native compatibility remains unqualified",
+  "productionPublicKey": "existing public key preserved byte-for-byte; private/signing-key preflight remains future and out of scope",
+  "nixQualification": "Full native-three jobs/checks retained without execution; old strict one-spawn Linux PID assumptions require a later separately reviewed full GUI controller. Both native Linux predicate probes must first pass; no native result exists.",
+  "candidateValidation": "explicit verification only; production/publication authority false",
+  "pGuiAdapter": "Original upstream source stays pinned and unchanged; only spawned launcher is the actual canonical P public wrapper; original raw identity, PID/scenario/sandbox/cleanup checks remain.",
+  "runnerPolicy": "P repository-admission adaptation of the maintained restoring userns guard is pending owner approval before remote activation.",
+  "legacyWorkflowRouting": "Historical validation/signing jobs are replaced only in the current overlay; no duplicate qualify-current-nix.yml remains.",
+  "predicateProbe": "Source-only preparation: Node owns actual monitor PID and wait; sibling Python controller; inherited-pidfd watchdog. Controller-death rescue applies only while Node remains alive. New test policy PENDING; no GUI/publication acceptance."
+}

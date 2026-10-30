@@ -1,0 +1,61 @@
+name: Pending Policy P Linux Process Predicate Probe
+
+# PREPARED ONLY. Exact owner test-tool/control-policy approval precedes dispatch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  predicate:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            runner: ubuntu-24.04
+          - system: aarch64-linux
+            runner: ubuntu-24.04-arm
+    defaults:
+      run:
+        shell: bash
+        working-directory: p
+    steps:
+      - name: Checkout exact P proposal
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: p
+          persist-credentials: false
+      - name: Setup existing Node class for candidate authentication
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+      - name: Authenticate held candidate
+        run: |
+          set -euo pipefail
+          node tools/verification/fetch-locked-assets.mjs --candidate-validation --lock release-lock.json --dest "$RUNNER_TEMP/p-predicate-assets"
+          node tools/verification/verify-release-lock.mjs --candidate-validation release-lock.json --require-assets --assets-dir "$RUNNER_TEMP/p-predicate-assets"
+      - name: Install existing pinned Nix installer class
+        uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71c2dd0aa4218de8f4afa59f8f81d # v16
+      - name: Locked test tool and exact predicate (pending policy)
+        env:
+          P_SYSTEM: ${{ matrix.system }}
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d "$RUNNER_TEMP/p-predicate-tool-XXXXXXXX")"
+          node_owner="$(command -v node)"
+          nix build --no-update-lock-file --out-link "$work/python" ".#testTools.$P_SYSTEM.pidObserverPython"
+          bash .github/scripts/p-linux-userns-apparmor-guard.sh -- \
+            "$work/python/bin/python3" -I -S tools/verification/p-predicate-native-driver.py \
+            "$PWD" "$P_SYSTEM" "$RUNNER_TEMP/p-predicate-evidence" "$node_owner"
+      - name: Retain bounded result or failure
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: p-process-predicate-${{ matrix.system }}
+          path: ${{ runner.temp }}/p-predicate-evidence/
+          if-no-files-found: warn

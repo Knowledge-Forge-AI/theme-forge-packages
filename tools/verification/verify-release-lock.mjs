@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { validateCandidateContext } from "./current-candidate-context.mjs";
 
 /**
  * Verifies local or downloaded release assets against release-lock.json.
@@ -38,6 +39,8 @@ function main() {
   }
 
   const lock = JSON.parse(readFileSync(lockPath, "utf8"));
+  const context = validateCandidateContext(lock, lockPath, args.includes("--candidate-validation"));
+  console.log(JSON.stringify(context));
   if (lock.schema !== "tfsb.dist1-release-lock-v1") {
     console.error(`[FAIL] Invalid schema: ${lock.schema}`);
     process.exit(1);

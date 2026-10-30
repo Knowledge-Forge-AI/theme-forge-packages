@@ -1,23 +1,41 @@
 {
-  "schema": "tfsb.dist1-bootstrap-projection-binding-v1",
-  "generatedAt": "2026-10-03T12:59:46.603Z",
-  "generator": "tools/distribution/bootstrap-public-repo.mjs",
-  "bootstrapState": "bootstrapped-with-production-key",
-  "productionPrimaryFingerprint": "7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF",
-  "productionSigningSubkeyFingerprint": "C021E00EE3D37C459B0E1CB3199F8028126E8A8C",
-  "releaseLockSha256": "567b91e43e9e3d871d19f96abbaa4c593de0f0c99029d56f3fd903b5635b29cc",
-  "treeManifestSha256": "8e44cde9f8684cf9a02b0cb0bd3b3599e9d54c6fb721a335d9321668212f4f0b",
-  "totalFiles": 66,
+  "schema": "tfsb.dist1-generator-projection-binding-v1",
+  "generatedAt": "2026-10-30T09:50:33.738Z",
+  "generator": "tools/distribution/generate-public-projection.mjs",
+  "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
+  "generation": "current-four",
+  "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
+  "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
+  "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
+  "generationOverlayManifestSha256": "51302099f66ae3549ebbe7b46885a3a9ddcade6452da5279230f72d81002448c",
+  "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
+  "publicationStatus": "held_pending_rs9_production_bridge",
+  "treeManifestSha256": "cda399cd36495c1f30a91b7a9da68a270797fda9e99357526e966a4bd2c85323",
+  "authority": {
+    "authoritativeIdentity": "treeManifestSha256",
+    "tarballSha256Description": "convenience archive digest; non-authoritative"
+  },
+  "totalFiles": 91,
   "files": [
     {
+      "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
+      "bytes": 3009,
+      "sha256": "78a7d8ce7a2b6d0de020f9f72e339d01faf732803949fc3d7ed1ab4c420c36fc"
+    },
+    {
+      "path": ".github/workflows/probe-current-process-predicate.yml",
+      "bytes": 2526,
+      "sha256": "c9af15f612a7864eab3e08464742c7e9d0262ac6a7aac8a12470ece07acdc234"
+    },
+    {
       "path": ".github/workflows/publish.yml",
-      "bytes": 25819,
-      "sha256": "91cf4e36233febc4fa2c1e788a4f183b123c3beb30a18ed4d1d1f14ed5ac1386"
+      "bytes": 479,
+      "sha256": "3fef1507c55fefb30d07c5cef8aef110974b12d102e08768f4958561431db590"
     },
     {
       "path": ".github/workflows/validate.yml",
-      "bytes": 35575,
-      "sha256": "f5641a2af997c8aee6b008218d4ce4c990953c288cc23075f5b6d3960016d102"
+      "bytes": 3630,
+      "sha256": "e7466113f9665db4f3d526580adb88febe95d865fa20da302fe7480991067d03"
     },
     {
       "path": "AUR-READINESS.md",
@@ -100,19 +118,29 @@
       "sha256": "2b69d33543ba889547a71ce712944126155a556b4a034ed0ca0cc195a8cf14e5"
     },
     {
+      "path": "CURRENT-GENERATION-STATUS.json",
+      "bytes": 2895,
+      "sha256": "684fffb0c7cf614a46cf4752aeaec80987262ba8fef48ed6a7d391ce664f96a9"
+    },
+    {
+      "path": "docs/process-predicate-policy.md",
+      "bytes": 11917,
+      "sha256": "124c575f4f969ee6dba919083ebbe1bf5598dcf4f1fb68f412c63dce24a86609"
+    },
+    {
       "path": "flake.lock",
       "bytes": 569,
       "sha256": "ed928e945c79e3d7f19d37b13a05f0d97b98440b38661d97bf77844e40606431"
     },
     {
       "path": "flake.nix",
-      "bytes": 6526,
-      "sha256": "0997b5ad314a8dacb3c01db340359b06adf1e5bc7db08f435cac37bfb89bf311"
+      "bytes": 8978,
+      "sha256": "67be263eae65764407ef29126d28183f0270f60ad45acb8fd1202cec6411d9dd"
     },
     {
       "path": "INSTALL.md",
-      "bytes": 4035,
-      "sha256": "93943f5e9975c32deb1fdea59b3ba0b06a8a5889395bb23c55295f8259a74d83"
+      "bytes": 4514,
+      "sha256": "412a9e0410d0e29e9045182c48a7983ae165e908a0365f015b65f4abdb7813bc"
     },
     {
       "path": "keys/KEY-METADATA.json",
@@ -125,9 +153,14 @@
       "sha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95"
     },
     {
+      "path": "P-CURRENT-NIX-QUALIFICATION.md",
+      "bytes": 8544,
+      "sha256": "1dc81c0f31872512d2a65c15278587771d059d90eef4595b7e74cee350a6dce4"
+    },
+    {
       "path": "package-matrix.json",
-      "bytes": 5179,
-      "sha256": "489e620882a06f4ed687e496f0377a9af1722c7074e2be69269a6f30cdfb32a4"
+      "bytes": 9636,
+      "sha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f"
     },
     {
       "path": "PACKAGE-SIGNING-BOOTSTRAP.md",
@@ -137,32 +170,32 @@
     {
       "path": "packages/nebular-fusion.nix",
       "bytes": 5056,
-      "sha256": "83519b07071d7fa90140a41d55a4e3ba1efdc9ab78f7054ed768d3f7d4bd6df3"
+      "sha256": "a2eacc59abee73181bdc3343005c96a93f2cdb03965eb01086f3355e0ed25293"
     },
     {
       "path": "packages/solar-sail.nix",
-      "bytes": 1161,
-      "sha256": "8e175f41f226485dd738e79f9fe2c875cd8df01e4b96db7142928997e494badc"
+      "bytes": 1189,
+      "sha256": "f85384da4251b98adfc2a38cde3d75cc8b806a5fd3ccf87ad3fd47d2e6a339d5"
     },
     {
       "path": "packages/stellar-burst.nix",
-      "bytes": 2582,
-      "sha256": "af9e61d2c81c268428157793c2d6c3f68843983e97bfb9f68a9feadba17fd1db"
+      "bytes": 2697,
+      "sha256": "1a91ddb8bfdf84b0cfa01c915c61e15d1f0f0f21e8a878fada452edc8db3c216"
     },
     {
       "path": "packages/stellar-loom.nix",
-      "bytes": 1303,
-      "sha256": "e2fce9c7364ab914aa953d471b36cec01da3045c31225aa5c1ba76248944bcf0"
+      "bytes": 1331,
+      "sha256": "b238e360a311ff2228f8f025b11b8a09e5057a28312b9ecf301b3d6af93d4ec2"
     },
     {
       "path": "README.md",
-      "bytes": 5590,
-      "sha256": "a50e8723b5bb32a45ba5a2135f9c308b2097837ac44a97be8a6055bd48aaeece"
+      "bytes": 4531,
+      "sha256": "f8b7631b292bca6d9c81d63c3759a030990fde99bfb96bd0cf2e53861de4c830"
     },
     {
       "path": "release-lock.json",
-      "bytes": 5065,
-      "sha256": "567b91e43e9e3d871d19f96abbaa4c593de0f0c99029d56f3fd903b5635b29cc"
+      "bytes": 7527,
+      "sha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c"
     },
     {
       "path": "static/config/knowledge-forge-ai.repo",
@@ -176,8 +209,8 @@
     },
     {
       "path": "static/index.html",
-      "bytes": 5963,
-      "sha256": "bb88af01416386d912e0ea30af6c00e25e671966e6c6eb4b07274b894b9c9f15"
+      "bytes": 1422,
+      "sha256": "f8523c22af79f04ea804e8c13f7594f282032e329d256a9e31483018e4f566c4"
     },
     {
       "path": "templates/desktop/theme-forge-nebular-fusion.desktop",
@@ -290,19 +323,114 @@
       "sha256": "98375c2ce2cd9e29e0e2308d07cd3c658ee8de03cbca9036e83947f4890d123d"
     },
     {
+      "path": "tools/predicate/r5-product-baseline/flake.lock",
+      "bytes": 569,
+      "sha256": "ed928e945c79e3d7f19d37b13a05f0d97b98440b38661d97bf77844e40606431"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/flake.nix",
+      "bytes": 6526,
+      "sha256": "0bd05e71e1c4f3e5febe82a2142bc86d090dadd5c0677f2d5ef7a1150a3c0ee3"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/packages/nebular-fusion.nix",
+      "bytes": 5056,
+      "sha256": "a2eacc59abee73181bdc3343005c96a93f2cdb03965eb01086f3355e0ed25293"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/packages/solar-sail.nix",
+      "bytes": 1189,
+      "sha256": "f85384da4251b98adfc2a38cde3d75cc8b806a5fd3ccf87ad3fd47d2e6a339d5"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/packages/stellar-burst.nix",
+      "bytes": 2697,
+      "sha256": "1a91ddb8bfdf84b0cfa01c915c61e15d1f0f0f21e8a878fada452edc8db3c216"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/packages/stellar-loom.nix",
+      "bytes": 1331,
+      "sha256": "b238e360a311ff2228f8f025b11b8a09e5057a28312b9ecf301b3d6af93d4ec2"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/release-lock.json",
+      "bytes": 7527,
+      "sha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c"
+    },
+    {
+      "path": "tools/predicate/r5-product-baseline/tools/verification/check-nebular-fhs-closure.sh",
+      "bytes": 6416,
+      "sha256": "9724f4ab257d217bb2a556d8abab25c1e3e01d955109b6256d9c1e784cc65947"
+    },
+    {
+      "path": "tools/predicate/reviewed-source-binding.json",
+      "bytes": 2965,
+      "sha256": "4730a9bb9e856fde673b9eec25c62c458ef90266aadcf76322b6c227b0469c3a"
+    },
+    {
       "path": "tools/verification/check-nebular-fhs-closure.sh",
       "bytes": 6416,
       "sha256": "9724f4ab257d217bb2a556d8abab25c1e3e01d955109b6256d9c1e784cc65947"
     },
     {
+      "path": "tools/verification/current-candidate-context.mjs",
+      "bytes": 3961,
+      "sha256": "8e59ef33a993e86a48cc92ee3a2264e034284a368c47e60d6d7c6f9ec8cb458c"
+    },
+    {
+      "path": "tools/verification/current-command-contracts.json",
+      "bytes": 6910,
+      "sha256": "0a49e3ae9d5466d8e8ac91337e2914358af9c09d82bd59083d1709d76e0bd022"
+    },
+    {
       "path": "tools/verification/fetch-locked-assets.mjs",
-      "bytes": 7125,
-      "sha256": "355661445b68024a50eac3bce4f93b54e5d1caf4a8b4886bb0b896c25fbdeafc"
+      "bytes": 7454,
+      "sha256": "1269d79e3e1c9b021050820afc7ed690ea08158091f3f93d9dc025d52c65d62f"
     },
     {
       "path": "tools/verification/generate-publication-provenance.mjs",
       "bytes": 7797,
       "sha256": "1fd13ff84ca4267fb2d2207f006fb966e910426d7555528d115a9afd9119b695"
+    },
+    {
+      "path": "tools/verification/p-command-probes.mjs",
+      "bytes": 7074,
+      "sha256": "07c4fa10307f38aaf3a94cdeabfdc20f305ebcfdfa2b4e25f6579dfac938a8cd"
+    },
+    {
+      "path": "tools/verification/p-current-nix-contract.json",
+      "bytes": 3692,
+      "sha256": "93cad74803f9b7d763fa16ccb1a9955ffa261752e8e03c4a43f312ea0e26e0a7"
+    },
+    {
+      "path": "tools/verification/p-nix-invocation.mjs",
+      "bytes": 1195,
+      "sha256": "7a993b8532222588a54c812365b4c965fe41bafbde1e540fac44b27732410c76"
+    },
+    {
+      "path": "tools/verification/p-nix-launcher-adapter.mjs",
+      "bytes": 5399,
+      "sha256": "b0acd735842dda3294d8c9d7eb53d063ab39b71bb493a8f4c790db2483714a4b"
+    },
+    {
+      "path": "tools/verification/p-predicate-launcher.mjs",
+      "bytes": 5226,
+      "sha256": "3d7876bb508333058c1fa89a6f4378188a3e1f6e3a12e84ea85a6598d7415165"
+    },
+    {
+      "path": "tools/verification/p-predicate-native-driver.py",
+      "bytes": 21078,
+      "sha256": "e347b67d6f10314bf2c23c445991b48fb454d717b0e8cfc3461743541439710b"
+    },
+    {
+      "path": "tools/verification/p-process-predicate-probe.py",
+      "bytes": 25728,
+      "sha256": "8caa44844e3d3c77911f6909f128e1ea1178ae29acc6d37eb3c430324ec28811"
+    },
+    {
+      "path": "tools/verification/p-qualification-evidence.mjs",
+      "bytes": 3694,
+      "sha256": "7cafe5571ac158308919d5ebc78097f0223f46c6d1783790130a896802cc1a3a"
     },
     {
       "path": "tools/verification/preflight-signing-key.mjs",
@@ -313,6 +441,11 @@
       "path": "tools/verification/projection-identity.mjs",
       "bytes": 3352,
       "sha256": "8fdb31e336964be5390197e5c101ebc710d01e8673961b55d3366207aa8c1d6e"
+    },
+    {
+      "path": "tools/verification/qualify-p-current-nix.mjs",
+      "bytes": 13086,
+      "sha256": "992592f7419c30b4e157f366631cbe02d29fe7fc6cd98f7eb304c098f4f043bb"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",
@@ -331,8 +464,8 @@
     },
     {
       "path": "tools/verification/verify-release-lock.mjs",
-      "bytes": 6319,
-      "sha256": "7b8705af42123cb982df598f3cf7607943c01c3a7f3b3324a5344012d3700a03"
+      "bytes": 6536,
+      "sha256": "7e31507cb9f8f46fd5fd45cf4f4e10e1706a316785f99cf123346a06190dd0ac"
     },
     {
       "path": "tools/verification/verify-signatures.sh",

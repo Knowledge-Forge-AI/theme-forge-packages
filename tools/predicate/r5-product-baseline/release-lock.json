@@ -1,0 +1,163 @@
+{
+  "schema": "tfsb.dist1-release-lock-v1",
+  "lockVersion": 2,
+  "description": "Current-four upstream artifact lock proposal; production publication held pending RS9 bridge and acceptance.",
+  "products": {
+    "theme-forge-stellar-burst": {
+      "version": "0.7.0",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-stellar-burst",
+      "asset": "knowledge-forge-ai-theme-forge-stellar-burst-0.7.0.tgz",
+      "sha256": "c4b609a0b4705b17483577d5bde5deea518a83af08ce4d93c4662fa7cacc7d88",
+      "bytes": 646798,
+      "bins": [
+        "tfsb",
+        "tfsb-studio-service"
+      ],
+      "nodeEngine": ">=22",
+      "releaseCommit": "3edb9d2c40dd19a2b7d97d9309bc210e7fed711c",
+      "releaseTree": "4be1551c49b15dff788d07ed1fb00ddcd8839a76",
+      "releaseId": 424873797,
+      "releaseTag": "v0.7.0",
+      "url": "https://github.com/Knowledge-Forge-AI/theme-forge-stellar-burst/releases/download/v0.7.0/knowledge-forge-ai-theme-forge-stellar-burst-0.7.0.tgz"
+    },
+    "theme-forge-stellar-loom": {
+      "version": "0.5.0",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-stellar-loom",
+      "asset": "knowledge-forge-ai-theme-forge-stellar-loom-0.5.0.tgz",
+      "sha256": "4e7a7d436c09ba111f5dca8101876c6e085ad15859d96bab8f728c5669880b5f",
+      "bytes": 272836,
+      "bins": [
+        "tfsl",
+        "tfsl-batch"
+      ],
+      "nodeEngine": ">=22",
+      "releaseCommit": "9063fe5d283881f464ab566d8b74296a6ce1b688",
+      "releaseTree": "9ac1906d36baff63fd3e28f49d50ce2e0e07ee04",
+      "releaseId": 423916361,
+      "releaseTag": "v0.5.0",
+      "url": "https://github.com/Knowledge-Forge-AI/theme-forge-stellar-loom/releases/download/v0.5.0/knowledge-forge-ai-theme-forge-stellar-loom-0.5.0.tgz"
+    },
+    "theme-forge-solar-sail": {
+      "version": "0.3.0",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-solar-sail",
+      "asset": "knowledge-forge-ai-theme-forge-solar-sail-0.3.0.tgz",
+      "sha256": "65070c3478a1d55476c1b09fbe1dcadfdf7c3d3aa54a154bc9ac9e299411f415",
+      "bytes": 110836,
+      "bins": [
+        "tfss"
+      ],
+      "nodeEngine": ">=22",
+      "releaseCommit": "eafd594af8bce04ef3752c489ae770946b4e0e3b",
+      "releaseTree": "a87aa8428f7b5d773683c8fb4ab0135b1ff73fd0",
+      "releaseId": 423916603,
+      "releaseTag": "v0.3.0",
+      "url": "https://github.com/Knowledge-Forge-AI/theme-forge-solar-sail/releases/download/v0.3.0/knowledge-forge-ai-theme-forge-solar-sail-0.3.0.tgz"
+    },
+    "theme-forge-nebular-fusion": {
+      "version": "0.7.0",
+      "canonicalRepo": "Knowledge-Forge-AI/theme-forge-nebular-fusion",
+      "releaseCommit": "cadb40c4972f68f314096ff60fbcfb4da950c161",
+      "releaseTree": "27c643b6375c2aafde314799c4f08e844c14992c",
+      "bins": [
+        "tfnf"
+      ],
+      "rawArchives": {
+        "aarch64-darwin": {
+          "asset": "theme-forge-nebular-fusion-v0.7.0-aarch64-apple-darwin.app.tar.gz",
+          "sha256": "52f626bfcbfb4235298675669841ca9fbea8113118e9d25f0310e0a26489a470",
+          "executablePath": "Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion",
+          "executableSha256": "8aee6af893f2a3ab01b1e4ad84dc1cad8eab2067f00200149cfb5301274232b5",
+          "bytes": 47355011,
+          "url": "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v0.7.0/theme-forge-nebular-fusion-v0.7.0-aarch64-apple-darwin.app.tar.gz",
+          "runtimeStrategy": "native-app"
+        },
+        "aarch64-linux": {
+          "asset": "theme-forge-nebular-fusion-v0.7.0-aarch64-unknown-linux-gnu.tar.gz",
+          "sha256": "eb15e92e2c6c893748612c3e1e3910acbc57e8e990a4d4d1c89f958e330ce17c",
+          "executablePath": "theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion",
+          "executableSha256": "9dcd5953dc3696f0159323fd02ef009178a4eb2fed6427dde52eb9a26283e06e",
+          "bytes": 54553557,
+          "url": "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v0.7.0/theme-forge-nebular-fusion-v0.7.0-aarch64-unknown-linux-gnu.tar.gz",
+          "runtimeStrategy": "thin-raw-system-webkitgtk-4.1"
+        },
+        "x86_64-linux": {
+          "asset": "theme-forge-nebular-fusion-v0.7.0-x86_64-unknown-linux-gnu.tar.gz",
+          "sha256": "4a4035797ac591854e362404d32e8acc38f79ccdccf7696b31f24060f0b55c27",
+          "executablePath": "theme-forge-nebular-fusion/bin/theme-forge-nebular-fusion",
+          "executableSha256": "6213ca853a49af3a74ee271216743e47c24edfccb4c2ac92025b049e96cad99d",
+          "bytes": 54425294,
+          "url": "https://github.com/Knowledge-Forge-AI/theme-forge-nebular-fusion/releases/download/v0.7.0/theme-forge-nebular-fusion-v0.7.0-x86_64-unknown-linux-gnu.tar.gz",
+          "runtimeStrategy": "thin-raw-system-webkitgtk-4.1"
+        }
+      },
+      "releaseId": 426333162,
+      "releaseTag": "v0.7.0"
+    }
+  },
+  "runtimeDependencies": {
+    "@xmldom/xmldom": {
+      "version": "0.9.12",
+      "tarball": "xmldom-0.9.12.tgz",
+      "sha256": "08245e18c248b957b4c6e07f8549ad5f55ae11b7a8abd4c1113a0fd61ddc67ee",
+      "bytes": 109708,
+      "integrity": "sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==",
+      "resolved": "https://registry.npmjs.org/@xmldom/xmldom/-/xmldom-0.9.12.tgz"
+    },
+    "fflate": {
+      "version": "0.8.3",
+      "tarball": "fflate-0.8.3.tgz",
+      "sha256": "38c2cd824402407b43153c782274aec2ea83ea688e4aa0b743c5f2c305857d92",
+      "bytes": 173034,
+      "integrity": "sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==",
+      "resolved": "https://registry.npmjs.org/fflate/-/fflate-0.8.3.tgz"
+    },
+    "smol-toml": {
+      "version": "1.9.1",
+      "tarball": "smol-toml-1.9.1.tgz",
+      "resolved": "https://registry.npmjs.org/smol-toml/-/smol-toml-1.9.1.tgz",
+      "integrity": "sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==",
+      "sha256": "4ac8392f1918c22a4366be19047cf53aa42646077d4c711b2ef73263beefb172",
+      "bytes": 31492,
+      "status": "authenticated_archive_no_execution",
+      "authority": "Burst v0.7.0 tagged package-lock.json SRI verified against exact public registry archive",
+      "license": "BSD-3-Clause"
+    }
+  },
+  "nixDependencyAuthority": {
+    "theme-forge-stellar-burst": {
+      "lockfileSha256": "8534f5e5d12eeccbc74d3db2036465d4e6a6eb0b9496c0ff5160da765c9bbdbf",
+      "npmDepsHash": null,
+      "status": "current_nix_build_not_run; historical npmDepsHash not reused"
+    },
+    "theme-forge-stellar-loom": {
+      "lockfileSha256": null,
+      "npmDepsHash": null,
+      "status": "current_nix_build_not_run; historical npmDepsHash not reused"
+    },
+    "theme-forge-solar-sail": {
+      "lockfileSha256": null,
+      "npmDepsHash": null,
+      "status": "current_nix_build_not_run; historical npmDepsHash not reused"
+    }
+  },
+  "distributionChannels": {
+    "repositoryId": "knowledge-forge-ai",
+    "publicPagesUrl": "https://knowledge-forge-ai.github.io/theme-forge-packages",
+    "publicKeyPath": "keys/knowledge-forge-ai-packages.asc",
+    "archPath": "arch/x86_64",
+    "rpmPath": "rpm/$basearch",
+    "apt": {
+      "suite": "resolute",
+      "release": "Ubuntu 26.04",
+      "architectures": [
+        "amd64",
+        "arm64"
+      ],
+      "status": "held_pending_rs9_production_bridge",
+      "repositoryUrl": null,
+      "signedBy": null
+    }
+  },
+  "generation": "current-four",
+  "publicationStatus": "held_pending_rs9_production_bridge"
+}

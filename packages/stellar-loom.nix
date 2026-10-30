@@ -6,12 +6,12 @@
 }:
 
 let
-  version = "0.4.0";
+  version = "0.5.0";
   pname = "theme-forge-stellar-loom";
 
   loomSrc = fetchurl {
-    url = "https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-stellar-loom/-/theme-forge-stellar-loom-${version}.tgz";
-    sha256 = "4550314d9a6eb9a016c8637eb2a0a98e9a410210ad6546642dfce31c7402c9ec";
+    url = "https://github.com/Knowledge-Forge-AI/theme-forge-stellar-loom/releases/download/v0.5.0/knowledge-forge-ai-theme-forge-stellar-loom-0.5.0.tgz";
+    sha256 = "4e7a7d436c09ba111f5dca8101876c6e085ad15859d96bab8f728c5669880b5f";
   };
 in
 stdenv.mkDerivation {

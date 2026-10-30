@@ -1,0 +1,59 @@
+{
+  "guiQualification": false,
+  "implementationReview1": {
+    "containerInitClarification": "Root confirmed static C++ producer; sole pre-exec ldconfig child is reaped, then same PID execv /init. Shell-only/no-wait review prescription does not apply to this ELF.",
+    "disposition": "bounded corrections prepared; independent re-review pending",
+    "sourceReportSha256": "065caf9b49bc175a9c2083744e4267a042ddf047dff234a5d52f17d9ad106398",
+    "verdict": "REVISE"
+  },
+  "nativeObserved": false,
+  "nixPathInfoJSON": {
+    "legacyListPathAuthority": "required explicit row.path",
+    "mapPathAuthority": "outer map key; optional redundant row.path must match",
+    "requiredIdentity": [
+      "all runtime paths",
+      "narHash",
+      "narSize",
+      "references"
+    ],
+    "sources": [
+      {
+        "bytes": 6241,
+        "file": "nix-2.31.2-path-info-command.cc",
+        "sha256": "4d4cae2c6d3a60dcac17b699dba27fe006588fd38c71dd65851334939c25c472",
+        "url": "https://raw.githubusercontent.com/NixOS/nix/2.31.2/src/nix/path-info.cc"
+      },
+      {
+        "bytes": 6683,
+        "file": "nix-2.31.2-unkeyed-path-info.cc",
+        "sha256": "0c642ffc22c9b3044069ce3f21a20382cc223fd4acfe7f4b2db219699d8c9348",
+        "url": "https://raw.githubusercontent.com/NixOS/nix/2.31.2/src/libstore/path-info.cc"
+      }
+    ],
+    "version": "2.31.2"
+  },
+  "ownershipClarification": {
+    "controllerDeathRequiresNodeAlive": true,
+    "deltaSha256": "446c3a089e9cbf3e59a739dac2cd0c73ac07ea238036ad567b52a4d984935c4b",
+    "model": "Node owns monitor; sibling Python controller; separate-session controller-child watchdog",
+    "nodeDeathIsFailedContainment": true,
+    "source": "bounded parent disposition after Design2 preparation review"
+  },
+  "policy": "PENDING",
+  "publicationAuthority": false,
+  "r5ProjectionRoot": "68b6b23592faa8df91394f30f44745400b5a90f5d20b4a37539b2529d0136261",
+  "reviewDisposition": "ACCEPT-FOR-PREDICATE-PROBE-PREPARATION",
+  "schema": 1,
+  "sources": {
+    "DELTA.md": "def0b096149cf727f614a2435d40e900d7059a33ccdf8ca5d9458ad5887293cf",
+    "DESIGN.md": "89a7386f9ebbd51b1db987605b68787f474cdc66fddc193d7e427c97b36506c4",
+    "bubblewrap-v0.12.0.c": "3f17ee26057cae9d660801ca8d9ba84722f1bafdcd072d5151ee1c64eeeb15f4",
+    "muse-review2.txt": "c5304c910348b320866552c02014e181e0fc0e2b3650454548bb430131031d42",
+    "nixpkgs-bubblewrap-package.nix": "92bd0bece01982b66186414684e3a580df26facabceedbd517bea0610550b51e",
+    "nixpkgs-build-fhsenv-default.nix": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+    "nixpkgs-container-init.cc": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+    "opus-process-predicate-review1.json": "065caf9b49bc175a9c2083744e4267a042ddf047dff234a5d52f17d9ad106398",
+    "source-manifest.json": "cd7999175bf9f7a9e7154271952f6596fdc903e0aac676c63736163ac565ad17"
+  },
+  "testToolClass": "locked nixpkgs python3; new test dependency pending approval"
+}

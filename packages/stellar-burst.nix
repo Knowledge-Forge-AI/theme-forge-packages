@@ -6,12 +6,12 @@
 }:
 
 let
-  version = "0.6.1";
+  version = "0.7.0";
   pname = "theme-forge-stellar-burst";
 
   burstSrc = fetchurl {
-    url = "https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-stellar-burst/-/theme-forge-stellar-burst-${version}.tgz";
-    sha256 = "53ef41a3de3335e042f2c4b1d299b1155b64bfc6556a84baf6a62cb28bcca209";
+    url = "https://github.com/Knowledge-Forge-AI/theme-forge-stellar-burst/releases/download/v0.7.0/knowledge-forge-ai-theme-forge-stellar-burst-0.7.0.tgz";
+    sha256 = "c4b609a0b4705b17483577d5bde5deea518a83af08ce4d93c4662fa7cacc7d88";
   };
 
   depXmldom = fetchurl {
@@ -25,8 +25,8 @@ let
   };
 
   depSmolToml = fetchurl {
-    url = "https://registry.npmjs.org/smol-toml/-/smol-toml-1.8.0.tgz";
-    sha256 = "1fc995be91cdb777fc13e20c2edfebaaf60ef4e4d2d5331caef2837b04d37892";
+    url = "https://registry.npmjs.org/smol-toml/-/smol-toml-1.9.1.tgz";
+    sha256 = "4ac8392f1918c22a4366be19047cf53aa42646077d4c711b2ef73263beefb172"; # Archive authenticated against current tagged-lockfile SHA512; build acceptance held.
   };
 in
 stdenv.mkDerivation {

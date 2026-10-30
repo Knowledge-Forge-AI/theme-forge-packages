@@ -6,12 +6,12 @@
 }:
 
 let
-  version = "0.2.1";
+  version = "0.3.0";
   pname = "theme-forge-solar-sail";
 
   sailSrc = fetchurl {
-    url = "https://registry.npmjs.org/@knowledge-forge-ai/theme-forge-solar-sail/-/theme-forge-solar-sail-${version}.tgz";
-    sha256 = "ebc4f21d1e61dbc0ac4e87ce81f7ecec4f97d7c15562356e429d4c1a4e9aa5a0";
+    url = "https://github.com/Knowledge-Forge-AI/theme-forge-solar-sail/releases/download/v0.3.0/knowledge-forge-ai-theme-forge-solar-sail-0.3.0.tgz";
+    sha256 = "65070c3478a1d55476c1b09fbe1dcadfdf7c3d3aa54a154bc9ac9e299411f415";
   };
 in
 stdenv.mkDerivation {
