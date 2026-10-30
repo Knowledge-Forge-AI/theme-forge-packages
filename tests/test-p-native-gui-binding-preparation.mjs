@@ -4,7 +4,7 @@ import {readFileSync,mkdtempSync,writeFileSync,symlinkSync,rmSync} from "node:fs
 import {tmpdir} from "node:os";
 import {fileURLToPath} from "node:url";
 import {join,resolve} from "node:path";
-import {prepareNativeGuiBinding,qualificationPlan,guiProfileFor,runNativeRoute} from "../tools/verification/qualify-p-current-nix.mjs";
+import {prepareNativeGuiBinding,qualificationPlan,guiProfileFor,runNativeRoute,retainNixCheckFailure} from "../tools/verification/qualify-p-current-nix.mjs";
 import {validateContext,validateFreshLaunchFacts,validateObserverInputs,controllerBindMessage,spawnGuiBound,CONTROLLER_TERMINATE_WAIT_MS} from "../tools/verification/p-native-gui-controller-bridge.mjs";
 import {isFreshLaunchBinding,freezeLaunchInputs} from "../tools/verification/p-native-gui-launch-binding.mjs";
 import {fixtureObserver,fixtureFacts,digest,sha} from "./p-native-gui-fixtures.mjs";
@@ -153,4 +153,24 @@ test("qualified Linux route cannot silently fall back and fixture backends canno
   await assert.rejects(runNativeRoute({...common,system:"aarch64-darwin",nativeGuiController:true}),/explicit native controller flag/);
   await assert.rejects(runNativeRoute({...common,system:"x86_64-linux",nativeGuiController:true}),/actual public native host/);
   assert.equal(commands,0);
+});
+
+
+test("Nix failure diagnostics retain bounded public build output without changing failure authority",()=>{
+  const temporary=mkdtempSync(join(tmpdir(),"p-nix-failure-"));
+  try {
+    const result={status:1,signal:null,stdout:"public fixture output",stderr:"tail marker\n"+"é".repeat(100000)};
+    const record=retainNixCheckFailure(temporary,result);
+    assert.equal(result.status,1);assert.equal(record.failed,true);
+    assert.equal(record.accepted,false);assert.equal(record.publicationAuthority,false);
+    assert.equal(record.exitCode,1);assert.equal(record.streams.stdout.truncated,false);
+    assert.equal(record.streams.stderr.truncated,true);
+    for(const stream of ["stdout","stderr"]) {
+      const data=readFileSync(join(temporary,record.streams[stream].member));
+      assert(data.length<=65536);assert.equal(data.length,record.streams[stream].retainedBytes);
+      assert.equal(sha(data),record.streams[stream].retainedSha256);
+      assert.equal(sha(Buffer.from(result[stream])),record.streams[stream].sha256);
+    }
+    assert.deepEqual(JSON.parse(readFileSync(join(temporary,"nix-flake-check.failure.json"))),record);
+  } finally {rmSync(temporary,{recursive:true,force:true});}
 });

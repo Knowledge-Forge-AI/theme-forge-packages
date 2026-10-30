@@ -210,6 +210,26 @@ export function prepareNativeGuiBinding({root,system,wrapper,evidence,rawExecuta
   return {guiBinding,controllerSources:{bridgeSource,controllerSource,stableSource,resolverSource,stableSha256}};
 }
 
+// Only the public Nix flake-check phase may retain these bounded build diagnostics.
+// Application probes keep their existing digest-only output policy.
+export function retainNixCheckFailure(evidence,result) {
+  const limit=64*1024;
+  const streams={};
+  for(const stream of ['stdout','stderr']) {
+    const bytes=Buffer.from(result[stream]||'','utf8');
+    const retained=bytes.subarray(Math.max(0,bytes.length-limit));
+    const member='nix-flake-check.'+stream+'.log';
+    writeFileSync(join(evidence,member),retained);
+    streams[stream]={member,bytes:bytes.length,sha256:hash(bytes),
+      retainedBytes:retained.length,retainedSha256:hash(retained),truncated:bytes.length>limit};
+  }
+  const record={schema:'theme-forge.p-nix-check-failure.v1',phase:'nix-flake-check',
+    exitCode:result.status,signal:result.signal,failed:true,accepted:false,
+    publicationAuthority:false,maxRetainedBytesPerStream:limit,streams};
+  writeFileSync(join(evidence,'nix-flake-check.failure.json'),JSON.stringify(record,null,2)+'\n');
+  return record;
+}
+
 export async function runNativeRoute({system,root,checkout,evidence,run=spawnSync,spawnService=spawn,
   nativeGuiController=false}) {
   const plan=qualificationPlan(system);
@@ -237,6 +257,8 @@ export async function runNativeRoute({system,root,checkout,evidence,run=spawnSyn
     observations.push({command,args,executionMode:mode,fixtureMode:mode==='fixture',status:result.status,signal:result.signal,
       stdoutSha256:hash(result.stdout||''),stderrSha256:hash(result.stderr||'')});
     writeFileSync(join(evidence,'operations.json'),JSON.stringify(observations,null,2)+'\n');
+    if(options.nixCheckDiagnostics && (result.error||result.signal!==null||result.status!==0))
+      retainNixCheckFailure(evidence,result);
     assert.ifError(result.error);assert.equal(result.signal,null);assert.equal(result.status,options.exit||0);
     return result.stdout;
   }
@@ -258,7 +280,7 @@ export async function runNativeRoute({system,root,checkout,evidence,run=spawnSyn
     checked('nix',nixBuildArguments(root,system,attribute,link));
     outputs[attribute]=realpathSync(link);
   }
-  checked('nix',nixCheckArguments(root));
+  checked('nix',nixCheckArguments(root),{nixCheckDiagnostics:true});
   assert.equal(hash(readFileSync(join(root,'flake.lock'))),flakeLockSha256,'Nix lockfile changed');
   const closure=checked('nix',['path-info','--recursive','--json',...Object.values(outputs)]);
   assert(Object.keys(JSON.parse(closure)).length>0);

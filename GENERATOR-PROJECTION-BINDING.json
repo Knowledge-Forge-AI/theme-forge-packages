@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-30T22:26:53.080Z",
+  "generatedAt": "2026-10-30T23:06:56.746Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "bfeb14218373e484314b12077a86320a89916a4be981008d0aa2015447a2ba01",
+  "generationOverlayManifestSha256": "3a91103fb51bad31dcbd3d1fcab5e45987159b7ba94a3a2ad98063aca7093075",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "bfeb14218373e484314b12077a86320a89916a4be981008d0aa2015447a2ba01",
+  "treeManifestSha256": "3a91103fb51bad31dcbd3d1fcab5e45987159b7ba94a3a2ad98063aca7093075",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -194,8 +194,8 @@
     },
     {
       "path": "packages/stellar-loom.nix",
-      "bytes": 1331,
-      "sha256": "b238e360a311ff2228f8f025b11b8a09e5057a28312b9ecf301b3d6af93d4ec2"
+      "bytes": 1449,
+      "sha256": "59d728dd045838cca76adedb4e68f0aa650392398f3c9d3c776bef96b5c0e612"
     },
     {
       "path": "README.md",
@@ -364,8 +364,8 @@
     },
     {
       "path": "tests/test-p-native-gui-binding-preparation.mjs",
-      "bytes": 10378,
-      "sha256": "311aaa5be85a800d8f7b5636876f0e9269fcaa2e014189517aeaee8b72467475"
+      "bytes": 11605,
+      "sha256": "9bf3b51e324de3e9aac17ca54f5cc1b9a9adf018e41b19fe1298c360b6fb826f"
     },
     {
       "path": "tests/test-p-native-gui-controller.py",
@@ -549,8 +549,8 @@
     },
     {
       "path": "tools/verification/qualify-p-current-nix.mjs",
-      "bytes": 26544,
-      "sha256": "04e740f5a92e09a8cd03cc0101e5a83e6f360b3ad23de9a0a62b6758e6399b0d"
+      "bytes": 27757,
+      "sha256": "b55a1d3b1148aa27b101bcb5eb2d5a7d6632299ad5958c74f82cc98d3438476b"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",
