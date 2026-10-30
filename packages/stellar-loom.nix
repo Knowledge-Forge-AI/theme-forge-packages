@@ -23,6 +23,8 @@ stdenv.mkDerivation {
   buildInputs = [ nodejs_22 ];
 
   dontBuild = true;
+  # Fixed Node wrappers select the interpreter; preserve authenticated upstream JS bytes.
+  dontPatchShebangs = true;
 
   installPhase = ''
     runHook preInstall
