@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   signing-key:
+    environment: github-pages
     if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
