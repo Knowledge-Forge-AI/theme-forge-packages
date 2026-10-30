@@ -19,14 +19,14 @@
     "aur"
   ],
   "historicalTemplatesAreCurrentBuildAuthority": false,
-  "workflowAuthority": "Current validate.yml retains all P native-three jobs but is manual-only while the minimal Linux process-predicate probe is prepared. Separate probe-current-process-predicate.yml is manual-only on x64/ARM64 Linux. New locked Python/procfs/pidfd/STOP/CONT/watchdog policy and P restoring guard admission are PENDING exact owner approval before hosted execution. Current publish.yml remains dispatch-only, permissions-empty and an explicit refusal. Historical DEFAULT output is byte-identical.",
+  "workflowAuthority": "Current validate.yml retains all P native-three jobs and remains manual-only. The bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and restoring P Linux user-namespace/AppArmor guard source preparation were approved on 2026-10-30. Hosted invocation remains a parent-controlled public-CI action using the exact guarded route, with its own native evidence. The recorded class/source approval need not be repeated. Current publish.yml remains dispatch-only, permissions-empty and an explicit refusal. Historical DEFAULT output is byte-identical.",
   "aurStatus": "deferred",
   "runtimeArchiveEvidence": "smol-toml 1.9.1 exact archive authenticated against current tagged Burst lockfile; native compatibility remains unqualified",
   "productionPublicKey": "existing public key preserved byte-for-byte; private/signing-key preflight remains future and out of scope",
-  "nixQualification": "Full native-three jobs/checks retained without execution; old strict one-spawn Linux PID assumptions require a later separately reviewed full GUI controller. Both native Linux predicate probes must first pass; no native result exists.",
+  "nixQualification": "Full native-three qualification remains held. The bounded two-host predicate test class/source preparation is approved; its hosted invocation and evidence are separately parent-controlled. A later full GUI-controller adaptation requires its own exact-source review and applicable execution decision; it is not approval of the already recorded test class.",
   "candidateValidation": "explicit verification only; production/publication authority false",
   "pGuiAdapter": "Original upstream source stays pinned and unchanged; only spawned launcher is the actual canonical P public wrapper; original raw identity, PID/scenario/sandbox/cleanup checks remain.",
-  "runnerPolicy": "P repository-admission adaptation of the maintained restoring userns guard is pending owner approval before remote activation.",
+  "runnerPolicy": "Approved on 2026-10-30: bounded test class and source preparation, including the P adaptation of the maintained restoring userns/AppArmor guard. Exact hosted invocation remains separately parent-controlled; no broader runner policy or full GUI-controller adaptation is approved by that record.",
   "legacyWorkflowRouting": "Historical validation/signing jobs are replaced only in the current overlay; no duplicate qualify-current-nix.yml remains.",
-  "predicateProbe": "Source-only preparation: Node owns actual monitor PID and wait; sibling Python controller; inherited-pidfd watchdog. Controller-death rescue applies only while Node remains alive. New test policy PENDING; no GUI/publication acceptance."
+  "predicateProbe": "Bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and source preparation approved on 2026-10-30. Node owns the actual monitor PID/wait; sibling Python controller and inherited-pidfd watchdog are within that class. Hosted execution and resulting native evidence remain distinct from the recorded source approval; no GUI/publication acceptance follows."
 }
