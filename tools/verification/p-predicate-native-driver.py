@@ -102,16 +102,121 @@ def seal_surrogate(argv, original_init, surrogate_init):
     return out
 
 
+def _is_store_path(value):
+    return isinstance(value, str) and value.startswith("/nix/store/") and \
+        "/" not in value[11:] and \
+        "\0" not in value and "\n" not in value and "\r" not in value
+
+
+def _is_store_basename(value):
+    return isinstance(value, str) and bool(value) and "/" not in value and \
+        "\0" not in value and "\n" not in value and "\r" not in value
+
+
+def _normalize_derivation(document, derivation_path=None):
+    """Normalize the two reviewed `nix derivation show` envelopes.
+
+    Nix 2.33's v4 JSON uses a basename-keyed ``derivations`` envelope and
+    basename output paths.  Older output is a one-entry map keyed by the full
+    derivation path and carries full output paths.  These are deliberately
+    separate typed shapes; arbitrary recursive string lookup would allow a
+    nearby, unrelated derivation or path to satisfy the producer proof.
+    """
+    p.require(isinstance(document, dict), "derivation JSON must be an object")
+    if "derivations" in document or "version" in document:
+        p.require(set(document) == {"derivations", "version"} and document["version"] == 4,
+                  "unsupported derivation JSON version")
+        derivations = document["derivations"]
+        p.require(isinstance(derivations, dict) and len(derivations) == 1,
+                  "ambiguous derivation")
+        key, value = next(iter(derivations.items()))
+        p.require(_is_store_basename(key) and key.endswith(".drv"),
+                  "invalid v4 derivation key")
+        p.require(isinstance(value, dict) and value.get("version") == 4,
+                  "unsupported v4 derivation record")
+        if derivation_path is not None:
+            p.require(Path(derivation_path).name == key, "v4 derivation identity differs")
+        return document, value, 4
+    p.require(len(document) == 1, "ambiguous derivation")
+    key, value = next(iter(document.items()))
+    p.require(isinstance(key, str) and key.startswith("/nix/store/") and key.endswith(".drv") and
+              "\0" not in key and "\n" not in key and "\r" not in key,
+              "invalid legacy derivation key")
+    p.require(isinstance(value, dict), "invalid legacy derivation record")
+    if derivation_path is not None:
+        p.require(key == derivation_path, "legacy derivation identity differs")
+    return document, value, 3
+
+
+def _derivation_output(value, schema, expected_path):
+    p.require(_is_store_path(expected_path), "invalid expected derivation output")
+    outputs = value.get("outputs")
+    p.require(isinstance(outputs, dict) and isinstance(outputs.get("out"), dict),
+              "derivation output missing")
+    actual = outputs["out"].get("path")
+    if schema == 4:
+        p.require(_is_store_basename(actual) and actual == Path(expected_path).name and
+                  actual not in {".", ".."},
+                  "v4 derivation output differs")
+    else:
+        p.require(actual == expected_path, "legacy derivation output differs")
+
+
+def _derivation_field(value, schema, field):
+    if schema == 4:
+        structured = value.get("structuredAttrs")
+        if isinstance(structured, dict) and isinstance(structured.get(field), str):
+            return structured[field]
+        # Nix's v4 container-init record keeps buildCommand in env while
+        # structuredAttrs is null; this is a typed field fallback, not a
+        # generic search through the derivation JSON.
+        env = value.get("env")
+        if field == "buildCommand" and isinstance(env, dict) and isinstance(env.get(field), str):
+            return env[field]
+        return None
+    env = value.get("env")
+    return env.get(field) if isinstance(env, dict) and isinstance(env.get(field), str) else None
+
+
+def _source_inputs(value, schema):
+    if schema == 4:
+        inputs = value.get("inputs")
+        p.require(isinstance(inputs, dict) and set(inputs) == {"drvs", "srcs"} and
+                  isinstance(inputs["srcs"], list) and
+                  all(isinstance(item, str) and item and "\0" not in item for item in inputs["srcs"]),
+                  "invalid v4 derivation inputs")
+        return inputs["srcs"]
+    inputs = value.get("inputSrcs")
+    p.require(isinstance(inputs, list) and all(isinstance(item, str) for item in inputs),
+              "invalid legacy derivation inputs")
+    return inputs
+
+
+def _derivation_graph_contains(document, derivation_path):
+    """Join a full deriver path to either reviewed graph envelope shape."""
+    p.require(isinstance(derivation_path, str) and derivation_path.startswith("/nix/store/") and
+              derivation_path.endswith(".drv") and "/" not in derivation_path[11:],
+              "invalid graph derivation identity")
+    p.require(isinstance(document, dict), "derivation graph must be an object")
+    if "derivations" in document or "version" in document:
+        p.require(set(document) == {"derivations", "version"} and document["version"] == 4 and
+                  isinstance(document["derivations"], dict),
+                  "unsupported derivation graph version")
+        value = document["derivations"].get(Path(derivation_path).name)
+        return isinstance(value, dict) and value.get("version") == 4
+    return derivation_path in document
+
+
 def declared_text(path):
     real = Path(path).resolve(strict=True)
     drv = command(["nix-store", "--query", "--deriver", str(real)]).decode().strip()
     p.require(drv.startswith("/nix/store/") and drv.endswith(".drv"), "missing script derivation")
-    record = json_command(["nix", "derivation", "show", drv])
-    p.require(len(record) == 1, "ambiguous derivation")
-    value = next(iter(record.values()))
-    p.require(value["outputs"]["out"]["path"] == str(real) and isinstance(value["env"].get("text"), str),
-              "unsupported opaque script derivation")
-    return real.read_bytes(), value["env"]["text"].encode(), drv, p.digest(json.dumps(record, sort_keys=True).encode())
+    document = json_command(["nix", "derivation", "show", drv])
+    record, value, schema = _normalize_derivation(document, drv)[0:3]
+    _derivation_output(value, schema, str(real))
+    text = _derivation_field(value, schema, "text")
+    p.require(isinstance(text, str), "unsupported opaque script derivation")
+    return real.read_bytes(), text.encode(), drv, p.digest(json.dumps(record, sort_keys=True).encode())
 
 
 def authenticate_container_source(source):
@@ -127,18 +232,18 @@ def authenticate_container_source(source):
             "persistentHelperBetweenMonitorAndApplication":False}
 
 
-def container_producer(record, path, source_reader):
-    p.require(isinstance(record,dict) and len(record)==1,"ambiguous container-init derivation")
-    value=next(iter(record.values()))
-    p.require(value.get("outputs",{}).get("out",{}).get("path")==path,"container-init output differs")
-    build=value.get("env",{}).get("buildCommand","")
+def container_producer(record, path, source_reader, derivation_path=None):
+    document, value, schema = _normalize_derivation(record, derivation_path)
+    _derivation_output(value, schema, path)
+    build = _derivation_field(value, schema, "buildCommand") or ""
     match=re.fullmatch(r'\s*\$CXX -static -s -o \$out (/nix/store/[A-Za-z0-9._+/-]+container-init\.cc)\s*',build)
     p.require(match is not None,"opaque container-init declared native producer")
     source=match[1]
-    p.require(any(source==item or source.startswith(item+"/") for item in value.get("inputSrcs",[])),
+    source_inputs = _source_inputs(value, schema)
+    p.require(source in source_inputs or Path(source).name in source_inputs,
               "container-init source missing from declared inputs")
     proof=authenticate_container_source(source_reader(source))
-    return {**proof,"declaredSource":source,"producerDerivationSha256":p.digest(json.dumps(record,sort_keys=True).encode())}
+    return {**proof,"declaredSource":source,"producerDerivationSha256":p.digest(json.dumps(document,sort_keys=True).encode())}
 
 
 def verify_profile_mount(argv, root):
@@ -252,6 +357,23 @@ def compare_graphs(before, after, context):
     }
 
 
+def build_predicate_receipt(predicate_result, original_observation_bytes, graph_proof,
+                            lock, context, source_authentication):
+    """Build the non-admitting receipt without aliasing observation and predicate data."""
+    p.require(isinstance(original_observation_bytes, bytes), "original observation bytes required")
+    scoped_pass = predicate_scoped_pass(predicate_result)
+    cases, recovery = predicate_result["cases"][:2], predicate_result["cases"][2]
+    authenticated = dict(source_authentication)
+    authenticated["originalArgvSha256"] = p.digest(original_observation_bytes)
+    return {
+        "schema": 1, "kind": "P-monitor-application-predicate", "mode": "native-predicate-only",
+        "guiQualification": False, "publicationAuthority": False, "admitting": False,
+        "predicateScopedPass": scoped_pass, "cases": cases, "recovery": recovery,
+        "graphProof": graph_proof, "flakeLockSha256": lock, "context": context,
+        "sourceAuthentication": authenticated,
+    }
+
+
 def main(root, system, evidence, node):
     p.require(system in {"x86_64-linux", "aarch64-linux"} and sys.platform == "linux", "native Linux only")
     hosted = hosted_facts(os.environ, system)
@@ -286,20 +408,21 @@ def main(root, system, evidence, node):
     observation.write_bytes(observed)
     env = {k:v for k,v in os.environ.items() if k not in {"BASH_ENV", "ENV", "SHELLOPTS", "BASHOPTS", "CDPATH", "LD_PRELOAD", "LD_LIBRARY_PATH", "NODE_OPTIONS", "NODE_PATH"}
            and not k.startswith(("PYTHON", "BASH_FUNC_"))}
-    result = subprocess.run([bash, str(observation)], env=env, stdin=subprocess.DEVNULL,
-                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True, timeout=10)
-    argv, init = parse_argv(result.stdout, context)
+    observation_result = subprocess.run([bash, str(observation)], env=env, stdin=subprocess.DEVNULL,
+                                        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                        check=True, timeout=10)
+    argv, init = parse_argv(observation_result.stdout, context)
     profile = verify_profile_mount(argv, context["fhsRoot"])
     profile_sha = p.digest(Path(profile).read_bytes())
     container_drv = command(["nix-store", "--query", "--deriver", argv[-1]]).decode().strip()
-    p.require(container_drv in after["derivationGraph"] and
+    p.require(_derivation_graph_contains(after["derivationGraph"], container_drv) and
               any(row["path"] == argv[-1] for row in after["runtimeClosure"]),
               "container-init is not the original product graph object")
     p.require(context["containerInitSourceSha256"]==CONTAINER_SOURCE_SHA256,
               "container-init context source pin differs")
     authenticate_container_source(Path(context["containerInitSource"]).read_bytes())
     container_proof=container_producer(json_command(["nix","derivation","show",container_drv]),argv[-1],
-                                       lambda path:Path(path).read_bytes())
+                                       lambda path:Path(path).read_bytes(), container_drv)
     container_bytes=Path(argv[-1]).read_bytes()
     p.require(container_bytes.startswith(b"\x7fELF"),"container-init is not expected native ELF")
     init_bytes, init_declared, init_drv, init_drv_hash = declared_text(init)
@@ -318,28 +441,26 @@ def main(root, system, evidence, node):
                                 stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
                                 env=env,check=True,timeout=NODE_OWNER_TIMEOUT)
         p.require(len(launch.stdout)<=65536,"Node owner result bound")
-        result=json.loads(launch.stdout)
-        scoped_pass=predicate_scoped_pass(result)
-        cases,recovery=result["cases"][:2],result["cases"][2]
+        predicate_result=json.loads(launch.stdout)
     finally:
         os.close(bwrapfd)
         os.close(pythonfd)
-    receipt = {"schema": 1, "kind": "P-monitor-application-predicate", "mode": "native-predicate-only",
-               "guiQualification": False, "publicationAuthority": False, "admitting":False,
-               "predicateScopedPass":scoped_pass,"cases": cases, "recovery": recovery,
-               "graphProof": graph_proof, "flakeLockSha256": lock, "context": context,
-               "sourceAuthentication": {"wrapperSha256": p.digest(source), "declaredDerivation": drv,
-                    "derivationJsonSha256": drv_hash, "observationSha256": p.digest(observed),
-                    "adaptation": "unique terminal exec replaced by NUL printf; original cmd array unchanged",
-                    "originalInitSha256": p.digest(init_bytes), "initDerivation": init_drv,
-                    "initDerivationJsonSha256": init_drv_hash, "originalArgvSha256": p.digest(result.stdout),
-                    "containerInitDerivation": container_drv,
-                    "containerInitProducer":container_proof,"containerInitElfSha256":p.digest(container_bytes),
-                    "fhsProfileSha256": profile_sha,
-                    "surrogateArgvSha256": p.digest(b"\0".join(os.fsencode(x) for x in surrogate)),
-                    "onlyInitAndCaseDelta": True, "expectedBwrapOpenedObject": bwrap, "expectedPythonOpenedObject": python},
-               "hosted": hosted,
-               "nixVersion": command(["nix", "--version"]).decode().strip()}
+    receipt = build_predicate_receipt(
+        predicate_result, observation_result.stdout, graph_proof, lock, context,
+        {"wrapperSha256": p.digest(source), "declaredDerivation": drv,
+         "derivationJsonSha256": drv_hash, "observationSha256": p.digest(observed),
+         "adaptation": "unique terminal exec replaced by NUL printf; original cmd array unchanged",
+         "originalInitSha256": p.digest(init_bytes), "initDerivation": init_drv,
+         "initDerivationJsonSha256": init_drv_hash,
+         "containerInitDerivation": container_drv,
+         "containerInitProducer": container_proof, "containerInitElfSha256": p.digest(container_bytes),
+         "fhsProfileSha256": profile_sha,
+         "surrogateArgvSha256": p.digest(b"\0".join(os.fsencode(x) for x in surrogate)),
+         "onlyInitAndCaseDelta": True, "expectedBwrapOpenedObject": bwrap,
+         "expectedPythonOpenedObject": python},
+    )
+    receipt["hosted"] = hosted
+    receipt["nixVersion"] = command(["nix", "--version"]).decode().strip()
     receipt["nodeOwner"]={"path":str(Path(node).resolve()),"sha256":p.digest(Path(node).read_bytes()),
                           "model":"Node monitor owner; sibling Python controller; controller-child watchdog"}
     receipt["checkedSourceSha256"] = {name:p.digest((HERE/name).read_bytes()) for name in

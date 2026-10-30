@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-30T10:10:43.636Z",
+  "generatedAt": "2026-10-30T10:40:55.445Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "30802cde683ba3f671209302d63af3a370f69e659f4d70b371cea9b158d66610",
+  "generationOverlayManifestSha256": "87da4a2c824bf0ed3273e5f0916be8677feaf774bb0414e19b6df477db3d1672",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "30802cde683ba3f671209302d63af3a370f69e659f4d70b371cea9b158d66610",
+  "treeManifestSha256": "87da4a2c824bf0ed3273e5f0916be8677feaf774bb0414e19b6df477db3d1672",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -419,8 +419,8 @@
     },
     {
       "path": "tools/verification/p-predicate-native-driver.py",
-      "bytes": 22635,
-      "sha256": "ffc593532e964bd9bf228980ffe2d497cc563c70d69b2885429acc498835fccb"
+      "bytes": 28423,
+      "sha256": "cd5cb035df085cbbd41f4326e04a658847029331a8d865ae8459699f24640464"
     },
     {
       "path": "tools/verification/p-process-predicate-probe.py",
@@ -474,8 +474,8 @@
     },
     {
       "path": "verification-tests/test-p-predicate-native-driver.py",
-      "bytes": 2967,
-      "sha256": "73da03dd94a562fb912e13a1f7903cbf18445aa15f38b6f4613225ebace694be"
+      "bytes": 9358,
+      "sha256": "d71c2b6830b31c3230b282c9ef58f71a1baa7edf9f936f2298414d446a93a2ae"
     }
   ]
 }
