@@ -56,8 +56,10 @@ recipes, release assets, public key, lock, runtime wrappers and upstream harness
 remain unchanged. Native product outputs, full recursive derivation graph and
 runtime closure are compared against a retained r5 product-only flake. Shared
 existing store libraries are allowed. Preexisting Python build dependencies may
-exist; equality must hold, the new Python root must be absent from product runtime
-closure, and probe/init roots must be absent from the product dependency graph.
+exist; complete graph equality must hold. A Python root already present in both
+unchanged before/after graphs is recorded as a preexisting shared interpreter;
+only an after-only Python root is refused as a new product-runtime edge. Probe
+and init roots remain absent from the product dependency graph.
 
 ## Authenticated observation and sealed surrogate
 

@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-30T09:50:33.738Z",
+  "generatedAt": "2026-10-30T10:10:43.636Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "51302099f66ae3549ebbe7b46885a3a9ddcade6452da5279230f72d81002448c",
+  "generationOverlayManifestSha256": "30802cde683ba3f671209302d63af3a370f69e659f4d70b371cea9b158d66610",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "cda399cd36495c1f30a91b7a9da68a270797fda9e99357526e966a4bd2c85323",
+  "treeManifestSha256": "30802cde683ba3f671209302d63af3a370f69e659f4d70b371cea9b158d66610",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 91,
+  "totalFiles": 92,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -124,8 +124,8 @@
     },
     {
       "path": "docs/process-predicate-policy.md",
-      "bytes": 11917,
-      "sha256": "124c575f4f969ee6dba919083ebbe1bf5598dcf4f1fb68f412c63dce24a86609"
+      "bytes": 12056,
+      "sha256": "eb60a2396329f613339e531a001a3683a8c6cdae95825431b3ac5f1eed1c68c5"
     },
     {
       "path": "flake.lock",
@@ -419,8 +419,8 @@
     },
     {
       "path": "tools/verification/p-predicate-native-driver.py",
-      "bytes": 21078,
-      "sha256": "e347b67d6f10314bf2c23c445991b48fb454d717b0e8cfc3461743541439710b"
+      "bytes": 22635,
+      "sha256": "ffc593532e964bd9bf228980ffe2d497cc563c70d69b2885429acc498835fccb"
     },
     {
       "path": "tools/verification/p-process-predicate-probe.py",
@@ -471,6 +471,11 @@
       "path": "tools/verification/verify-signatures.sh",
       "bytes": 8025,
       "sha256": "9fa1dbd691caf924c6004aceea1fa07743b0472b2cc0b1b9a66ca0e6a42ea62c"
+    },
+    {
+      "path": "verification-tests/test-p-predicate-native-driver.py",
+      "bytes": 2967,
+      "sha256": "73da03dd94a562fb912e13a1f7903cbf18445aa15f38b6f4613225ebace694be"
     }
   ]
 }

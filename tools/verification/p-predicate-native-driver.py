@@ -20,6 +20,14 @@ CONTAINER_SOURCE_SHA256 = "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a
 NODE_OWNER_TIMEOUT = 3 * 52 + 14
 
 
+class GraphComparisonRefusal(p.Refusal):
+    """A graph refusal with bounded, path-free comparison diagnostics."""
+
+    def __init__(self, reason, diagnostics):
+        super().__init__(reason)
+        self.diagnostics = diagnostics
+
+
 def hosted_facts(env, system):
     repo = "Knowledge-Forge-AI/theme-forge-packages"
     p.require(env.get("GITHUB_ACTIONS") == "true" and env.get("RUNNER_ENVIRONMENT") == "github-hosted" and
@@ -204,15 +212,44 @@ def graph(root, system):
     return {"outputs": outputs, "derivationGraph": dag, "runtimeClosure": normalized}
 
 
+def _graph_summary(graph, python_root):
+    runtime = {row["path"] for row in graph["runtimeClosure"]}
+    return {
+        "sha256": p.digest(json.dumps(graph, sort_keys=True).encode()),
+        "runtimeClosureCount": len(runtime),
+        "pythonRootPresent": python_root in runtime,
+    }
+
+
 def compare_graphs(before, after, context):
-    p.require(before == after, "product outputs/complete derivation graph/runtime closure changed")
-    runtime = {r["path"] for r in after["runtimeClosure"]}
-    p.require(context["pythonRoot"] not in runtime, "new Python root enters product runtime closure")
+    before_summary = _graph_summary(before, context["pythonRoot"])
+    after_summary = _graph_summary(after, context["pythonRoot"])
+    diagnostics = {"before": before_summary, "after": after_summary}
+    if before != after:
+        raise GraphComparisonRefusal(
+            "product outputs/complete derivation graph/runtime closure changed",
+            diagnostics,
+        )
+    if after_summary["pythonRootPresent"] and not before_summary["pythonRootPresent"]:
+        raise GraphComparisonRefusal("new Python root enters product runtime closure", diagnostics)
     graph_text = json.dumps(after["derivationGraph"], sort_keys=True)
     for key in ("probeSource", "surrogateInit"):
-        p.require(context[key] not in graph_text and context[key] not in runtime, "test source enters product dependency graph")
-    return {"equal": True, "sha256": p.digest(json.dumps(after, sort_keys=True).encode()),
-            "sharedPreexistingLibrariesAllowed": True, "pythonRootAbsentProductRuntime": True}
+        if context[key] in graph_text or context[key] in {
+            row["path"] for row in after["runtimeClosure"]
+        }:
+            raise GraphComparisonRefusal("test source enters product dependency graph", diagnostics)
+    python_preexisting = before_summary["pythonRootPresent"] and after_summary["pythonRootPresent"]
+    return {
+        "equal": True,
+        "sha256": after_summary["sha256"],
+        "beforeGraphSha256": before_summary["sha256"],
+        "afterGraphSha256": after_summary["sha256"],
+        "beforeRuntimeClosureCount": before_summary["runtimeClosureCount"],
+        "afterRuntimeClosureCount": after_summary["runtimeClosureCount"],
+        "sharedPreexistingLibrariesAllowed": True,
+        "pythonRootPreexistingProductRuntime": python_preexisting,
+        "pythonRootAbsentProductRuntime": not after_summary["pythonRootPresent"],
+    }
 
 
 def main(root, system, evidence, node):
@@ -328,6 +365,9 @@ if __name__ == "__main__":
         # Never emit raw stderr, environment, proc buffers, command lines or
         # exception payloads from tools/files. Refusals use closed source labels.
         label = str(error) if isinstance(error, p.Refusal) else type(error).__name__
-        (destination/"predicate-failure.json").write_text(json.dumps({"kind":"predicate-failure",
-            "accepted":False,"guiQualification":False,"publicationAuthority":False,"reason":label})+"\n")
+        failure = {"kind":"predicate-failure", "accepted":False, "guiQualification":False,
+                   "publicationAuthority":False, "reason":label}
+        if isinstance(error, GraphComparisonRefusal):
+            failure["graphComparison"] = error.diagnostics
+        (destination/"predicate-failure.json").write_text(json.dumps(failure, sort_keys=True)+"\n")
         raise SystemExit(1)
