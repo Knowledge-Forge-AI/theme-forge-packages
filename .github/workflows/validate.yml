@@ -9,7 +9,7 @@ permissions:
 jobs:
   current-nix:
     # Runnable private proposal; source review precedes any remote activation.
-    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' }}
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' }}
     name: P native Nix ${{ matrix.system }} (candidate only)
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
@@ -68,7 +68,7 @@ jobs:
             command -v dbus-run-session | tee "$RUNNER_TEMP/p-nix-evidence/dbus-prerequisite.log"
             bash .github/scripts/p-linux-userns-apparmor-guard.sh -- \
               xvfb-run -a -s "-screen 0 1280x800x24" dbus-run-session -- \
-              node tools/verification/qualify-p-current-nix.mjs "$P_SYSTEM" ../nebular "$RUNNER_TEMP/p-nix-evidence"
+              node tools/verification/qualify-p-current-nix.mjs --native-gui-controller "$P_SYSTEM" ../nebular "$RUNNER_TEMP/p-nix-evidence"
           else
             node tools/verification/qualify-p-current-nix.mjs "$P_SYSTEM" ../nebular "$RUNNER_TEMP/p-nix-evidence"
           fi

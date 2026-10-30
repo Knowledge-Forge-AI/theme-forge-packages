@@ -1,0 +1,645 @@
+[
+  {
+    "context": {
+      "schema": "theme-forge.p-native-gui-context.v1",
+      "transform": "p-linux-gui-controller-v1",
+      "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+      "nebularTree": "dddddddddddddddddddddddddddddddddddddddd",
+      "rawExecutable": {
+        "path": "/nix/store/gui/bin/gui",
+        "size": 3,
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "publicWrapper": {
+        "path": "/nix/store/wrapper/bin/tfnf",
+        "size": 4841,
+        "sha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17"
+      },
+      "monitor": {
+        "executable": {
+          "path": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "controller": {
+        "python": "/nix/store/python/bin/python3",
+        "scriptSha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "predicateHelper": {
+        "path": "/nix/store/helper/p-process-predicate-probe.py",
+        "size": 3,
+        "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "bridgeSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "launchObserver": {
+        "schema": "theme-forge.p-native-gui-observer-inputs.v1",
+        "declaredText": "#!/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash\nignored=(/nix /dev /proc /etc )\nro_mounts=()\nsymlinks=()\netc_ignored=()\n\n\n\n# loop through all entries of root in the fhs environment, except its /etc.\nfor i in /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/*; do\n  path=\"/${i##*/}\"\n  if [[ $path == '/etc' ]]; then\n    :\n  elif [[ -L $i ]]; then\n    symlinks+=(--symlink \"$(/nix/store/2gfxiwls9hbgwdwcy43mprchwsq36mg6-coreutils-9.11/bin/readlink \"$i\")\" \"$path\")\n    ignored+=(\"$path\")\n  else\n    ro_mounts+=(--ro-bind \"$i\" \"$path\")\n    ignored+=(\"$path\")\n  fi\ndone\n\n# loop through the entries of /etc in the fhs environment.\nif [[ -d /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/etc ]]; then\n  for i in /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/etc/*; do\n    path=\"/${i##*/}\"\n    # NOTE: we're binding /etc/fonts and /etc/ssl/certs from the host so we\n    # don't want to override it with a path from the FHS environment.\n    if [[ $path == '/fonts' || $path == '/ssl' ]]; then\n      continue\n    fi\n    if [[ -L $i ]]; then\n      symlinks+=(--symlink \"$i\" \"/etc$path\")\n    else\n      ro_mounts+=(--ro-bind \"$i\" \"/etc$path\")\n    fi\n    etc_ignored+=(\"/etc$path\")\n  done\nfi\n\n# propagate /etc from the actual host if nested\nif [[ -e /.host-etc ]]; then\n  ro_mounts+=(--ro-bind /.host-etc /.host-etc)\nelse\n  ro_mounts+=(--ro-bind /etc /.host-etc)\nfi\n\ndeclare -A etc_ignored_set\nfor ign in \"${etc_ignored[@]}\"; do\n  etc_ignored_set[$ign]=1\ndone\n\n# link selected etc entries from the actual root\nfor i in /etc/static /etc/nix /etc/shells /etc/bashrc /etc/zshenv /etc/zshrc /etc/zinputrc /etc/zprofile /etc/passwd /etc/group /etc/shadow /etc/hosts /etc/resolv.conf /etc/nsswitch.conf /etc/profiles /etc/login.defs /etc/sudoers /etc/sudoers.d /etc/localtime /etc/zoneinfo /etc/machine-id /etc/os-release /etc/pam.d /etc/fonts /etc/alsa /etc/asound.conf /etc/ssl/certs /etc/ca-certificates /etc/pki /etc/dconf; do\n  if [[ -n \"${etc_ignored_set[$i]:-}\" ]]; then\n    continue\n  fi\n  if [[ -e $i ]]; then\n    symlinks+=(--symlink \"/.host-etc/${i#/etc/}\" \"$i\")\n  fi\ndone\n\ndeclare -A ignored_set\nfor ign in \"${ignored[@]}\"; do\n  ignored_set[$ign]=1\ndone\n\ndeclare -a auto_mounts\n# loop through all directories in the root\nfor dir in /*; do\n  # if it is a directory and not already provided by the FHS env or\n  # explicitly ignored, bind-mount it into the chroot. Use exact match\n  # via associative array because regex substring matching incorrectly\n  # skips prefixes (e.g. /sb would match /sbin and never get mounted,\n  # breaking --chdir when CWD is on a custom mount like /sb/project).\n  # https://github.com/NixOS/nixpkgs/issues/241151\n  if [[ -d \"$dir\" ]] && [[ -z \"${ignored_set[$dir]:-}\" ]]; then\n    # add it to the mount list\n    auto_mounts+=(--bind \"$dir\" \"$dir\")\n  fi\ndone\n\ndeclare -a x11_args\n# Always mount a tmpfs on /tmp/.X11-unix\n# Rationale: https://github.com/flatpak/flatpak/blob/be2de97e862e5ca223da40a895e54e7bf24dbfb9/common/flatpak-run.c#L277\nx11_args+=(--tmpfs /tmp/.X11-unix)\n\n# Try to guess X socket path. This doesn't cover _everything_, but it covers some things.\nif [[ \"$DISPLAY\" == *:* ]]; then\n  # recover display number from $DISPLAY formatted [host]:num[.screen]\n  display_nr=${DISPLAY/#*:} # strip host\n  display_nr=${display_nr/%.*} # strip screen\n  local_socket=/tmp/.X11-unix/X$display_nr\n  x11_args+=(--ro-bind-try \"$local_socket\" \"$local_socket\")\nfi\n\n\n\ncmd=(\n  /nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap\n  --dev-bind /dev /dev\n  --proc /proc\n  --chdir \"$(pwd)\"\n  \n  \n  \n  \n  \n  \n  --die-with-parent\n  --bind /nix /nix\n  \n  # Our glibc will look for the cache in its own path in `/nix/store`.\n  # As such, we need a cache to exist there, because pressure-vessel\n  # depends on the existence of an ld cache. However, adding one\n  # globally proved to be a bad idea (see #100655), the solution we\n  # settled on being mounting one via bwrap.\n  # Also, the cache needs to go to both 32 and 64 bit glibcs, for games\n  # of both architectures to work.\n  --tmpfs /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc \\\n  --tmpfs /etc \\\n  --symlink /etc/ld.so.conf /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/ld.so.conf \\\n  --symlink /etc/ld.so.cache /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/ld.so.cache \\\n  --ro-bind /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/rpc /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/rpc \\\n  --remount-ro /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc \\\n  --symlink /nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init /init \\\n  \"${ro_mounts[@]}\"\n  \"${symlinks[@]}\"\n  \"${auto_mounts[@]}\"\n  \"${x11_args[@]}\"\n  \n  /nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init \"$@\"\n)\nexec \"${cmd[@]}\"\n\n",
+        "expectedSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "wrapperPath": "/nix/store/wrapper/bin/tfnf",
+        "expectedResolvedWrapperPath": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tfnf-bwrap",
+        "pinnedBash": "/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash",
+        "context": {
+          "bwrap": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+          "containerInit": "/nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init",
+          "originalInit": "/nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init"
+        },
+        "buildFhsEnvSourceSha256": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+        "containerSourceSha256": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+        "declaredDerivation": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tfnf-bwrap.drv",
+        "declaredDerivationSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "containerProducer": {
+          "syntheticFixture": true
+        },
+        "productClosureSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "nixpkgsRevision": "b6c8664de9b6cc07fe5666a29f91884ba81197c4",
+        "python": "/nix/store/python/bin/python3",
+        "publicationAuthority": false
+      },
+      "resolverSha256": "8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "scenario": "C-signal",
+    "platform": "linux-x64",
+    "bound": {
+      "op": "BOUND",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "1dcc2af177afff69e7dca1c9fdf080db65341d5b186cd1acfb8c7bcbc5159537",
+      "target": "x86_64-unknown-linux-gnu"
+    },
+    "terminated": {
+      "op": "TERMINATED",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "1dcc2af177afff69e7dca1c9fdf080db65341d5b186cd1acfb8c7bcbc5159537",
+      "target": "x86_64-unknown-linux-gnu",
+      "witness": {
+        "pid": 303,
+        "ppid": 202,
+        "start": 4,
+        "state": "Z",
+        "exit_code": 15
+      },
+      "watchdog": {
+        "acknowledgements": [
+          {
+            "op": "ARMED",
+            "seq": 1
+          },
+          {
+            "op": "DISARMED",
+            "seq": 2
+          }
+        ],
+        "nonceSha256": "8a83665f3798727f14f92ad0e6c99fdab08ee731d6cd644c131223fd2f4fed2a",
+        "rescue": false
+      }
+    },
+    "final": {
+      "op": "FINALIZED",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "1dcc2af177afff69e7dca1c9fdf080db65341d5b186cd1acfb8c7bcbc5159537",
+      "target": "x86_64-unknown-linux-gnu",
+      "monitorExit": {
+        "code": 143,
+        "signal": null
+      },
+      "witness": {
+        "pid": 303,
+        "ppid": 202,
+        "start": 4,
+        "state": "Z",
+        "exit_code": 15
+      },
+      "watchdog": {
+        "acknowledgements": [
+          {
+            "op": "ARMED",
+            "seq": 1
+          },
+          {
+            "op": "DISARMED",
+            "seq": 2
+          }
+        ],
+        "nonceSha256": "8a83665f3798727f14f92ad0e6c99fdab08ee731d6cd644c131223fd2f4fed2a",
+        "rescue": false
+      },
+      "cleanup": {
+        "application": "exited",
+        "controller": "closed",
+        "monitor": "node-waited"
+      }
+    },
+    "launchBinding": {
+      "schema": "theme-forge.p-gui-fresh-launch-binding.v1",
+      "source": {
+        "schema": "theme-forge.p-gui-wrapper-source.v1",
+        "wrapperSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "declaredSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "observerSha256": "e52b0691e66552f8bf1522a5877abe20a160788486d244a59cb33a116621ff5e",
+        "prefixSha256": "e2bc78207a9c12d96e569032736d286ae7e476917b69c008fd0fada50e040192",
+        "bash": "/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash",
+        "bwrap": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+        "containerInit": "/nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init",
+        "originalInit": "/nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init",
+        "buildFhsEnvSourceSha256": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+        "containerSourceSha256": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+        "terminalOnlyTransform": true,
+        "pathnameUseAbsent": true
+      },
+      "nonce": "3333333333333333333333333333333333333333333333333333333333333333",
+      "wrapperBindingSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "wrapperPublicPathSha256": "8d84787497c46bd87a74162a37818b83b6647f7e0ceb64f6de576d9a2ddc4e8d",
+      "wrapperResolvedPathSha256": "cc22683f3f7e5f8d15843998119deece7172f1737690ff4262e6ba016dda05f9",
+      "cwdSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "environmentSha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "smokeArgumentsSha256": "d0e4e6d4906d05f44ee693a7737662f2480ab7584a03c31d996c089be4cadacb",
+      "argvSha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "argvCount": 20,
+      "optionCount": 8,
+      "stdoutBytes": 200,
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deadlineMs": 10000,
+      "outputLimitBytes": 1048576,
+      "processExitObserved": true,
+      "observerExitCode": 0,
+      "observerExitSignal": null,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exactSourceReadbacks": true,
+      "fixtureMode": false,
+      "admitting": false,
+      "guiQualification": false,
+      "nativeQualification": false,
+      "productionEnabled": false,
+      "publicationAuthority": false,
+      "bindingSha256": "1dcc2af177afff69e7dca1c9fdf080db65341d5b186cd1acfb8c7bcbc5159537"
+    }
+  },
+  {
+    "context": {
+      "schema": "theme-forge.p-native-gui-context.v1",
+      "transform": "p-linux-gui-controller-v1",
+      "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+      "nebularTree": "dddddddddddddddddddddddddddddddddddddddd",
+      "rawExecutable": {
+        "path": "/nix/store/gui/bin/gui",
+        "size": 3,
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "publicWrapper": {
+        "path": "/nix/store/wrapper/bin/tfnf",
+        "size": 4841,
+        "sha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17"
+      },
+      "monitor": {
+        "executable": {
+          "path": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "controller": {
+        "python": "/nix/store/python/bin/python3",
+        "scriptSha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "predicateHelper": {
+        "path": "/nix/store/helper/p-process-predicate-probe.py",
+        "size": 3,
+        "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "bridgeSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "launchObserver": {
+        "schema": "theme-forge.p-native-gui-observer-inputs.v1",
+        "declaredText": "#!/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash\nignored=(/nix /dev /proc /etc )\nro_mounts=()\nsymlinks=()\netc_ignored=()\n\n\n\n# loop through all entries of root in the fhs environment, except its /etc.\nfor i in /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/*; do\n  path=\"/${i##*/}\"\n  if [[ $path == '/etc' ]]; then\n    :\n  elif [[ -L $i ]]; then\n    symlinks+=(--symlink \"$(/nix/store/2gfxiwls9hbgwdwcy43mprchwsq36mg6-coreutils-9.11/bin/readlink \"$i\")\" \"$path\")\n    ignored+=(\"$path\")\n  else\n    ro_mounts+=(--ro-bind \"$i\" \"$path\")\n    ignored+=(\"$path\")\n  fi\ndone\n\n# loop through the entries of /etc in the fhs environment.\nif [[ -d /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/etc ]]; then\n  for i in /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/etc/*; do\n    path=\"/${i##*/}\"\n    # NOTE: we're binding /etc/fonts and /etc/ssl/certs from the host so we\n    # don't want to override it with a path from the FHS environment.\n    if [[ $path == '/fonts' || $path == '/ssl' ]]; then\n      continue\n    fi\n    if [[ -L $i ]]; then\n      symlinks+=(--symlink \"$i\" \"/etc$path\")\n    else\n      ro_mounts+=(--ro-bind \"$i\" \"/etc$path\")\n    fi\n    etc_ignored+=(\"/etc$path\")\n  done\nfi\n\n# propagate /etc from the actual host if nested\nif [[ -e /.host-etc ]]; then\n  ro_mounts+=(--ro-bind /.host-etc /.host-etc)\nelse\n  ro_mounts+=(--ro-bind /etc /.host-etc)\nfi\n\ndeclare -A etc_ignored_set\nfor ign in \"${etc_ignored[@]}\"; do\n  etc_ignored_set[$ign]=1\ndone\n\n# link selected etc entries from the actual root\nfor i in /etc/static /etc/nix /etc/shells /etc/bashrc /etc/zshenv /etc/zshrc /etc/zinputrc /etc/zprofile /etc/passwd /etc/group /etc/shadow /etc/hosts /etc/resolv.conf /etc/nsswitch.conf /etc/profiles /etc/login.defs /etc/sudoers /etc/sudoers.d /etc/localtime /etc/zoneinfo /etc/machine-id /etc/os-release /etc/pam.d /etc/fonts /etc/alsa /etc/asound.conf /etc/ssl/certs /etc/ca-certificates /etc/pki /etc/dconf; do\n  if [[ -n \"${etc_ignored_set[$i]:-}\" ]]; then\n    continue\n  fi\n  if [[ -e $i ]]; then\n    symlinks+=(--symlink \"/.host-etc/${i#/etc/}\" \"$i\")\n  fi\ndone\n\ndeclare -A ignored_set\nfor ign in \"${ignored[@]}\"; do\n  ignored_set[$ign]=1\ndone\n\ndeclare -a auto_mounts\n# loop through all directories in the root\nfor dir in /*; do\n  # if it is a directory and not already provided by the FHS env or\n  # explicitly ignored, bind-mount it into the chroot. Use exact match\n  # via associative array because regex substring matching incorrectly\n  # skips prefixes (e.g. /sb would match /sbin and never get mounted,\n  # breaking --chdir when CWD is on a custom mount like /sb/project).\n  # https://github.com/NixOS/nixpkgs/issues/241151\n  if [[ -d \"$dir\" ]] && [[ -z \"${ignored_set[$dir]:-}\" ]]; then\n    # add it to the mount list\n    auto_mounts+=(--bind \"$dir\" \"$dir\")\n  fi\ndone\n\ndeclare -a x11_args\n# Always mount a tmpfs on /tmp/.X11-unix\n# Rationale: https://github.com/flatpak/flatpak/blob/be2de97e862e5ca223da40a895e54e7bf24dbfb9/common/flatpak-run.c#L277\nx11_args+=(--tmpfs /tmp/.X11-unix)\n\n# Try to guess X socket path. This doesn't cover _everything_, but it covers some things.\nif [[ \"$DISPLAY\" == *:* ]]; then\n  # recover display number from $DISPLAY formatted [host]:num[.screen]\n  display_nr=${DISPLAY/#*:} # strip host\n  display_nr=${display_nr/%.*} # strip screen\n  local_socket=/tmp/.X11-unix/X$display_nr\n  x11_args+=(--ro-bind-try \"$local_socket\" \"$local_socket\")\nfi\n\n\n\ncmd=(\n  /nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap\n  --dev-bind /dev /dev\n  --proc /proc\n  --chdir \"$(pwd)\"\n  \n  \n  \n  \n  \n  \n  --die-with-parent\n  --bind /nix /nix\n  \n  # Our glibc will look for the cache in its own path in `/nix/store`.\n  # As such, we need a cache to exist there, because pressure-vessel\n  # depends on the existence of an ld cache. However, adding one\n  # globally proved to be a bad idea (see #100655), the solution we\n  # settled on being mounting one via bwrap.\n  # Also, the cache needs to go to both 32 and 64 bit glibcs, for games\n  # of both architectures to work.\n  --tmpfs /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc \\\n  --tmpfs /etc \\\n  --symlink /etc/ld.so.conf /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/ld.so.conf \\\n  --symlink /etc/ld.so.cache /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/ld.so.cache \\\n  --ro-bind /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/rpc /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/rpc \\\n  --remount-ro /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc \\\n  --symlink /nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init /init \\\n  \"${ro_mounts[@]}\"\n  \"${symlinks[@]}\"\n  \"${auto_mounts[@]}\"\n  \"${x11_args[@]}\"\n  \n  /nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init \"$@\"\n)\nexec \"${cmd[@]}\"\n\n",
+        "expectedSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "wrapperPath": "/nix/store/wrapper/bin/tfnf",
+        "expectedResolvedWrapperPath": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tfnf-bwrap",
+        "pinnedBash": "/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash",
+        "context": {
+          "bwrap": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+          "containerInit": "/nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init",
+          "originalInit": "/nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init"
+        },
+        "buildFhsEnvSourceSha256": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+        "containerSourceSha256": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+        "declaredDerivation": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tfnf-bwrap.drv",
+        "declaredDerivationSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "containerProducer": {
+          "syntheticFixture": true
+        },
+        "productClosureSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "nixpkgsRevision": "b6c8664de9b6cc07fe5666a29f91884ba81197c4",
+        "python": "/nix/store/python/bin/python3",
+        "publicationAuthority": false
+      },
+      "resolverSha256": "8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "scenario": "C",
+    "platform": "linux-x64",
+    "bound": {
+      "op": "BOUND",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "52afb29ca99ba384fc5d0510e1701bc0939fb6817a49714feb7b2fd0eda0c6cd",
+      "target": "x86_64-unknown-linux-gnu"
+    },
+    "terminated": null,
+    "final": {
+      "op": "FINALIZED",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "52afb29ca99ba384fc5d0510e1701bc0939fb6817a49714feb7b2fd0eda0c6cd",
+      "target": "x86_64-unknown-linux-gnu",
+      "monitorExit": {
+        "code": 0,
+        "signal": null
+      },
+      "witness": null,
+      "watchdog": null,
+      "cleanup": {
+        "application": "exited",
+        "controller": "closed",
+        "monitor": "node-waited"
+      }
+    },
+    "launchBinding": {
+      "schema": "theme-forge.p-gui-fresh-launch-binding.v1",
+      "source": {
+        "schema": "theme-forge.p-gui-wrapper-source.v1",
+        "wrapperSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "declaredSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "observerSha256": "e52b0691e66552f8bf1522a5877abe20a160788486d244a59cb33a116621ff5e",
+        "prefixSha256": "e2bc78207a9c12d96e569032736d286ae7e476917b69c008fd0fada50e040192",
+        "bash": "/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash",
+        "bwrap": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+        "containerInit": "/nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init",
+        "originalInit": "/nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init",
+        "buildFhsEnvSourceSha256": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+        "containerSourceSha256": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+        "terminalOnlyTransform": true,
+        "pathnameUseAbsent": true
+      },
+      "nonce": "3333333333333333333333333333333333333333333333333333333333333333",
+      "wrapperBindingSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "wrapperPublicPathSha256": "8d84787497c46bd87a74162a37818b83b6647f7e0ceb64f6de576d9a2ddc4e8d",
+      "wrapperResolvedPathSha256": "cc22683f3f7e5f8d15843998119deece7172f1737690ff4262e6ba016dda05f9",
+      "cwdSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "environmentSha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "smokeArgumentsSha256": "d2851126d16e4aae20a4b95af0dd16f2c0b234a99d0f289b379969f1d1e5d0a1",
+      "argvSha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "argvCount": 20,
+      "optionCount": 8,
+      "stdoutBytes": 200,
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deadlineMs": 10000,
+      "outputLimitBytes": 1048576,
+      "processExitObserved": true,
+      "observerExitCode": 0,
+      "observerExitSignal": null,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exactSourceReadbacks": true,
+      "fixtureMode": false,
+      "admitting": false,
+      "guiQualification": false,
+      "nativeQualification": false,
+      "productionEnabled": false,
+      "publicationAuthority": false,
+      "bindingSha256": "52afb29ca99ba384fc5d0510e1701bc0939fb6817a49714feb7b2fd0eda0c6cd"
+    }
+  },
+  {
+    "context": {
+      "schema": "theme-forge.p-native-gui-context.v1",
+      "transform": "p-linux-gui-controller-v1",
+      "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+      "nebularTree": "dddddddddddddddddddddddddddddddddddddddd",
+      "rawExecutable": {
+        "path": "/nix/store/gui/bin/gui",
+        "size": 3,
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "publicWrapper": {
+        "path": "/nix/store/wrapper/bin/tfnf",
+        "size": 4841,
+        "sha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17"
+      },
+      "monitor": {
+        "executable": {
+          "path": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "controller": {
+        "python": "/nix/store/python/bin/python3",
+        "scriptSha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "predicateHelper": {
+        "path": "/nix/store/helper/p-process-predicate-probe.py",
+        "size": 3,
+        "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "bridgeSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "launchObserver": {
+        "schema": "theme-forge.p-native-gui-observer-inputs.v1",
+        "declaredText": "#!/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash\nignored=(/nix /dev /proc /etc )\nro_mounts=()\nsymlinks=()\netc_ignored=()\n\n\n\n# loop through all entries of root in the fhs environment, except its /etc.\nfor i in /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/*; do\n  path=\"/${i##*/}\"\n  if [[ $path == '/etc' ]]; then\n    :\n  elif [[ -L $i ]]; then\n    symlinks+=(--symlink \"$(/nix/store/2gfxiwls9hbgwdwcy43mprchwsq36mg6-coreutils-9.11/bin/readlink \"$i\")\" \"$path\")\n    ignored+=(\"$path\")\n  else\n    ro_mounts+=(--ro-bind \"$i\" \"$path\")\n    ignored+=(\"$path\")\n  fi\ndone\n\n# loop through the entries of /etc in the fhs environment.\nif [[ -d /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/etc ]]; then\n  for i in /nix/store/ycvw6afcf466gk2f3czjsd1bp9iiswak-tfnf-fhsenv-rootfs/etc/*; do\n    path=\"/${i##*/}\"\n    # NOTE: we're binding /etc/fonts and /etc/ssl/certs from the host so we\n    # don't want to override it with a path from the FHS environment.\n    if [[ $path == '/fonts' || $path == '/ssl' ]]; then\n      continue\n    fi\n    if [[ -L $i ]]; then\n      symlinks+=(--symlink \"$i\" \"/etc$path\")\n    else\n      ro_mounts+=(--ro-bind \"$i\" \"/etc$path\")\n    fi\n    etc_ignored+=(\"/etc$path\")\n  done\nfi\n\n# propagate /etc from the actual host if nested\nif [[ -e /.host-etc ]]; then\n  ro_mounts+=(--ro-bind /.host-etc /.host-etc)\nelse\n  ro_mounts+=(--ro-bind /etc /.host-etc)\nfi\n\ndeclare -A etc_ignored_set\nfor ign in \"${etc_ignored[@]}\"; do\n  etc_ignored_set[$ign]=1\ndone\n\n# link selected etc entries from the actual root\nfor i in /etc/static /etc/nix /etc/shells /etc/bashrc /etc/zshenv /etc/zshrc /etc/zinputrc /etc/zprofile /etc/passwd /etc/group /etc/shadow /etc/hosts /etc/resolv.conf /etc/nsswitch.conf /etc/profiles /etc/login.defs /etc/sudoers /etc/sudoers.d /etc/localtime /etc/zoneinfo /etc/machine-id /etc/os-release /etc/pam.d /etc/fonts /etc/alsa /etc/asound.conf /etc/ssl/certs /etc/ca-certificates /etc/pki /etc/dconf; do\n  if [[ -n \"${etc_ignored_set[$i]:-}\" ]]; then\n    continue\n  fi\n  if [[ -e $i ]]; then\n    symlinks+=(--symlink \"/.host-etc/${i#/etc/}\" \"$i\")\n  fi\ndone\n\ndeclare -A ignored_set\nfor ign in \"${ignored[@]}\"; do\n  ignored_set[$ign]=1\ndone\n\ndeclare -a auto_mounts\n# loop through all directories in the root\nfor dir in /*; do\n  # if it is a directory and not already provided by the FHS env or\n  # explicitly ignored, bind-mount it into the chroot. Use exact match\n  # via associative array because regex substring matching incorrectly\n  # skips prefixes (e.g. /sb would match /sbin and never get mounted,\n  # breaking --chdir when CWD is on a custom mount like /sb/project).\n  # https://github.com/NixOS/nixpkgs/issues/241151\n  if [[ -d \"$dir\" ]] && [[ -z \"${ignored_set[$dir]:-}\" ]]; then\n    # add it to the mount list\n    auto_mounts+=(--bind \"$dir\" \"$dir\")\n  fi\ndone\n\ndeclare -a x11_args\n# Always mount a tmpfs on /tmp/.X11-unix\n# Rationale: https://github.com/flatpak/flatpak/blob/be2de97e862e5ca223da40a895e54e7bf24dbfb9/common/flatpak-run.c#L277\nx11_args+=(--tmpfs /tmp/.X11-unix)\n\n# Try to guess X socket path. This doesn't cover _everything_, but it covers some things.\nif [[ \"$DISPLAY\" == *:* ]]; then\n  # recover display number from $DISPLAY formatted [host]:num[.screen]\n  display_nr=${DISPLAY/#*:} # strip host\n  display_nr=${display_nr/%.*} # strip screen\n  local_socket=/tmp/.X11-unix/X$display_nr\n  x11_args+=(--ro-bind-try \"$local_socket\" \"$local_socket\")\nfi\n\n\n\ncmd=(\n  /nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap\n  --dev-bind /dev /dev\n  --proc /proc\n  --chdir \"$(pwd)\"\n  \n  \n  \n  \n  \n  \n  --die-with-parent\n  --bind /nix /nix\n  \n  # Our glibc will look for the cache in its own path in `/nix/store`.\n  # As such, we need a cache to exist there, because pressure-vessel\n  # depends on the existence of an ld cache. However, adding one\n  # globally proved to be a bad idea (see #100655), the solution we\n  # settled on being mounting one via bwrap.\n  # Also, the cache needs to go to both 32 and 64 bit glibcs, for games\n  # of both architectures to work.\n  --tmpfs /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc \\\n  --tmpfs /etc \\\n  --symlink /etc/ld.so.conf /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/ld.so.conf \\\n  --symlink /etc/ld.so.cache /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/ld.so.cache \\\n  --ro-bind /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/rpc /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc/rpc \\\n  --remount-ro /nix/store/h4wfwic161kxrr74jlzla5lsm28hgary-glibc-2.44-25/etc \\\n  --symlink /nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init /init \\\n  \"${ro_mounts[@]}\"\n  \"${symlinks[@]}\"\n  \"${auto_mounts[@]}\"\n  \"${x11_args[@]}\"\n  \n  /nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init \"$@\"\n)\nexec \"${cmd[@]}\"\n\n",
+        "expectedSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "wrapperPath": "/nix/store/wrapper/bin/tfnf",
+        "expectedResolvedWrapperPath": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tfnf-bwrap",
+        "pinnedBash": "/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash",
+        "context": {
+          "bwrap": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+          "containerInit": "/nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init",
+          "originalInit": "/nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init"
+        },
+        "buildFhsEnvSourceSha256": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+        "containerSourceSha256": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+        "declaredDerivation": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tfnf-bwrap.drv",
+        "declaredDerivationSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "containerProducer": {
+          "syntheticFixture": true
+        },
+        "productClosureSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "nixpkgsRevision": "b6c8664de9b6cc07fe5666a29f91884ba81197c4",
+        "python": "/nix/store/python/bin/python3",
+        "publicationAuthority": false
+      },
+      "resolverSha256": "8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "scenario": "B",
+    "platform": "linux-arm64",
+    "bound": {
+      "op": "BOUND",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "b59160f6c96dc56a3d1f2dec2c73ab6f3fad8b28510012cdaf352ad8e8791175",
+      "target": "aarch64-unknown-linux-gnu"
+    },
+    "terminated": null,
+    "final": {
+      "op": "FINALIZED",
+      "schema": "theme-forge.p-native-gui-controller.v1",
+      "nonce": "11111111111111111111111111111111",
+      "accepted": true,
+      "application": {
+        "pid": 303,
+        "start": 4,
+        "executable": {
+          "dev": 1,
+          "ino": 303,
+          "size": 3,
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "monitor": {
+        "pid": 202,
+        "start": 3,
+        "executable": {
+          "dev": 1,
+          "ino": 202,
+          "size": 3,
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      },
+      "source": {
+        "pCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pTree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "nebularCommit": "cccccccccccccccccccccccccccccccccccccccc",
+        "nebularTree": "dddddddddddddddddddddddddddddddddddddddd"
+      },
+      "launchBindingSha256": "b59160f6c96dc56a3d1f2dec2c73ab6f3fad8b28510012cdaf352ad8e8791175",
+      "target": "aarch64-unknown-linux-gnu",
+      "monitorExit": {
+        "code": 0,
+        "signal": null
+      },
+      "witness": null,
+      "watchdog": null,
+      "cleanup": {
+        "application": "exited",
+        "controller": "closed",
+        "monitor": "node-waited"
+      }
+    },
+    "launchBinding": {
+      "schema": "theme-forge.p-gui-fresh-launch-binding.v1",
+      "source": {
+        "schema": "theme-forge.p-gui-wrapper-source.v1",
+        "wrapperSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "declaredSha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17",
+        "observerSha256": "e52b0691e66552f8bf1522a5877abe20a160788486d244a59cb33a116621ff5e",
+        "prefixSha256": "e2bc78207a9c12d96e569032736d286ae7e476917b69c008fd0fada50e040192",
+        "bash": "/nix/store/10dxp0qxqxxsyiljrh2kp0xqhz6arhcx-bash-5.3p15/bin/bash",
+        "bwrap": "/nix/store/zri6pfys37ih88s5yckr47khz5zw1rzk-bubblewrap-0.12.0/bin/bwrap",
+        "containerInit": "/nix/store/f58pgq0yfin4v7b3r6wzbx2g9x489ncc-container-init",
+        "originalInit": "/nix/store/msxm3xjics0s0qmg4c4apnayb4xz4574-tfnf-init",
+        "buildFhsEnvSourceSha256": "5c642cc3eed380324d3109a9a428be020ed529774f5c4f5877bb2bb1b93ac93f",
+        "containerSourceSha256": "40f92dd2ca8e5161e55b5d85c2ece3a79a43b6d96dc20d6b0b05a0fcabf4c7fd",
+        "terminalOnlyTransform": true,
+        "pathnameUseAbsent": true
+      },
+      "nonce": "3333333333333333333333333333333333333333333333333333333333333333",
+      "wrapperBindingSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "wrapperPublicPathSha256": "8d84787497c46bd87a74162a37818b83b6647f7e0ceb64f6de576d9a2ddc4e8d",
+      "wrapperResolvedPathSha256": "cc22683f3f7e5f8d15843998119deece7172f1737690ff4262e6ba016dda05f9",
+      "cwdSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "environmentSha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "smokeArgumentsSha256": "229e508babae42eaf40ff40dcc7534edd793714488cef8e2dac3c439833772b9",
+      "argvSha256": "7777777777777777777777777777777777777777777777777777777777777777",
+      "argvCount": 20,
+      "optionCount": 8,
+      "stdoutBytes": 200,
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deadlineMs": 10000,
+      "outputLimitBytes": 1048576,
+      "processExitObserved": true,
+      "observerExitCode": 0,
+      "observerExitSignal": null,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exactSourceReadbacks": true,
+      "fixtureMode": false,
+      "admitting": false,
+      "guiQualification": false,
+      "nativeQualification": false,
+      "productionEnabled": false,
+      "publicationAuthority": false,
+      "bindingSha256": "b59160f6c96dc56a3d1f2dec2c73ab6f3fad8b28510012cdaf352ad8e8791175"
+    }
+  }
+]

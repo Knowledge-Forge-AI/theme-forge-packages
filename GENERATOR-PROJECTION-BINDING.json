@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-30T16:42:22.236Z",
+  "generatedAt": "2026-10-30T22:26:53.080Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "fc2065899b721b7af5b6079941a69ceef4bb7561521cf0f34efabc67aed4ebfe",
+  "generationOverlayManifestSha256": "bfeb14218373e484314b12077a86320a89916a4be981008d0aa2015447a2ba01",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "fc2065899b721b7af5b6079941a69ceef4bb7561521cf0f34efabc67aed4ebfe",
+  "treeManifestSha256": "bfeb14218373e484314b12077a86320a89916a4be981008d0aa2015447a2ba01",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 93,
+  "totalFiles": 113,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -39,8 +39,8 @@
     },
     {
       "path": ".github/workflows/validate.yml",
-      "bytes": 3630,
-      "sha256": "e7466113f9665db4f3d526580adb88febe95d865fa20da302fe7480991067d03"
+      "bytes": 3689,
+      "sha256": "ffe71e3fc2383078bed60356d056e49a62e0ee4f935a89a98f3f22ea0ef2425b"
     },
     {
       "path": "AUR-READINESS.md",
@@ -128,6 +128,11 @@
       "sha256": "0a315a4a38a78c6f902d062abcb1ca4b0905207c63c3305bc09df710554dd182"
     },
     {
+      "path": "docs/p-native-gui-controller.md",
+      "bytes": 4421,
+      "sha256": "1682a53829a2c4db9566067b1a9d2f337dec7c82021a1fc0ca3cf5a9f98ff317"
+    },
+    {
       "path": "docs/process-predicate-policy.md",
       "bytes": 12056,
       "sha256": "eb60a2396329f613339e531a001a3683a8c6cdae95825431b3ac5f1eed1c68c5"
@@ -159,8 +164,8 @@
     },
     {
       "path": "P-CURRENT-NIX-QUALIFICATION.md",
-      "bytes": 8544,
-      "sha256": "1dc81c0f31872512d2a65c15278587771d059d90eef4595b7e74cee350a6dce4"
+      "bytes": 3303,
+      "sha256": "a9f249fd449e6cd93d05468620b62c3c4d466437772fb661e2751a85bb66f4f4"
     },
     {
       "path": "package-matrix.json",
@@ -328,6 +333,76 @@
       "sha256": "98375c2ce2cd9e29e0e2308d07cd3c658ee8de03cbca9036e83947f4890d123d"
     },
     {
+      "path": "tests/fixtures/NIXPKGS-COPYING.md",
+      "bytes": 1694,
+      "sha256": "04e1eedf91c9eb1c22075980a2f0f67ce1ab5661bc740fb322ffabad344a23b0"
+    },
+    {
+      "path": "tests/fixtures/p-gui-qualified-wrapper-x64.bash",
+      "bytes": 4841,
+      "sha256": "a5a75a547adb4d2b782f02993ad4a510bb4c2730786752422a60e75c5df46b17"
+    },
+    {
+      "path": "tests/fixtures/p-native-gui-inert-bridge.mjs",
+      "bytes": 2514,
+      "sha256": "4a4b16ea66b882e926071b85df4c3544c3041f032d52c1a35f6559de753afd7a"
+    },
+    {
+      "path": "tests/fixtures/p-native-gui-response-transcripts.json",
+      "bytes": 41925,
+      "sha256": "dcb056ea587b5c872449e90add4dea17ec766c8a7d34fcc239a197bcd9988028"
+    },
+    {
+      "path": "tests/p-native-gui-fixtures.mjs",
+      "bytes": 3141,
+      "sha256": "db7a6a5c25e9ce0eefaa59b81dd7e34afd18b34d176dd46cd750c9937d0d0715"
+    },
+    {
+      "path": "tests/test-p-native-gui-adapter.mjs",
+      "bytes": 11409,
+      "sha256": "6627e1538beaba106a174890fa3870dd4ea800c6934db7dce743d327ebf23c41"
+    },
+    {
+      "path": "tests/test-p-native-gui-binding-preparation.mjs",
+      "bytes": 10378,
+      "sha256": "311aaa5be85a800d8f7b5636876f0e9269fcaa2e014189517aeaee8b72467475"
+    },
+    {
+      "path": "tests/test-p-native-gui-controller.py",
+      "bytes": 6432,
+      "sha256": "056731225a7eae5550da145f4dd5278aac452875d209dcb83ed3d2130362ad65"
+    },
+    {
+      "path": "tests/test-p-native-gui-derived-boundary.mjs",
+      "bytes": 5659,
+      "sha256": "e1b56ec0e7a79a287fd631ff065ff4fde5f344e20e3f2d23cbf273ce2de1c601"
+    },
+    {
+      "path": "tests/test-p-native-gui-launch-binding.mjs",
+      "bytes": 34493,
+      "sha256": "5eed7357fc8271b63a9606ab827bf490dd3f308821f48e66bcdb65d80e6684e2"
+    },
+    {
+      "path": "tests/test-p-native-gui-parent-regressions.mjs",
+      "bytes": 10723,
+      "sha256": "13b1628c43a752865835de80198d0b5d26e906c3dd9cb6d6a73ec273ded94a8d"
+    },
+    {
+      "path": "tests/test-p-native-gui-parent-regressions.py",
+      "bytes": 12694,
+      "sha256": "763c8031fba44c251de5ecda9b835808544ee66ec512d9b75f2a9432bd2a9c2d"
+    },
+    {
+      "path": "tests/test-p-native-gui-prepare-context.py",
+      "bytes": 2682,
+      "sha256": "7489fcccfa4a9608eafc387833b37eb8db7cc074f06ea7404a2ff124c6605410"
+    },
+    {
+      "path": "tests/test-p-native-gui-startup.py",
+      "bytes": 5552,
+      "sha256": "ddccaa824a1fc18a734574e084facba7e8b8597d2024bfedc159bfcadb66a20b"
+    },
+    {
       "path": "tools/predicate/r5-product-baseline/flake.lock",
       "bytes": 569,
       "sha256": "ed928e945c79e3d7f19d37b13a05f0d97b98440b38661d97bf77844e40606431"
@@ -404,8 +479,33 @@
     },
     {
       "path": "tools/verification/p-current-nix-contract.json",
-      "bytes": 3692,
-      "sha256": "93cad74803f9b7d763fa16ccb1a9955ffa261752e8e03c4a43f312ea0e26e0a7"
+      "bytes": 5642,
+      "sha256": "ef9c6dd21dc979662fc0103647bf174c6b8f4444d4689fe3a41058eb957ffecb"
+    },
+    {
+      "path": "tools/verification/p-native-gui-adapter.mjs",
+      "bytes": 14392,
+      "sha256": "ca032ae3f7ada784aa6c0405dd43760e70d3cbd22b43804b711d8e9f9f05beef"
+    },
+    {
+      "path": "tools/verification/p-native-gui-controller-bridge.mjs",
+      "bytes": 39470,
+      "sha256": "f0445e0d00b21db95736780858d711b597a4bba2f497329bf906fc766b3d78d3"
+    },
+    {
+      "path": "tools/verification/p-native-gui-controller.py",
+      "bytes": 28892,
+      "sha256": "a8a931349dbcaed578968cd382bf5fc12616ce08861fd67cb34be4fb15e3b31f"
+    },
+    {
+      "path": "tools/verification/p-native-gui-launch-binding.mjs",
+      "bytes": 25171,
+      "sha256": "b6348ddb06d73ba668e4bf36671eb93d3d84ac2e6147465d925622699581c00b"
+    },
+    {
+      "path": "tools/verification/p-native-gui-prepare-context.py",
+      "bytes": 6859,
+      "sha256": "8d1732f5cbfb925f8d5d6f67b38e367ce88db4415fe41086087f500a33b4aae7"
     },
     {
       "path": "tools/verification/p-nix-invocation.mjs",
@@ -449,8 +549,8 @@
     },
     {
       "path": "tools/verification/qualify-p-current-nix.mjs",
-      "bytes": 13086,
-      "sha256": "992592f7419c30b4e157f366631cbe02d29fe7fc6cd98f7eb304c098f4f043bb"
+      "bytes": 26544,
+      "sha256": "04e740f5a92e09a8cd03cc0101e5a83e6f360b3ad23de9a0a62b6758e6399b0d"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",

@@ -1,5 +1,5 @@
 {
-  "schema": "theme-forge.p-current-native-three-plan-v1",
+  "schema": "theme-forge.p-current-native-three-plan-v2",
   "status": "prepared-test-only-native-route",
   "productionEnabled": false,
   "publicationAuthority": false,
@@ -60,33 +60,77 @@
   },
   "burstLoaderSha256": "23a3bf942fa1f92fbf686b4cedc0ec2a9f6653ded6fd2df7ef9d3c58d6591e69",
   "guiSeams": {
-    "launcher": "P-owned test-only adapter changes exactly one process-spawn launcher to actual canonical P public wrapper; original installed raw payload checks unchanged",
-    "pidContract": "Original receipt child.pid and direct app-only C-signal relationship retained; a non-preserving FHS wrapper must fail, not be reinterpreted"
+    "aarch64-darwin": "legacy single spawn target and direct app PID/signal contract",
+    "aarch64-linux": "public-wrapper owned monitor, controller-bound application and ordinary finalization",
+    "x86_64-linux": "public-wrapper owned monitor, controller-bound application, C-signal witness independent of monitor exit 143"
   },
-  "runnerPolicy": "Private runnable proposal: actual P repository admission with exact maintained RS9 restoration; no remote activation authorized by preparation.",
+  "runnerPolicy": {
+    "event": "workflow_dispatch",
+    "branch": "main",
+    "repository": "Knowledge-Forge-AI/theme-forge-packages",
+    "workflowPath": ".github/workflows/validate.yml",
+    "attempt": 1,
+    "activation": "owner approval required before source adoption and public native qualification",
+    "productionEnabled": false,
+    "publicationAuthority": false
+  },
   "authority": "P recipes, flake lock and materialization require their own native evidence; RS9 receipts and equal release hashes are insufficient",
   "acceptanceRule": "Only successful P native-three own wrapper/closure/native-addon and adapted GUI scenarios can qualify this candidate; publication authority remains false.",
   "guiAdapter": {
-    "source": "p-nix-launcher-adapter.mjs",
-    "change": "single spawn target only",
-    "provenance": "derived test harness; exact pinned upstream is immutable input",
-    "scenarios": {
-      "aarch64-darwin": [
-        "A"
-      ],
-      "aarch64-linux": [
-        "B"
-      ],
-      "x86_64-linux": [
-        "C",
-        "C-signal"
-      ]
+    "profiles": {
+      "x86_64-linux": {
+        "profile": "p-linux-gui-controller-v1",
+        "adapterSource": "p-native-gui-adapter.mjs",
+        "bindingSchema": "theme-forge.p-native-gui-binding.v1",
+        "bindingMember": "p-native-gui-binding.json",
+        "scenarios": [
+          "C",
+          "C-signal"
+        ],
+        "controllerClosure": [
+          "p-native-gui-controller-bridge.mjs",
+          "p-native-gui-controller.py",
+          "p-process-predicate-probe.py",
+          "p-native-gui-launch-binding.mjs"
+        ],
+        "responseRecordSchema": "theme-forge.p-native-gui-response-record.v1",
+        "controlEvidenceSchema": "theme-forge.p-native-gui-control-evidence.v1",
+        "applicationWitness": "separate-monitor-and-application-identities; C-signal application zombie wait status 15; monitor exit code 143"
+      },
+      "aarch64-linux": {
+        "profile": "p-linux-gui-controller-v1",
+        "adapterSource": "p-native-gui-adapter.mjs",
+        "bindingSchema": "theme-forge.p-native-gui-binding.v1",
+        "bindingMember": "p-native-gui-binding.json",
+        "scenarios": [
+          "B"
+        ],
+        "controllerClosure": [
+          "p-native-gui-controller-bridge.mjs",
+          "p-native-gui-controller.py",
+          "p-process-predicate-probe.py",
+          "p-native-gui-launch-binding.mjs"
+        ],
+        "responseRecordSchema": "theme-forge.p-native-gui-response-record.v1",
+        "controlEvidenceSchema": "theme-forge.p-native-gui-control-evidence.v1",
+        "applicationWitness": "separate monitor and application identities; ordinary application exit and monitor code 0; no signal witness or armed watchdog"
+      },
+      "aarch64-darwin": {
+        "profile": "p-single-spawn-target-v1",
+        "adapterSource": "p-nix-launcher-adapter.mjs",
+        "bindingSchema": "theme-forge.p-nix-test-launcher-adapter.v1",
+        "bindingMember": "p-test-adapter-binding.json",
+        "scenarios": [
+          "A"
+        ]
+      }
     },
     "linuxPrerequisites": [
       "xvfb-run",
       "dbus-run-session"
     ],
     "dependencyInstallation": false,
-    "sandboxSuppression": false
+    "sandboxSuppression": false,
+    "provenance": "derived test harness; exact pinned upstream is immutable input"
   }
 }
