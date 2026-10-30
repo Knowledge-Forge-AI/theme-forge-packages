@@ -1,0 +1,48 @@
+name: Production Signing Key Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signing-key:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact preflight source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Setup existing Node class
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+      - name: Check availability and verify throwaway signature
+        shell: bash
+        env:
+          PACKAGE_SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          PACKAGE_SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+        run: |
+          set +x
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          const names = ["PACKAGE_SIGNING_KEY", "PACKAGE_SIGNING_PASSPHRASE"];
+          let complete = true;
+          for (const name of names) {
+            const present = typeof process.env[name] === "string" && process.env[name].length > 0;
+            console.log(name + ": " + (present ? "available" : "unavailable"));
+            complete &&= present;
+          }
+          if (!complete) process.exit(1);
+          try {
+            const { preflightSigningKey } = await import("./tools/verification/preflight-signing-key.mjs");
+            await preflightSigningKey("keys/knowledge-forge-ai-packages.asc");
+            console.log("production-signing-key-preflight: passed");
+          } catch {
+            console.error("production-signing-key-preflight: failed");
+            process.exit(1);
+          }
+          NODE

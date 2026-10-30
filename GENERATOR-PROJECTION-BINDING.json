@@ -1,26 +1,31 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-30T10:40:55.445Z",
+  "generatedAt": "2026-10-30T11:57:59.996Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "87da4a2c824bf0ed3273e5f0916be8677feaf774bb0414e19b6df477db3d1672",
+  "generationOverlayManifestSha256": "6b8f5bdfa68534864caf5354d59d3a84ff1dd2d9368018843d7c7aba9ef16296",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "87da4a2c824bf0ed3273e5f0916be8677feaf774bb0414e19b6df477db3d1672",
+  "treeManifestSha256": "6b8f5bdfa68534864caf5354d59d3a84ff1dd2d9368018843d7c7aba9ef16296",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 92,
+  "totalFiles": 93,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
       "bytes": 3009,
       "sha256": "78a7d8ce7a2b6d0de020f9f72e339d01faf732803949fc3d7ed1ab4c420c36fc"
+    },
+    {
+      "path": ".github/workflows/preflight-signing-key.yml",
+      "bytes": 1779,
+      "sha256": "aa45b79ae061c7dbf0da6c5b00f0c14174a4ae2994c7d8e45b983db4529f1d27"
     },
     {
       "path": ".github/workflows/probe-current-process-predicate.yml",
