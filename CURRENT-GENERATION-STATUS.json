@@ -10,7 +10,8 @@
   "requiredBeforePromotion": [
     "Review and promote bounded canonical generator/input patch.",
     "Integrate RS9 qualified unsigned native packages into existing protected signer and Pages deployer with key continuity.",
-    "Bind exact native-three Nix, Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64 qualification receipts.",
+    "Bind exact native-three Nix qualification receipts and qualified Nix source/ref publication; this Nix gate is independent of the APT, DNF and pacman RS9 bridge and protected-repository signing gates.",
+    "Bind exact Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64 qualification receipts for their separate OS-channel gates.",
     "Regenerate binding after production public key preservation/bootstrap and final bridge integration."
   ],
   "historicalTemplates": [
@@ -19,14 +20,14 @@
     "aur"
   ],
   "historicalTemplatesAreCurrentBuildAuthority": false,
-  "workflowAuthority": "Current validate.yml retains all P native-three jobs and remains manual-only. The bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and restoring P Linux user-namespace/AppArmor guard source preparation were approved on 2026-10-30. Hosted invocation remains a parent-controlled public-CI action using the exact guarded route, with its own native evidence. The recorded class/source approval need not be repeated. Current publish.yml remains dispatch-only, permissions-empty and an explicit refusal. Historical DEFAULT output is byte-identical.",
+  "workflowAuthority": "Current validate.yml retains all P native-three jobs and remains manual-only. The bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and restoring P Linux user-namespace/AppArmor guard source preparation were approved on 2026-10-30; later owner approval covers the reviewed GUI, observer and headless-WebKit campaign. Parent-controlled campaign 41192208654 completed with successful Darwin and Linux ARM64 lanes and an x86_64-linux C-signal harness failure. Current publish.yml remains dispatch-only, permissions-empty and an explicit refusal. Historical DEFAULT output is byte-identical.",
   "aurStatus": "deferred",
   "runtimeArchiveEvidence": "smol-toml 1.9.1 exact archive authenticated against current tagged Burst lockfile; native compatibility remains unqualified",
-  "productionPublicKey": "existing public key preserved byte-for-byte; private/signing-key preflight remains future and out of scope",
-  "nixQualification": "Full native-three qualification remains held. The bounded two-host predicate test class/source preparation is approved; its hosted invocation and evidence are separately parent-controlled. A later full GUI-controller adaptation requires its own exact-source review and applicable execution decision; it is not approval of the already recorded test class.",
+  "productionPublicKey": "existing public key and identity/environment preserved byte-for-byte; standalone availability and throwaway-crypto preflight passed on run 41137005493 at source 08e6656203085db46ca87e397fd528ced0d59dc2. Publication remains a separate gate and no secret material is recorded.",
+  "nixQualification": "Full native-three qualification remains held. Campaign 41192208654 is partial evidence only: Darwin and Linux ARM64 succeeded, while the x86_64-linux C-signal harness failed. The locked predicate class/source preparation and the later reviewed GUI, observer and headless-WebKit campaign approval remain valid; they do not waive the failed lane or grant signing/publication acceptance.",
   "candidateValidation": "explicit verification only; production/publication authority false",
   "pGuiAdapter": "Original upstream source stays pinned and unchanged; only spawned launcher is the actual canonical P public wrapper; original raw identity, PID/scenario/sandbox/cleanup checks remain.",
-  "runnerPolicy": "Approved on 2026-10-30: bounded test class and source preparation, including the P adaptation of the maintained restoring userns/AppArmor guard. Exact hosted invocation remains separately parent-controlled; no broader runner policy or full GUI-controller adaptation is approved by that record.",
+  "runnerPolicy": "Approved on 2026-10-30: bounded test class and source preparation, including the P adaptation of the maintained restoring userns/AppArmor guard. Later owner approval covers only the reviewed GUI, observer and headless-WebKit campaign. Exact hosted invocation remains parent-controlled; no broader runner policy, signing or publication authority follows.",
   "legacyWorkflowRouting": "Historical validation/signing jobs are replaced only in the current overlay; no duplicate qualify-current-nix.yml remains.",
-  "predicateProbe": "Bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and source preparation approved on 2026-10-30. Node owns the actual monitor PID/wait; sibling Python controller and inherited-pidfd watchdog are within that class. Hosted execution and resulting native evidence remain distinct from the recorded source approval; no GUI/publication acceptance follows."
+  "predicateProbe": "Bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and source preparation approved on 2026-10-30. Node owns the actual monitor PID/wait; sibling Python controller and inherited-pidfd watchdog are within that class. Campaign 41192208654 supplied partial hosted evidence: Darwin and Linux ARM64 succeeded, while x86_64 C-signal failed. Resulting evidence remains distinct from source approval; no GUI/publication acceptance follows."
 }

@@ -1,9 +1,11 @@
 # Linux process predicate preparation
 
-Status: SOURCE PREPARATION ONLY. The bounded two-host Nix test class and
-process-predicate probe preparation were approved on 2026-10-30. That approval
-covers this pinned test-only class and its source/static preparation; it does
-not record a native process observation, Nix evaluation/build, GUI acceptance,
+Status: APPROVED SOURCE/PREDICATE POLICY; PARTIAL HOSTED EVIDENCE. The bounded
+two-host Nix test class and process-predicate source preparation were approved
+on 2026-10-30. Later owner approval covers the reviewed GUI, observer and
+headless-WebKit campaign. Parent-controlled campaign 41192208654 produced
+successful Darwin and Linux ARM64 lanes but an x86_64-linux C-signal harness
+failure. That partial result does not establish full native acceptance,
 product qualification or publication. Any hosted invocation remains a
 parent-controlled public-CI action using the exact guarded route. Current
 `validate.yml` retains its complete native-three jobs but is manual-only during
@@ -15,9 +17,10 @@ Ubuntu 24.04 x64 and ARM64 hosts. It uses contents-read permission, credential-
 free checkout, the existing pinned Node/Nix-installer/artifact classes, and the
 maintained restoring userns AppArmor guard with explicit P repository admission.
 The approved class retains the locked Python/procfs/pidfd/STOP/CONT/watchdog
-policy. This document neither activates a hosted run nor supplies native
-results; the parent-controlled public-CI route must retain the exact guard and
-record its own observations.
+policy. This document does not activate a hosted run or grant qualification
+authority; the parent-controlled public-CI route must retain the exact guard
+and record its own observations. The partial campaign result above remains
+non-admitting.
 
 ## Test tool and dependency review
 
@@ -117,8 +120,11 @@ the transaction. Once Node has reaped an exited monitor, the originally held
 readable pidfd plus fdinfo PID -1 proves death; it never selects a replacement.
 Node independently requires its actual monitor wait to be normal exit143. On failure CONT precedes exact-handle cleanup. Failure-only
 SIGKILL is confined to owned processes. This does not survive simultaneous loss
-of watchdog/controller or VM destruction. No full GUI-controller adaptation is
-included; both actual Linux predicate results must pass before that next slice.
+of watchdog/controller or VM destruction. The reviewed GUI-controller campaign
+is owner-approved for the parent-controlled route, but campaign 41192208654
+remains partial: Darwin and Linux ARM64 succeeded while the x86_64-linux
+C-signal harness failed. Full native acceptance and publication therefore
+remain held.
 
 ## Clarified ownership and controller-death recovery
 
@@ -144,7 +150,9 @@ Python-parent intermediate is preserved privately and is not the active route.
 
 This source-model clarification is the bounded parent disposition after
 Design2 review, not a flag removal, privilege change, new parent-access shortcut
-or product alteration. Both actual Linux-host results remain unobserved.
+or product alteration. Campaign 41192208654 observed the Linux ARM64 lane
+successfully and recorded an x86_64-linux C-signal harness failure; full
+native-three acceptance therefore remains held.
 
 Accepted source review permits predicate preparation only. The reviewed source
 hash joins are in `tools/predicate/reviewed-source-binding.json`. Pure tests

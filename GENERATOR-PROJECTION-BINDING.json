@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-31T09:17:55.895Z",
+  "generatedAt": "2026-10-31T11:13:01.488Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "719dc4084474b638b71c0bf69a8a78c68d19acb7aa45b2c092950ab1a478e3a4",
-  "generationOverlayManifestSha256": "3841acc37fa5ac31e35a1fd030807a56865de98153335a7cc9a772ce3833fbb5",
+  "generationOverlayManifestSha256": "3c8b62719b9600db157536ab478051e9e0a65e26aed7fb101558c564966265bb",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "3841acc37fa5ac31e35a1fd030807a56865de98153335a7cc9a772ce3833fbb5",
+  "treeManifestSha256": "3c8b62719b9600db157536ab478051e9e0a65e26aed7fb101558c564966265bb",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 115,
+  "totalFiles": 116,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -124,18 +124,18 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 3380,
-      "sha256": "0a315a4a38a78c6f902d062abcb1ca4b0905207c63c3305bc09df710554dd182"
+      "bytes": 3986,
+      "sha256": "f037e39b155094fe994738144a16b9a8c62fa557d3adcb10a543ce40d5d960cb"
     },
     {
       "path": "docs/p-native-gui-controller.md",
-      "bytes": 4421,
-      "sha256": "1682a53829a2c4db9566067b1a9d2f337dec7c82021a1fc0ca3cf5a9f98ff317"
+      "bytes": 4733,
+      "sha256": "380de3da09e280fa3eaf05e20f5e51271497d9bae7728183577adff3b04c06c4"
     },
     {
       "path": "docs/process-predicate-policy.md",
-      "bytes": 12056,
-      "sha256": "eb60a2396329f613339e531a001a3683a8c6cdae95825431b3ac5f1eed1c68c5"
+      "bytes": 12542,
+      "sha256": "9f57b45e20e434954b75082961a8da32023bf01511da5a097ae1d27651ce86a5"
     },
     {
       "path": "flake.lock",
@@ -164,8 +164,8 @@
     },
     {
       "path": "P-CURRENT-NIX-QUALIFICATION.md",
-      "bytes": 3303,
-      "sha256": "a9f249fd449e6cd93d05468620b62c3c4d466437772fb661e2751a85bb66f4f4"
+      "bytes": 3521,
+      "sha256": "152b859b0ba088a3fe185a0401b6500577980554ebbb4d00a1c254f19dde76c5"
     },
     {
       "path": "package-matrix.json",
@@ -199,8 +199,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4878,
-      "sha256": "1ce532042b37c9a5fbd3d01402c383747d211813a84adb32a31f4cfa78b6d4f4"
+      "bytes": 5364,
+      "sha256": "4ccc1452ced958427b0bd35fe3ce2211ab589013c06cb6d7bda53f398b4273c3"
     },
     {
       "path": "release-lock.json",
@@ -368,6 +368,11 @@
       "sha256": "9bf3b51e324de3e9aac17ca54f5cc1b9a9adf018e41b19fe1298c360b6fb826f"
     },
     {
+      "path": "tests/test-p-native-gui-controller-finalization.py",
+      "bytes": 5639,
+      "sha256": "0c0cd7f0475803a7a106dccd166d43260982d65cd6dd790eb8ed9e2d6fb27c0c"
+    },
+    {
       "path": "tests/test-p-native-gui-controller.py",
       "bytes": 6432,
       "sha256": "056731225a7eae5550da145f4dd5278aac452875d209dcb83ed3d2130362ad65"
@@ -499,8 +504,8 @@
     },
     {
       "path": "tools/verification/p-native-gui-controller.py",
-      "bytes": 28892,
-      "sha256": "a8a931349dbcaed578968cd382bf5fc12616ce08861fd67cb34be4fb15e3b31f"
+      "bytes": 29206,
+      "sha256": "33d1b15906c311de874f5a12f9076c8b2b0889ed18382b2147ecd03b42bbc185"
     },
     {
       "path": "tools/verification/p-native-gui-launch-binding.mjs",
