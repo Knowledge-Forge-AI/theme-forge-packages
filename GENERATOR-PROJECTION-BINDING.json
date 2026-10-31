@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-31T00:23:48.092Z",
+  "generatedAt": "2026-10-31T01:17:31.121Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "c92ad118f8a82050d08ddd2e1bc7ebc46e0f62dfab4dc24fc3ff077d9c8cbebb",
+  "generationOverlayManifestSha256": "82ab5490418911a339d30f386dab26dd8a6cac388ed8b77b2baac57fe3cd7fe9",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "c92ad118f8a82050d08ddd2e1bc7ebc46e0f62dfab4dc24fc3ff077d9c8cbebb",
+  "treeManifestSha256": "82ab5490418911a339d30f386dab26dd8a6cac388ed8b77b2baac57fe3cd7fe9",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 113,
+  "totalFiles": 115,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -403,6 +403,11 @@
       "sha256": "ddccaa824a1fc18a734574e084facba7e8b8597d2024bfedc159bfcadb66a20b"
     },
     {
+      "path": "tests/test-p-sidecar-mode-diagnostic.mjs",
+      "bytes": 15315,
+      "sha256": "8514764fa720f408ab17f3211cfe01e581b8420f18ff2278baecc89af6f448ec"
+    },
+    {
       "path": "tools/predicate/r5-product-baseline/flake.lock",
       "bytes": 569,
       "sha256": "ed928e945c79e3d7f19d37b13a05f0d97b98440b38661d97bf77844e40606431"
@@ -538,6 +543,11 @@
       "sha256": "7cafe5571ac158308919d5ebc78097f0223f46c6d1783790130a896802cc1a3a"
     },
     {
+      "path": "tools/verification/p-sidecar-mode-diagnostic.mjs",
+      "bytes": 8727,
+      "sha256": "0cc47b67458b3240718f5a8eacfedc3cf120bd7aa943b53e566c97f6147050c7"
+    },
+    {
       "path": "tools/verification/preflight-signing-key.mjs",
       "bytes": 17951,
       "sha256": "b22da9b717400c53b320dde0d59a93d3525cd2ec68e6f91b6e6777f44e1ec2bf"
@@ -549,8 +559,8 @@
     },
     {
       "path": "tools/verification/qualify-p-current-nix.mjs",
-      "bytes": 27757,
-      "sha256": "b55a1d3b1148aa27b101bcb5eb2d5a7d6632299ad5958c74f82cc98d3438476b"
+      "bytes": 27879,
+      "sha256": "45673fd5bbce1c936822d2c676ffaab765cafb8adcfd6de392eb22063eceb2ea"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",
