@@ -16,7 +16,7 @@ function fixture(darwin = false) {
   const launchRoot = join(root, 'installed'), evidence = join(root, 'evidence');
   const app = join(launchRoot, 'Theme Forge Nebular Fusion.app/Contents');
   const runtime = darwin ? join(app, 'MacOS/tfsb-studio-service') : join(launchRoot, 'bin/tfsb-studio-service');
-  const payload = darwin ? join(app, 'Resources/sidecar-payload') : join(launchRoot, 'sidecar-payload');
+  const payload = darwin ? join(app, 'Resources/sidecar-payload') : join(launchRoot, 'lib/theme-forge-nebular-fusion/sidecar-payload');
   fs.mkdirSync(dirname(runtime), { recursive: true });
   fs.mkdirSync(join(payload, 'nested'), { recursive: true });
   fs.mkdirSync(evidence, { mode: 0o700 });
@@ -43,7 +43,7 @@ function sanitized(record, f) {
   assert(!encoded.includes(f.root));
   assert(!encoded.includes(marker));
   assert(!encoded.includes('entry.js'));
-  for (const key of ['productionEnabled', 'publicationAuthority', 'productionAuthority', 'admitting', 'accepted', 'guiQualified']) assert.equal(record[key], false);
+  for (const key of ['productionEnabled', 'publicationAuthority', 'productionAuthority', 'admitting', 'accepted', 'guiQualified', 'fullDistributionVerified', 'unlistedTreeEnumerated']) assert.equal(record[key], false);
 }
 
 test('archive modes and exact runtime metadata are observed for both fixed layouts', () => {
@@ -108,7 +108,7 @@ test('malformed and oversized manifests return closed failures without file-cont
       else { f.manifest.files = Array.from({ length: 5 }, (_, i) => ({ ...f.manifest.files[0], path: 'item-' + i, size: 256 * 1024 * 1024 })); f.save(); }
       const record = observe(f);
       assert.equal(record.status, 'unavailable');
-      assert(['INVALID_MANIFEST', 'LIMIT_EXCEEDED'].includes(record.failureCategory));
+      assert.equal(record.failureCategory, ['oversized', 'count', 'aggregate'].includes(kind) ? 'LIMIT_EXCEEDED' : 'INVALID_MANIFEST', kind);
       assert.equal(record.runtime, null);
       sanitized(record, f);
     } finally { f.close(); }
@@ -181,7 +181,7 @@ test('manifest path escapes and symlink components refuse without reading the ta
       try { record = observe(f); }
       finally { fs.readSync = originalRead; syncBuiltinESMExports(); }
       assert.equal(record.status, 'unavailable');
-      assert(['INVALID_MANIFEST', 'UNSAFE_PATH'].includes(record.failureCategory));
+      assert.equal(record.failureCategory, ['escape', 'absolute'].includes(kind) ? 'INVALID_MANIFEST' : 'UNSAFE_PATH');
       assert.equal(outsideRead, false);
       sanitized(record, f);
     } finally { f.close(); }
@@ -241,7 +241,7 @@ test('observation failure and exclusive evidence-write failure never throw or ov
     fs.unlinkSync(f.manifestPath);
     const record = observe(f);
     assert.equal(record.status, 'unavailable');
-    assert.equal(record.failureCategory, 'OBSERVATION_FAILED');
+    assert.equal(record.failureCategory, 'MISSING_MANIFEST');
     assert.equal(record.evidenceWriteStatus, 'failed');
     assert.equal(record.evidenceFailureCategory, 'EVIDENCE_WRITE_FAILED');
     assert.equal(hash(fs.readFileSync(path)), hash('prior-diagnostic'));
@@ -278,7 +278,7 @@ test('actual route uses the installed payload layout on all three systems and pr
         : join(launchRoot, 'bin/theme-forge-nebular-fusion');
       fs.writeFileSync(gui, 'inert-gui-bytes');
       const manifest = darwin ? join(launchRoot, 'Theme Forge Nebular Fusion.app/Contents/Resources/sidecar-payload/manifest.json')
-        : join(launchRoot, 'sidecar-payload/manifest.json');
+        : join(launchRoot, 'lib/theme-forge-nebular-fusion/sidecar-payload/manifest.json');
       let called = false, diagnostic, loadFailure = false, observations = 0;
       const requiredFailure = new Error('required-inert-GUI-result');
       const diagnosticModule = async () => {
@@ -402,4 +402,108 @@ test('ancestor directory replacement during a payload read refuses', () => {
     assert.equal(record.failureCategory, 'IDENTITY_CHANGED');
     sanitized(record, f);
   } finally { fs.readSync = originalRead; syncBuiltinESMExports(); f.close(); }
+});
+
+
+test('missing manifest, runtime and payload members have closed role categories', () => {
+  for (const role of ['manifest', 'runtime', 'payload']) {
+    const f = fixture();
+    try {
+      const path = role === 'manifest' ? f.manifestPath : role === 'runtime' ? f.runtime
+        : join(f.payload, f.manifest.files[0].path);
+      fs.unlinkSync(path);
+      const record = observe(f);
+      assert.equal(record.status, 'unavailable');
+      assert.equal(record.failureCategory, {
+        manifest: 'MISSING_MANIFEST', runtime: 'MISSING_RUNTIME', payload: 'MISSING_PAYLOAD_FILE',
+      }[role]);
+      sanitized(record, f);
+    } finally { f.close(); }
+  }
+});
+
+test('nonregular runtime leaf refuses before any content read', () => {
+  const f = fixture();
+  try {
+    fs.unlinkSync(f.runtime);
+    fs.mkdirSync(f.runtime);
+    const record = observe(f);
+    assert.equal(record.status, 'unavailable');
+    assert.equal(record.failureCategory, 'NOT_REGULAR');
+    sanitized(record, f);
+  } finally { f.close(); }
+});
+
+test('actual-byte aggregate budget refuses independently of manifest totals', () => {
+  const f = fixture();
+  try {
+    // Exercise the exact private reader with a nearly exhausted budget, using
+    // a tiny real file. No production test hook or large allocation is added.
+    const source = fs.readFileSync(new URL('../tools/verification/p-sidecar-mode-diagnostic.mjs', import.meta.url), 'utf8');
+    const body = source.slice(source.indexOf('const MANIFEST_LIMIT ='), source.indexOf('export function observeSidecarMode'));
+    const makeReader = new Function('createHash','constants','lstatSync','openSync','closeSync','fstatSync','readSync',
+      'isAbsolute','normalize','join', body + '\nreturn readRegular;');
+    const reader = makeReader(createHash, fs.constants, fs.lstatSync, fs.openSync, fs.closeSync,
+      fs.fstatSync, fs.readSync, value => value.startsWith('/'), value => resolve(value), join);
+    const budget = { bytes: 1024 * 1024 * 1024 - 1 };
+    assert.throws(() => reader(f.runtime, 256 * 1024 * 1024, false, budget),
+      error => error.category === 'LIMIT_EXCEEDED');
+  } finally { f.close(); }
+});
+
+test('partial evidence writes remain invalid and cannot replace required work', () => {
+  const f = fixture(), originalWrite = fs.writeFileSync;
+  try {
+    fs.writeFileSync = (fd, data, ...args) => {
+      if (typeof fd === 'number') {
+        fs.writeSync(fd, String(data).slice(0, 20));
+        const error = new Error('inert-write-failure'); error.code = 'ENOSPC'; throw error;
+      }
+      return originalWrite(fd, data, ...args);
+    };
+    syncBuiltinESMExports();
+    const record = observe(f);
+    assert.equal(record.evidenceWriteStatus, 'failed');
+    assert.equal(record.evidenceFailureCategory, 'EVIDENCE_WRITE_FAILED');
+    const bytes = fs.readFileSync(join(f.evidence, member));
+    assert.throws(() => JSON.parse(bytes.toString('utf8')));
+    assert(!bytes.includes(Buffer.from(marker)));
+    assert(!bytes.includes(Buffer.from(f.root)));
+    sanitized(record, f);
+  } finally { fs.writeFileSync = originalWrite; syncBuiltinESMExports(); f.close(); }
+});
+
+
+test('evidence ancestor aliases are canonicalized while leaf links and replacements refuse', () => {
+  for (const kind of ['ancestor', 'leaf-link', 'replacement']) {
+    const f = fixture(), originalRealpath = fs.realpathSync;
+    try {
+      let evidence = f.evidence;
+      if (kind === 'ancestor') {
+        const alias = join(f.root, 'alias');
+        fs.symlinkSync(f.root, alias);
+        evidence = join(alias, 'evidence');
+      } else if (kind === 'leaf-link') {
+        evidence = join(f.root, 'evidence-link');
+        fs.symlinkSync(f.evidence, evidence);
+      } else {
+        let changed = false;
+        fs.realpathSync = (path, ...args) => {
+          const result = originalRealpath(path, ...args);
+          if (!changed && path === evidence) {
+            changed = true;
+            fs.renameSync(f.evidence, join(f.root, 'old-evidence'));
+            fs.mkdirSync(f.evidence, { mode: 0o700 });
+          }
+          return result;
+        };
+        syncBuiltinESMExports();
+      }
+      const record = observeSidecarMode({ launchRoot: f.launchRoot, system: f.system, evidence });
+      assert.equal(record.status, 'compatible');
+      assert.equal(record.evidenceWriteStatus, kind === 'ancestor' ? 'written' : 'failed');
+      assert.equal(fs.existsSync(join(f.evidence, member)), kind === 'ancestor');
+      sanitized(record, f);
+    } finally { fs.realpathSync = originalRealpath; syncBuiltinESMExports(); f.close(); }
+  }
 });

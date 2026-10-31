@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-31T01:28:50.705Z",
+  "generatedAt": "2026-10-31T01:41:13.949Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "306af4e1634f8fe16ec4db8c6237a2906ddb4bed026f1620d3fb05bae729d7f3",
+  "generationOverlayManifestSha256": "22d795caeb656392fe71384f887e8385d9f2ec4550758a60e803ebad4a00c591",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "306af4e1634f8fe16ec4db8c6237a2906ddb4bed026f1620d3fb05bae729d7f3",
+  "treeManifestSha256": "22d795caeb656392fe71384f887e8385d9f2ec4550758a60e803ebad4a00c591",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -404,8 +404,8 @@
     },
     {
       "path": "tests/test-p-sidecar-mode-diagnostic.mjs",
-      "bytes": 19531,
-      "sha256": "8d055f0a5bc7b7e29249a8c783bc8bfc869ccd37b69b70145f3b1c5ae4eb9c3a"
+      "bytes": 24313,
+      "sha256": "d6a8c362833f13fabced948efdad209c2560b26e30bfab3a5f10d61b666aa416"
     },
     {
       "path": "tools/predicate/r5-product-baseline/flake.lock",
@@ -544,8 +544,8 @@
     },
     {
       "path": "tools/verification/p-sidecar-mode-diagnostic.mjs",
-      "bytes": 8696,
-      "sha256": "5091469b0f99365263dbe842abe41780777df0e86a3e62ddb9b03bcba8d14d91"
+      "bytes": 9790,
+      "sha256": "a772ec9f9da8bb32597a4c4cc4cee70a05141c6319f8a7de9bc0926985e59ab9"
     },
     {
       "path": "tools/verification/preflight-signing-key.mjs",
