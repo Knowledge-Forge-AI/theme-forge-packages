@@ -74,7 +74,7 @@
             "zlib",
             "dbus"
           ],
-          "version": "0.7.0",
+          "version": "0.7.1",
           "archiveStrategy": "thin raw archives; Linux uses system WebKitGTK 4.1; portable archives excluded"
         }
       },
@@ -151,7 +151,7 @@
           "resourceDirInvariant": "../lib/theme-forge-nebular-fusion preserved relative to canonical bin",
           "desktopEntry": "/usr/share/applications/theme-forge-nebular-fusion.desktop",
           "icons": "/usr/share/icons/hicolor/*/apps/theme-forge-nebular-fusion.png",
-          "version": "0.7.0"
+          "version": "0.7.1"
         }
       },
       "status": "held_current_generation_acceptance"
@@ -227,7 +227,7 @@
             "tfnf"
           ],
           "desktopEntry": "/usr/share/applications/theme-forge-nebular-fusion.desktop",
-          "version": "0.7.0"
+          "version": "0.7.1"
         }
       },
       "status": "held_current_generation_acceptance"
@@ -254,7 +254,7 @@
           "convention": "upstream prebuilt native binary (-bin suffix)",
           "provides": "theme-forge-nebular-fusion",
           "conflicts": "theme-forge-nebular-fusion",
-          "version": "0.7.0"
+          "version": "0.7.1"
         }
       },
       "templateAuthority": "historical DIST1 recipes; not current-four build inputs"
@@ -295,7 +295,7 @@
           "gui": false
         },
         "theme-forge-nebular-fusion": {
-          "version": "0.7.0",
+          "version": "0.7.1",
           "binaries": [
             "tfnf"
           ],
@@ -338,7 +338,7 @@
           "gui": false
         },
         "theme-forge-nebular-fusion": {
-          "version": "0.7.0",
+          "version": "0.7.1",
           "binaries": [
             "tfnf"
           ],

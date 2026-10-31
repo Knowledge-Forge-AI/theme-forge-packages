@@ -7,7 +7,7 @@ This projection binds the current upstream releases. Current signed repository p
 | theme-forge-stellar-burst | 0.7.0 | tfsb, tfsb-studio-service |
 | theme-forge-stellar-loom | 0.5.0 | tfsl, tfsl-batch |
 | theme-forge-solar-sail | 0.3.0 | tfss |
-| theme-forge-nebular-fusion | 0.7.0 | tfnf |
+| theme-forge-nebular-fusion | 0.7.1 | tfnf |
 
 ## Channel targets and installation status
 
