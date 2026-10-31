@@ -1,0 +1,114 @@
+{
+  "base_images": {
+    "pacman": "docker.io/library/archlinux@sha256:eb8f6dcc89a38977c9735f10fcf6ae4afe496283e7008eb7a3420cdba31fbd04",
+    "rpm": "registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd"
+  },
+  "base_vs_provisioned": {
+    "approved_package_subset": [
+      "gnupg2",
+      "rpm-sign",
+      "python3"
+    ],
+    "bare_base_digest": "sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd",
+    "bare_base_is_fully_provisioned": false,
+    "distinction_note": "The source-pinned digest identifies the bare Fedora 43 base image only. Frozen R-hosted-packaging.py execute() delegates to rs9.hosted_deb.provision_image (not in frozen inputs) to install a broader builder and client package set; B3 synthesizes the minimal dnf install -y gnupg2 rpm-sign python3 && dnf clean all subset command. Because a subset-only unpinned dnf transaction can resolve differently from R's full builder install, Stage 2 enforces fail-closed path, ownership, digest, and exact version guards before any OwnedGpgAgent start. base_images.pacman is retained as a catalog-derived schema compatibility field from R-targets.json and is not pulled or executed by the Fedora-only B3 workflow.",
+    "distribution": "Fedora43",
+    "package_nevr_locked_by_base_digest": false,
+    "platform": "linux/amd64",
+    "provisioning_argv": [
+      "dnf",
+      "install",
+      "-y",
+      "gnupg2",
+      "rpm-sign",
+      "python3"
+    ],
+    "provisioning_pattern_source": "Synthesized minimal B3 subset command from approved package classes; frozen R-hosted-packaging.py execute() imports rs9.hosted_deb.provision_image (outside frozen inputs) and installs a larger builder/client package list",
+    "system": "x86_64-linux"
+  },
+  "field_attestations": {
+    "base_images": "catalog-derived-not-measured",
+    "base_vs_provisioned": "catalog-derived-not-measured",
+    "fixed_tool_guards": "catalog-guard-target-not-measured",
+    "historical_g_catalog": "catalog-derived-not-measured",
+    "r_readback_provenance": "historical-r-readback-not-measured-in-b3"
+  },
+  "fixed_tool_guards": {
+    "gpg": {
+      "expected_version_line": "gpg (GnuPG) 2.4.9",
+      "path": "/usr/bin/gpg",
+      "prior_evidence": "r-readback-post-provision-version-only",
+      "required_uid": 0,
+      "stage2_requirement": "physical-path-root-regular-sha256-and-version"
+    },
+    "gpg-agent": {
+      "expected_version_line": "gpg-agent (GnuPG) 2.4.9",
+      "path": "/usr/bin/gpg-agent",
+      "prior_evidence": "unverified-in-r-readback",
+      "required_uid": 0,
+      "stage2_requirement": "physical-path-root-regular-sha256-and-version"
+    },
+    "gpgconf": {
+      "expected_version_line": "gpgconf (GnuPG) 2.4.9",
+      "path": "/usr/bin/gpgconf",
+      "prior_evidence": "unverified-in-r-readback",
+      "required_uid": 0,
+      "stage2_requirement": "physical-path-root-regular-sha256-and-version"
+    },
+    "python3": {
+      "min_version": [
+        3,
+        11
+      ],
+      "observed_r_version_line": "Python 3.14.8",
+      "path": "/usr/bin/python3",
+      "prior_evidence": "r-readback-post-provision-version-only",
+      "required_uid": 0,
+      "stage2_requirement": "resolved-sys-executable-and-proc-self-exe-root-regular-sha256-version-pidfd-single-thread-sigchld"
+    },
+    "rpm": {
+      "expected_version_line": "RPM version 6.0.2",
+      "path": "/usr/bin/rpm",
+      "prior_evidence": "r-readback-post-provision-version-only",
+      "required_uid": 0,
+      "stage2_requirement": "physical-path-root-regular-sha256-and-version"
+    },
+    "rpmsign": {
+      "expected_version_line": "RPM version 6.0.2",
+      "path": "/usr/bin/rpmsign",
+      "prior_evidence": "r-readback-post-provision-version-only",
+      "required_uid": 0,
+      "stage2_requirement": "physical-path-root-regular-sha256-and-version"
+    }
+  },
+  "historical_g_catalog": {
+    "historical_pacman_image": "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040",
+    "historical_rpm_image": "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42",
+    "path": "inputs/DIST1-VALIDATION-WORKFLOW-CONTRACT.json",
+    "preserved_for": "historical fixture attestation and default historical projection invariance",
+    "sha256": "87852f8671c061c68ae83e56cd6d30e8dbcda559d83b435aa45c3af2ec8c7fe2",
+    "supplies_current_tools": false
+  },
+  "production_authority": false,
+  "r_readback_provenance": {
+    "archive_sha256": "5d021201f00a07ae20e723c6a68106f8784c90e8b775948b46dac957e68ccef5",
+    "artifact_id": 13056441200,
+    "b3_lifecycle_executed": false,
+    "c6_owned_agent_native_qualified": false,
+    "gpg_agent_version_independently_verified": false,
+    "gpgconf_version_independently_verified": false,
+    "head_commit": "e6d0448498188201305e1f0fa05815a331b200cd",
+    "lane": "rpm-x86_64-linux",
+    "observed_post_provision_versions": {
+      "gpg": "gpg (GnuPG) 2.4.9",
+      "python3": "Python 3.14.8",
+      "rpm": "RPM version 6.0.2",
+      "rpmbuild": "RPM version 6.0.2",
+      "rpmsign": "RPM version 6.0.2"
+    },
+    "receipt_sha256": "86c09e1d4cc1884d2c185577296368e756b8303245e66361fc5a42d3d3cc9e06",
+    "run_url": "https://github.com/Knowledge-Forge-AI/release-starport-9/actions/runs/41236556345"
+  },
+  "schema": "tf.current-signer-native-b3-toolchain-catalog.v1",
+  "status": "proposed-unadopted"
+}
