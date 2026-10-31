@@ -443,7 +443,11 @@ class GuiSession:
         self.stable.wait_until(lambda: self.stable.resumed_or_exited(self.view, self.monitor_fd, self.monitor), cont_deadline, self.lease.pulse)
         self.stable.wait_until(lambda: bool(select.select([self.monitor_fd], [], [], 0)[0]), cont_deadline, self.lease.pulse)
         self.lease.disarm(self.witness, "exited")
-        self.finalization_deadline = time.monotonic() + 5
+        # The smoke harness may spend its bounded 15-second orphan observation
+        # before sending FINALIZED. Keep this controller alive for that bound
+        # plus the bounded finalization response window and a small scheduling
+        # margin; the 35-second signal transaction budget remains unchanged.
+        self.finalization_deadline = time.monotonic() + 22
         require(time.monotonic() < t0 + 30, "composed signal budget")
         require(time.monotonic() < lease_epoch + 35, "watchdog transaction budget")
         response = self._response("TERMINATED", witness=self.witness, watchdog=self._lease_proof())
