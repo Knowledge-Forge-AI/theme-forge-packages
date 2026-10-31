@@ -1,0 +1,133 @@
+name: Pending Policy P Current B3 Native Lifecycle Probe
+
+# PREPARED ONLY (proposed-unadopted). Non-admitting source preparation; owner test-policy/campaign decision precedes dispatch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  b3-lifecycle:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: p
+    steps:
+      - name: Checkout exact P proposal
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: p
+          persist-credentials: false
+      - name: Setup existing Node class for candidate authentication
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+      - name: Authenticate held candidate and Stage 1 B3 source closure
+        run: |
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-b3-lifecycle-evidence"
+          install -d -m 0755 "$evidence_dir"
+          node tools/verification/fetch-locked-assets.mjs --candidate-validation --lock release-lock.json --dest "$RUNNER_TEMP/p-b3-assets"
+          node tools/verification/verify-release-lock.mjs --candidate-validation release-lock.json --require-assets --assets-dir "$RUNNER_TEMP/p-b3-assets"
+          python3 -I -B tools/verification/b3/b3_fixture_entrypoint.py \
+            --authenticate-stage1 \
+            --manifest "$PWD/tools/verification/b3/manifest.json" \
+            --out "$evidence_dir/b3-stage1-authentication.json"
+          python3 -I -B tools/verification/b3/test_b3_fixture_entrypoint.py
+      - name: Provision current R Fedora 43 builder and execute Stage 2 metadata plus B3 lifecycle
+        env:
+          B3_BASE_IMAGE: registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd
+          B3_BUILDER_TAG: tf-b3-lifecycle-builder:${{ github.run_id }}-${{ github.run_attempt }}
+          B3_CONTAINER_NAME: tf-b3-lifecycle-run-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-b3-lifecycle-evidence"
+          build_ctx="$(mktemp -d "$RUNNER_TEMP/p-b3-build-XXXXXXXX")"
+          chmod 0700 "$build_ctx"
+          docker pull --platform linux/amd64 "$B3_BASE_IMAGE"
+          distro_check="$(docker run --rm --network none --platform linux/amd64 "$B3_BASE_IMAGE" sh -c 'cat /etc/os-release; uname -m')"
+          grep -q '^VERSION_ID=43$' <<<"$distro_check"
+          grep -q '^x86_64$' <<<"$distro_check"
+          cat >"$build_ctx/Dockerfile" <<'EOF'
+          FROM registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd
+          RUN dnf install -y gnupg2 rpm-sign python3 && dnf clean all
+          EOF
+          docker build --platform linux/amd64 -t "$B3_BUILDER_TAG" "$build_ctx"
+          rm -rf "$build_ctx"
+          docker run --rm --network none --platform linux/amd64 "$B3_BUILDER_TAG" true
+          docker run --rm \
+            --name "$B3_CONTAINER_NAME" \
+            --network none \
+            --platform linux/amd64 \
+            --user 0:0 \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -v "$PWD:/workspace:ro" \
+            -v "$evidence_dir:/evidence:rw" \
+            "$B3_BUILDER_TAG" \
+            /usr/bin/bash -c '
+              set -euo pipefail
+              install -d -m 0700 -o 0 -g 0 /tmp/tf-b3-job-parent
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/b3_fixture_entrypoint.py \
+                --measure-stage2 \
+                --manifest /workspace/tools/verification/b3/manifest.json \
+                --job-parent /tmp/tf-b3-job-parent \
+                --facts-out /tmp/tf-b3-stage2-facts.json \
+                --metadata-out /evidence/b3-stage2-metadata.json
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/b3_fixture_entrypoint.py \
+                --execute-native \
+                --manifest /workspace/tools/verification/b3/manifest.json \
+                --facts /tmp/tf-b3-stage2-facts.json \
+                --job-parent /tmp/tf-b3-job-parent \
+                --receipt-out /evidence/b3-lifecycle-receipt.json
+              rmdir /tmp/tf-b3-job-parent
+              rm -f /tmp/tf-b3-stage2-facts.json
+            '
+      - name: Cleanup exact phase-owned container and builder image
+        if: always()
+        env:
+          B3_BUILDER_TAG: tf-b3-lifecycle-builder:${{ github.run_id }}-${{ github.run_attempt }}
+          B3_CONTAINER_NAME: tf-b3-lifecycle-run-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-b3-lifecycle-evidence"
+          install -d -m 0755 "$evidence_dir"
+          container_removed=true
+          if docker container inspect "$B3_CONTAINER_NAME" >/dev/null 2>&1; then
+            docker rm -f "$B3_CONTAINER_NAME" >/dev/null 2>&1 || container_removed=false
+          fi
+          image_removed=true
+          if docker image inspect "$B3_BUILDER_TAG" >/dev/null 2>&1; then
+            docker rmi -f "$B3_BUILDER_TAG" >/dev/null 2>&1 || image_removed=false
+          fi
+          python3 -I -B - "$evidence_dir/b3-container-cleanup.json" "$container_removed" "$image_removed" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          out = Path(sys.argv[1])
+          c_ok = sys.argv[2] == "true"
+          i_ok = sys.argv[3] == "true"
+          payload = {
+              "schema": "tf.current-signer-native-b3-container-cleanup.v1",
+              "status": "pass" if (c_ok and i_ok) else "fail",
+              "production_authority": False,
+              "phase_owned_container_absent": c_ok,
+              "phase_owned_builder_image_absent": i_ok,
+          }
+          out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+      - name: Upload named safe JSON evidence only
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: p-b3-lifecycle-evidence-x86_64-linux
+          path: |
+            ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-stage1-authentication.json
+            ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-stage2-metadata.json
+            ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-lifecycle-receipt.json
+            ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-container-cleanup.json
+          if-no-files-found: warn

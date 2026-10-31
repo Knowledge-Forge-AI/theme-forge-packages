@@ -1,0 +1,112 @@
+{
+  "canonical_disposition": {
+    "path": "inputs/CANONICAL-C6-SUBSET.json",
+    "sha256": "60b0c748b4fc618bde2d52cd759180871636c1597074188434ecb879c93c3801"
+  },
+  "facts_input": {
+    "no_fixture_receipt_retained": true,
+    "no_secret_values": true,
+    "required": [
+      "tools.gpgconf.path/version_line/sha256 (Stage 2 measured or caller-declared)",
+      "tools.gpg-agent.path/version_line/sha256 (Stage 2 measured or caller-declared)",
+      "tools.gpg.path/version_line/sha256 (Stage 2 measured or caller-declared)",
+      "images.rpm",
+      "images.pacman",
+      "images_attestation == catalog-derived-not-measured",
+      "execution_mode"
+    ],
+    "schema": "tf.current-signer-native-b3-tool-facts.v1"
+  },
+  "historical_image_catalog": {
+    "path": "inputs/DIST1-VALIDATION-WORKFLOW-CONTRACT.json",
+    "selectors": {
+      "pacman": "jobs.validate-linux.matrix.x86_64.arch_container",
+      "rpm": "jobs.validate-linux.matrix.x86_64.fedora_container"
+    },
+    "sha256": "87852f8671c061c68ae83e56cd6d30e8dbcda559d83b435aa45c3af2ec8c7fe2",
+    "status": "preserved-historical-G-catalog; supplies_current_tools=false",
+    "supplies_current_tools": false
+  },
+  "image_catalog": {
+    "path": "inputs/CURRENT-B3-TOOLCHAIN-CATALOG.json",
+    "selectors": {
+      "pacman": "base_images.pacman",
+      "rpm": "base_images.rpm"
+    },
+    "sha256": "23c78119024c0f8a1072768eb7c318ec4ea23b52dfa69070cd7de4d6049ce882",
+    "status": "current-R-base-image-and-provisioning-catalog; bare-base-not-preprovisioned; not-a-runtime-measurement"
+  },
+  "native_gate": {
+    "default": "refuse",
+    "generic_gpgconf_kill": "forbidden",
+    "key_material": "not accepted",
+    "option": "--execute-native",
+    "production_authority": false,
+    "required": [
+      "Linux",
+      "Python >= 3.11",
+      "os.pidfd_open",
+      "signal.pidfd_send_signal",
+      "fixed root UID inside disposable container",
+      "mode-0700 job parent",
+      "Stage 2 measured tool facts and C6 preconditions"
+    ],
+    "stage1_option": "--authenticate-stage1",
+    "stage2_option": "--measure-stage2"
+  },
+  "owned_agent": {
+    "path": "inputs/owned_gpg_agent.py",
+    "sha256": "305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf",
+    "symbols": [
+      "OwnedGpgAgent.start",
+      "OwnedGpgAgent.require_live",
+      "OwnedGpgAgent.close",
+      "_NativeBackend.prepare",
+      "_NativeBackend._bind_socketdir",
+      "_NativeBackend.spawn",
+      "_NativeBackend.ready",
+      "_NativeBackend.cleanup"
+    ]
+  },
+  "ownership": "proposed-unadopted current-four P/G native-B3 lifecycle bridge; no production activation",
+  "preparation_revision": 4,
+  "prepared_modules": {
+    "entrypoint": {
+      "path": "b3_fixture_entrypoint.py",
+      "role": "Stage 1 authentication, Stage 2 metadata measurement, lifecycle receipt, and explicit CLI refusal boundary",
+      "sha256": "0bb9af381c744d1ca575709dcf9c54db5daa1226105cebb1de55490730dd1c23"
+    },
+    "inputs": {
+      "path": "b3_fixture_inputs.py",
+      "role": "bounded JSON, current/historical catalog, manifest, facts, Stage 1 authentication, and reviewed-source binding",
+      "sha256": "2d24134559588764931155685a5832331a8438b29b08519a76beeecce0d2756f"
+    },
+    "tests": {
+      "path": "test_b3_fixture_entrypoint.py",
+      "role": "pure behavioral, isolated-CLI, copied-root relocation, Stage 2 metadata/privacy, and copied C6 custody coverage",
+      "sha256": "744debad7ccde029b0a2e4b7ddae5f414171777b884024bacca5ea6ed21e8625"
+    },
+    "types": {
+      "path": "b3_fixture_types.py",
+      "role": "shared constants and custody/input dataclasses",
+      "sha256": "72e47f2111419ff0124013b8ed96422df9cbd281afd26eae1b7781c057fc31fb"
+    },
+    "workspace": {
+      "path": "b3_fixture_workspace.py",
+      "role": "fresh parent/root/home identity, dirfd custody, and sanitized fail-closed cleanup",
+      "sha256": "bdb0afeb6d30837807724bac18c5104020971a4f1a1504b1f84ecdc1b96ecddd"
+    }
+  },
+  "production_authority": false,
+  "promotion_list": "PROMOTION-LIST.json",
+  "schema": "tf.current-signer-native-b3-fixture-preparation.v1",
+  "target": {
+    "agent_mode": "--supervised",
+    "gnupg_version": "2.4.9",
+    "images": {
+      "pacman": "docker.io/library/archlinux@sha256:eb8f6dcc89a38977c9735f10fcf6ae4afe496283e7008eb7a3420cdba31fbd04",
+      "rpm": "registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd"
+    },
+    "rpm_version": "6.0.2"
+  }
+}

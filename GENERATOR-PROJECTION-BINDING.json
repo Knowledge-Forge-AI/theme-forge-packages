@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-31T11:13:01.488Z",
+  "generatedAt": "2026-10-31T21:37:22.673Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
-  "generationInputsSha256": "719dc4084474b638b71c0bf69a8a78c68d19acb7aa45b2c092950ab1a478e3a4",
-  "generationOverlayManifestSha256": "3c8b62719b9600db157536ab478051e9e0a65e26aed7fb101558c564966265bb",
+  "generationInputsSha256": "341bfdb02bf2fd5f6bab3e37068c1552e3f8f65d069e711f611492aeb24fac4b",
+  "generationOverlayManifestSha256": "a5e468d90a457cd36593c819d28f0aaf41f73a294cb9dff19fe2c67029ec4b44",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "3c8b62719b9600db157536ab478051e9e0a65e26aed7fb101558c564966265bb",
+  "treeManifestSha256": "a5e468d90a457cd36593c819d28f0aaf41f73a294cb9dff19fe2c67029ec4b44",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 116,
+  "totalFiles": 129,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -26,6 +26,11 @@
       "path": ".github/workflows/preflight-signing-key.yml",
       "bytes": 1809,
       "sha256": "648908db1ed997d23385bd2448b23beadeed24272ad622560df7c2807a8fa4eb"
+    },
+    {
+      "path": ".github/workflows/probe-current-b3-lifecycle.yml",
+      "bytes": 6651,
+      "sha256": "a975f7286be18b2c6e01cd6fae188e1938acaa3a3b7ad6765ef67f635b38ed41"
     },
     {
       "path": ".github/workflows/probe-current-process-predicate.yml",
@@ -124,8 +129,8 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 3986,
-      "sha256": "f037e39b155094fe994738144a16b9a8c62fa557d3adcb10a543ce40d5d960cb"
+      "bytes": 5309,
+      "sha256": "93cd4ae85543407826a2adc3d5269d93ba891be12f1ce20685e5e253cb464265"
     },
     {
       "path": "docs/p-native-gui-controller.md",
@@ -456,6 +461,66 @@
       "path": "tools/predicate/reviewed-source-binding.json",
       "bytes": 2965,
       "sha256": "4730a9bb9e856fde673b9eec25c62c458ef90266aadcf76322b6c227b0469c3a"
+    },
+    {
+      "path": "tools/verification/b3/b3_fixture_entrypoint.py",
+      "bytes": 24384,
+      "sha256": "0bb9af381c744d1ca575709dcf9c54db5daa1226105cebb1de55490730dd1c23"
+    },
+    {
+      "path": "tools/verification/b3/b3_fixture_inputs.py",
+      "bytes": 21767,
+      "sha256": "2d24134559588764931155685a5832331a8438b29b08519a76beeecce0d2756f"
+    },
+    {
+      "path": "tools/verification/b3/b3_fixture_types.py",
+      "bytes": 3652,
+      "sha256": "72e47f2111419ff0124013b8ed96422df9cbd281afd26eae1b7781c057fc31fb"
+    },
+    {
+      "path": "tools/verification/b3/b3_fixture_workspace.py",
+      "bytes": 7021,
+      "sha256": "bdb0afeb6d30837807724bac18c5104020971a4f1a1504b1f84ecdc1b96ecddd"
+    },
+    {
+      "path": "tools/verification/b3/inputs/CANONICAL-C6-SUBSET.json",
+      "bytes": 236,
+      "sha256": "60b0c748b4fc618bde2d52cd759180871636c1597074188434ecb879c93c3801"
+    },
+    {
+      "path": "tools/verification/b3/inputs/CURRENT-B3-TOOLCHAIN-CATALOG.json",
+      "bytes": 5418,
+      "sha256": "23c78119024c0f8a1072768eb7c318ec4ea23b52dfa69070cd7de4d6049ce882"
+    },
+    {
+      "path": "tools/verification/b3/inputs/DIST1-VALIDATION-WORKFLOW-CONTRACT.json",
+      "bytes": 13900,
+      "sha256": "87852f8671c061c68ae83e56cd6d30e8dbcda559d83b435aa45c3af2ec8c7fe2"
+    },
+    {
+      "path": "tools/verification/b3/inputs/owned_gpg_agent.py",
+      "bytes": 50589,
+      "sha256": "305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf"
+    },
+    {
+      "path": "tools/verification/b3/inputs/test_owned_gpg_agent.py",
+      "bytes": 72803,
+      "sha256": "56e9ffa9fcde85dfe3b0d0802e9994b36985515e5c1b2736315cc639dedaf304"
+    },
+    {
+      "path": "tools/verification/b3/manifest.json",
+      "bytes": 4489,
+      "sha256": "ff46dea6a0819cbd70bbdba5be9515c809792b14e670ff7cd6b12a28ff8acc37"
+    },
+    {
+      "path": "tools/verification/b3/PROMOTION-LIST.json",
+      "bytes": 1939,
+      "sha256": "124384d9a1048e00b6f15e019dfe789814211fb7849f7814fc7f7d3826f9fb0c"
+    },
+    {
+      "path": "tools/verification/b3/test_b3_fixture_entrypoint.py",
+      "bytes": 41329,
+      "sha256": "744debad7ccde029b0a2e4b7ddae5f414171777b884024bacca5ea6ed21e8625"
     },
     {
       "path": "tools/verification/check-nebular-fhs-closure.sh",

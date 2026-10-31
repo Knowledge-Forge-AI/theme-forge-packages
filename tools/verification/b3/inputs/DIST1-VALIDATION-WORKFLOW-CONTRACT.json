@@ -1,0 +1,280 @@
+{
+  "schema": "tfsb.dist1-validation-workflow-contract-v1",
+  "version": 7,
+  "workflowFile": ".github/workflows/validate.yml",
+  "triggers": [
+    "push:branches:main",
+    "pull_request:branches:main"
+  ],
+  "syntaxGate": {
+    "yamlParsers": [
+      "Node YAML parser (yaml v2.8.2)",
+      "PyYAML (yaml 6.0.3 safe_load)"
+    ],
+    "actionlint": {
+      "version": "1.7.9",
+      "sha256": "6824497182b4a8c3a153331d0b8d811886a99bc3335ffcdb890cfffee077443a",
+      "exitCode": 0
+    },
+    "shellSyntax": "bash -n on extracted run blocks and expanded inner container scripts; source-matrix expressions evaluated for each Linux architecture",
+    "emittedBytes": "Zero leading whitespace on GPG batch and repo INI config files"
+  },
+  "signingIdentity": {
+    "mode": "ephemeral_runtime_fixture",
+    "committedPrivateKey": false,
+    "committedTrustAnchor": "keys/knowledge-forge-ai-packages.asc: GPG validation pins the production primary fingerprint in reviewed validate.yml, then clean import verifies one primary and the pinned valid signing subkey; KEY-METADATA.json is explanatory only",
+    "fingerprintPropagation": "Derived dynamically in container via gpg list/show keys; explicit docker -e propagation",
+    "trustAnchorPin": {
+      "primaryFingerprint": "7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF",
+      "signingSubkeyFingerprint": "C021E00EE3D37C459B0E1CB3199F8028126E8A8C",
+      "authority": "reviewed workflow constants, independent of explanatory KEY-METADATA.json",
+      "primaryVerification": "verify-public-key-bootstrap.mjs --expected-fpr; exactly one primary; malformed or empty supplied pins rejected",
+      "subkeyVerification": "gpg --with-colons --with-subkey-fingerprint and fail-closed valid signing-subkey equality"
+    }
+  },
+  "jobs": {
+    "validate-linux": {
+      "matrix": {
+        "x86_64": {
+          "runner": "ubuntu-24.04",
+          "arch": "x86_64",
+          "build_pacman": true,
+          "arch_container": "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040",
+          "fedora_container": "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42",
+          "nebular_raw_sha": "6efc9c12ff9148f9e20763c620b7abb1712c614fc796b1577e01913488c658e0"
+        },
+        "aarch64": {
+          "runner": "ubuntu-24.04-arm",
+          "arch": "aarch64",
+          "build_pacman": false,
+          "fedora_container": "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42",
+          "nebular_raw_sha": "5c182d28c02f2d6ea09ed130625ef899a8d0fe4ca080df775d72cdd6cd43b743"
+        }
+      },
+      "phases": [
+        {
+          "phase": "hosted_nix_build_and_run",
+          "commands": [
+            "nix build path:.#tfsb",
+            "nix build path:.#tfsl",
+            "nix build path:.#tfss",
+            "nix build path:.#tfnf",
+            "nix build path:.#theme-forge-nebular-fusion-payload",
+            "nix flake check path:. -L"
+          ],
+          "assertions": [
+            "Nebular executable binary byte identity matches locked sha256",
+            "Sandbox-safe nebular-package-check builds the FHS rootfs and runs checked enumeration, complete DT_NEEDED parsing, nonzero ELF count, both mandatory executables and exact root-relative PT_INTERP resolution",
+            "Runner-host FHS public launcher exact version/path and bounded loader refusal",
+            "Ephemeral Ubuntu runner: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 only if that kernel setting exists"
+          ]
+        },
+        {
+          "phase": "upstream_asset_authentication",
+          "commands": [
+            "node tools/verification/fetch-locked-assets.mjs --lock release-lock.json --dest upstream-assets",
+            "node tools/verification/verify-release-lock.mjs release-lock.json --require-assets --assets-dir upstream-assets"
+          ],
+          "failClosed": true
+        },
+        {
+          "phase": "ephemeral_signing_key_generation",
+          "storage": "scratch/signing (temporary runner scratch space)",
+          "commands": [
+            "printf config > /tmp/gpg-gen.conf",
+            "gpg --batch --gen-key /tmp/gpg-gen.conf",
+            "export public and private keys to test-fixtures/signing/ for runner use only"
+          ],
+          "failClosed": true
+        },
+        {
+          "phase": "rpm_containerized_build_and_sign",
+          "container": "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42",
+          "commands": [
+            "rpmbuild on all specs using authenticated local sources in SOURCES/",
+            "dynamic FPR derivation inside container",
+            "fixture key rpmsign --addsign on all built RPMs",
+            "createrepo_c and gpg detach-sign on repomd.xml with derived FPR",
+            "rpm --checksig and gpg --verify with public key only"
+          ],
+          "failClosed": true
+        },
+        {
+          "phase": "rpm_clean_container_install_and_run",
+          "container": "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42",
+          "commands": [
+            "rpm --import public key",
+            "printf yum repo config to /etc/yum.repos.d/local.repo",
+            "dnf install all 4 packages",
+            "execute tfsb, tfsl, tfss, tfnf --version",
+            "verify Nebular binary byte invariance",
+            "clean uninstall",
+            "assert released launcher link, executable modes and exact lock-derived version/path",
+            "bounded release-smoke loader refusal",
+            "released native-rc-smoke harness on installed payload under the upstream root-container Xvfb/dbus contract",
+            "assert tfsl-batch EMPTY_INPUT stdin protocol and service EOF"
+          ],
+          "failClosed": true
+        },
+        {
+          "phase": "rpm_tamper_fail_closed_proof",
+          "container": "fedora@sha256:a651ddf48ea28a06ed4e1e6519f51c9f47e7a5a138722ade87369b8fbb7e5b42",
+          "tests": [
+            "corrupt single RPM byte -> assert rpm --checksig fails with signature error diagnostic",
+            "corrupt repomd.xml.asc -> assert dnf check-update fails with repomd signature error diagnostic"
+          ],
+          "failClosed": true,
+          "commands": []
+        },
+        {
+          "phase": "pacman_containerized_build_and_sign",
+          "container": "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040 (x86_64 only)",
+          "commands": [
+            "pacman -Syu --noconfirm base-devel pacman-contrib gnupg sudo",
+            "makepkg on all 4 PKGBUILDs under unprivileged builder user",
+            "dynamic FPR derivation inside container",
+            "gpg --detach-sign on each package with derived FPR",
+            "repo-add -s -k with derived FPR",
+            "verify all signatures with public key only"
+          ],
+          "failClosed": true
+        },
+        {
+          "phase": "pacman_clean_container_install_and_run",
+          "container": "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040",
+          "commands": [
+            "pacman-key --init and --add",
+            "dynamic FPR derivation from mounted public key",
+            "pacman-key --lsign-key with derived FPR",
+            "printf pacman.conf repository stanza",
+            "pacman -Syu --noconfirm all 4 packages synchronizes the pinned base before adding smoke tools",
+            "execute tfsb, tfsl, tfss, tfnf --version",
+            "verify Nebular binary byte invariance",
+            "clean uninstall",
+            "assert released launcher link, executable modes and exact lock-derived version/path",
+            "bounded release-smoke loader refusal",
+            "released native-rc-smoke harness on installed payload under the upstream root-container Xvfb/dbus contract",
+            "assert tfsl-batch EMPTY_INPUT stdin protocol and service EOF"
+          ],
+          "failClosed": true
+        },
+        {
+          "phase": "pacman_tamper_fail_closed_proof",
+          "container": "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040",
+          "tests": [
+            "pass -e TARGET_PKG to container; corrupt package -> assert pacman -S fails with corruption/signature diagnostic",
+            "corrupt DB signature -> assert pacman -Sy fails with DB signature diagnostic"
+          ],
+          "failClosed": true,
+          "commands": []
+        },
+        {
+          "phase": "aur_validation",
+          "container": "archlinux:base@sha256:b21322c663be387c0ed9cbc7bbbfe18e41633ad4e7b7c77cfad45f128be20040",
+          "commands": [
+            "pacman -Syu --noconfirm base-devel pacman-contrib namcap sudo",
+            "cp -a $dir/. to include hidden .SRCINFO dotfile",
+            "makepkg --verifysource",
+            "makepkg --printsrcinfo > .SRCINFO.gen",
+            "diff -u .SRCINFO .SRCINFO.gen (bit-for-bit exact match)",
+            "namcap PKGBUILD"
+          ],
+          "failClosed": true
+        }
+      ]
+    },
+    "validate-nix-darwin": {
+      "runner": "macos-15",
+      "platform": "aarch64-darwin",
+      "phases": [
+        {
+          "phase": "nix_build_darwin",
+          "commands": [
+            "nix build path:.#tfsb",
+            "nix build path:.#tfsl",
+            "nix build path:.#tfss",
+            "nix build path:.#tfnf --out-link result-tfnf",
+            "nix flake check path:. -L"
+          ]
+        },
+        {
+          "phase": "darwin_app_and_executable_verification",
+          "assertions": [
+            "Theme Forge Nebular Fusion.app directory exists",
+            "result-tfnf/bin/tfnf symlink exists",
+            "tfnf --version reports 0.6.1",
+            "RAW executable byte identity matches locked aarch64-darwin executableSha256",
+            "symlink targets sealed Resources/bin/tfnf before invocation",
+            "launcher path equals installed native GUI",
+            "bounded release-smoke loader refusal",
+            "released native-rc-smoke scenario A on installed bundle"
+          ]
+        }
+      ]
+    }
+  },
+  "nebularContract": {
+    "document": "DIST1-NEBULAR-VALIDATION-CONTRACT.md",
+    "nixBuildCheck": "nebular-package-check: whole archive bytes/symlinks, executable modes, lock-bound GUI sha256, pure shell metadata; checked Linux FHS enumeration and ELF inspection, both mandatory executables, complete DT_NEEDED parsing and exact root-relative PT_INTERP; no bubblewrap or GUI execution",
+    "hostLoaderProbe": {
+      "release": "0.6.1",
+      "flag": "--nebular-release-smoke=A",
+      "unsetEnvironment": "TFNF_RELEASE_SMOKE_DIR",
+      "expectedExit": 2,
+      "exactDiagnostic": "TFSB Studio release smoke refused: release smoke directory is not set",
+      "linuxTimeout": "30s plus 5s kill bound",
+      "darwinTimeout": "Node spawnSync 30000ms SIGKILL"
+    },
+    "runtimeSmoke": {
+      "source": "release-lock commit and tree authenticated public checkout",
+      "harness": "tools/native-rc-smoke.mjs unmodified",
+      "timeoutMs": 420000,
+      "timeoutSource": "released harness default; no command-line override",
+      "containerInit": "docker run --rm --init for RPM and pacman installed smoke",
+      "dependencyEvidence": "loader refusal runs before Xvfb tools; full smoke proves operation in the display/session environment, whose transitive libraries may mask missing package Requires",
+      "rpm": {
+        "aarch64": "B/linux-arm64",
+        "x86_64": "C/linux-x64",
+        "environment": "default container root, matching upstream native-RC; Xvfb/dbus with released WebKit compositing/DMABUF flags"
+      },
+      "pacman": "C/linux-x64, default container root matching upstream native-RC; Xvfb/dbus with released renderer flags",
+      "nixDarwin": "A/darwin-arm64, installed bundle",
+      "nixFhs": "Full GUI smoke is not a DIST1 publication gate; manager decision final. Required: exact released identity, package/layout/mode integrity, fail-closed static closure, successful FHS construction and bounded actual hosted FHS-wrapper metadata/refusal execution. No Xvfb stack added solely for Nix GUI smoke."
+    },
+    "evidenceRetention": {
+      "smoke": "scratch/nebular-smoke uploaded with if: always() in both Linux matrix jobs and Darwin; missing evidence warns when smoke was not reached",
+      "linuxReceipt": "if: always(); status is captured from job.status, never a static PASS"
+    },
+    "batchProtocol": "tfsl-batch stdin EOF: exit 1, status error, valid false, error.code EMPTY_INPUT",
+    "studioProtocol": "tfsb-studio-service stdin EOF: exit 0",
+    "fhsStaticClosure": {
+      "script": "tools/verification/check-nebular-fhs-closure.sh",
+      "failClosedProducers": [
+        "find enumeration",
+        "od magic",
+        "readelf -h",
+        "readelf -l",
+        "readelf -d",
+        "NEEDED/interpreter extraction"
+      ],
+      "minimumInspectedELFs": 2,
+      "mandatoryELFs": [
+        "bin/theme-forge-nebular-fusion",
+        "bin/tfsb-studio-service"
+      ],
+      "mandatorySegments": [
+        "PT_DYNAMIC",
+        "PT_INTERP",
+        "at least one DT_NEEDED"
+      ],
+      "neededParsing": "independent NEEDED record count must equal parsed count; every library resolves under /usr/lib64",
+      "interpreter": "exact absolute PT_INTERP path resolved relative to FHS root, including usrmerge links; /nix/store symlink targets use host store bound by wrapper",
+      "runtimeExecution": false,
+      "dlopenModules": "outside static evidence boundary"
+    }
+  },
+  "deferredConcerns": [
+    "Pre-existing Arch tamper lanes use synchronization without a full upgrade and accept a generic failed transaction diagnostic; fresh hosted tamper tests remain required.",
+    "Released Darwin deep-signature defect remains outside this byte-preserving packaging repair."
+  ]
+}
