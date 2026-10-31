@@ -12,7 +12,6 @@ import { validateCandidateContext } from './current-candidate-context.mjs';
 import { preparePublicWrapperHarness, measurePublicWrapper } from './p-nix-launcher-adapter.mjs';
 import { materializeControllerClosure, materializeDerivedHarness } from './p-native-gui-adapter.mjs';
 import { parseUniqueJson, validateResponse, controllerResponsePath, validateFreshLaunchFacts } from './p-native-gui-controller-bridge.mjs';
-import { observeSidecarMode } from './p-sidecar-mode-diagnostic.mjs';
 
 const directory=dirname(fileURLToPath(import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -334,7 +333,11 @@ export async function runNativeRoute({system,root,checkout,evidence,run=spawnSyn
   const launchRoot=darwin?join(payload,'Applications'):join(payload,'lib/theme-forge-nebular-fusion');
   const gui=darwin?join(launchRoot,'Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion'):join(launchRoot,'bin/theme-forge-nebular-fusion');
   assert.equal(hash(readFileSync(gui)),lock.products['theme-forge-nebular-fusion'].rawArchives[system].executableSha256);
-  observeSidecarMode({launchRoot,system,evidence});
+  // Optional observation, including module loading, cannot replace GUI work.
+  try {
+    const {observeSidecarMode}=await import('./p-sidecar-mode-diagnostic.mjs');
+    observeSidecarMode({launchRoot,system,evidence});
+  } catch {}
   const rawLauncher=bindRawLauncher(launchRoot,system,commands.tfnf.implementation_sha256);
   const pathProbe=await dispatchProbe({command:'tfnf',executable:join(outputs.tfnf,'bin/tfnf'),
     probe:{kind:'launcher-metadata',argv:['--path'],expect_exit:0,input:'',stdout_contains:[]},checked});

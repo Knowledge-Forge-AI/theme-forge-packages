@@ -16,7 +16,7 @@ function fixture(darwin = false) {
   const launchRoot = join(root, 'installed'), evidence = join(root, 'evidence');
   const app = join(launchRoot, 'Theme Forge Nebular Fusion.app/Contents');
   const runtime = darwin ? join(app, 'MacOS/tfsb-studio-service') : join(launchRoot, 'bin/tfsb-studio-service');
-  const payload = darwin ? join(app, 'Resources/sidecar-payload') : join(launchRoot, 'lib/theme-forge-nebular-fusion/sidecar-payload');
+  const payload = darwin ? join(app, 'Resources/sidecar-payload') : join(launchRoot, 'sidecar-payload');
   fs.mkdirSync(dirname(runtime), { recursive: true });
   fs.mkdirSync(join(payload, 'nested'), { recursive: true });
   fs.mkdirSync(evidence, { mode: 0o700 });
@@ -250,52 +250,156 @@ test('observation failure and exclusive evidence-write failure never throw or ov
   } finally { f.close(); }
 });
 
-test('actual route fragment reaches required GUI operation and preserves its failure after diagnostic failure', async () => {
-  const f = fixture(true);
+test('actual route uses the installed payload layout on all three systems and preserves GUI failures', async () => {
+  for (const system of ['x86_64-linux', 'aarch64-linux', 'aarch64-darwin']) {
+    const darwin = system === 'aarch64-darwin', f = fixture(darwin);
+    try {
+      const source = fs.readFileSync(new URL('../tools/verification/qualify-p-current-nix.mjs', import.meta.url), 'utf8');
+      const start = source.indexOf("  const darwin=system==='aarch64-darwin';");
+      const stop = source.indexOf("{timeout:600000});", start) + "{timeout:600000});".length;
+      assert(start > 0 && stop > start);
+      const optionalImport = "await import('./p-sidecar-mode-diagnostic.mjs')";
+      const fragment = source.slice(start, stop);
+      assert.equal(fragment.split(optionalImport).length, 2);
+      // Only the module loader is injected. The installed-layout and GUI-call
+      // source is the actual route, exercised for both Linux architectures.
+      const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+      const names = ['system','outputs','join','hash','readFileSync','lock','diagnosticModule','evidence',
+        'bindRawLauncher','commands','dispatchProbe','realpathSync','commandEvidence','writeFileSync',
+        'nativeGuiController','guiBinding','preparePublicWrapperHarness','checkout','contract','derivations','closure',
+        'assert','mode','plan','basename','declared','checked','process'];
+      const run = new AsyncFunction(...names, fragment.replace(optionalImport, 'await diagnosticModule()') + '\n}\n');
+      const packageRoot = join(f.root, 'package');
+      const launchRoot = darwin ? join(packageRoot, 'Applications')
+        : join(packageRoot, 'lib/theme-forge-nebular-fusion');
+      fs.mkdirSync(dirname(launchRoot), { recursive: true });
+      fs.renameSync(f.launchRoot, launchRoot);
+      const gui = darwin ? join(launchRoot, 'Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion')
+        : join(launchRoot, 'bin/theme-forge-nebular-fusion');
+      fs.writeFileSync(gui, 'inert-gui-bytes');
+      const manifest = darwin ? join(launchRoot, 'Theme Forge Nebular Fusion.app/Contents/Resources/sidecar-payload/manifest.json')
+        : join(launchRoot, 'sidecar-payload/manifest.json');
+      let called = false, diagnostic, loadFailure = false, observations = 0;
+      const requiredFailure = new Error('required-inert-GUI-result');
+      const diagnosticModule = async () => {
+        if (loadFailure) throw new Error('inert-module-load-failure');
+        return { observeSidecarMode: input => {
+          observations++;
+          diagnostic = observeSidecarMode(input);
+          return diagnostic;
+        } };
+      };
+      const values = [system, { 'theme-forge-nebular-fusion-payload': packageRoot, tfnf: packageRoot }, join,
+        hash, fs.readFileSync, { products: { 'theme-forge-nebular-fusion': { rawArchives: {
+          [system]: { executableSha256: hash('inert-gui-bytes') } } } } }, diagnosticModule, f.evidence,
+        () => ({}), { tfnf: { implementation_sha256: {} } }, async () => ({ stdout: gui }), fs.realpathSync,
+        [], fs.writeFileSync, false, null, () => ({ adaptedPath: 'inert-harness', record: { transform: 'inert' } }),
+        f.root, {}, Buffer.alloc(0), Buffer.alloc(0), assert, 'fixture', { guiProfile: 'inert', adaptedScenarios: ['A'] },
+        basename, { bindingMember: 'p-test-adapter-binding.json' }, () => { called = true; throw requiredFailure; }, process];
+      await assert.rejects(run(...values), error => error === requiredFailure);
+      assert.equal(called, true);
+      assert.equal(diagnostic.status, 'compatible');
+      assert.equal(diagnostic.evidenceWriteStatus, 'written');
+      sanitized(diagnostic, f);
+      const priorEvidence = fs.readFileSync(join(f.evidence, member));
+      // Both observation and exclusive-output refusal preserve the GUI result.
+      fs.unlinkSync(manifest);
+      called = false;
+      await assert.rejects(run(...values), error => error === requiredFailure);
+      assert.equal(called, true);
+      assert.equal(diagnostic.status, 'unavailable');
+      assert.equal(diagnostic.evidenceWriteStatus, 'failed');
+      assert.deepEqual(fs.readFileSync(join(f.evidence, member)), priorEvidence);
+      // A module load failure is equally optional.
+      called = false; loadFailure = true;
+      const before = observations;
+      await assert.rejects(run(...values), error => error === requiredFailure);
+      assert.equal(called, true);
+      assert.equal(observations, before);
+    } finally { f.close(); }
+  }
+});
+
+test('unsupported systems return only the closed unavailable category', () => {
+  const f = fixture();
   try {
-    fs.unlinkSync(f.manifestPath);
-    const gui = join(f.launchRoot, 'Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion');
-    fs.writeFileSync(gui, 'inert-gui-bytes');
-    const source = fs.readFileSync(new URL('../tools/verification/qualify-p-current-nix.mjs', import.meta.url), 'utf8');
-    const start = source.indexOf("  const darwin=system==='aarch64-darwin';");
-    const stop = source.indexOf("{timeout:600000});", start) + "{timeout:600000});".length;
-    assert(start > 0 && stop > start);
-    // Execute only the real route's installed-payload-to-GUI-call fragment.
-    // All external operations are inert callbacks; no Nix, child or GUI runs.
-    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    const names = ['system','outputs','join','hash','readFileSync','lock','observeSidecarMode','evidence',
-      'bindRawLauncher','commands','dispatchProbe','realpathSync','commandEvidence','writeFileSync',
-      'nativeGuiController','guiBinding','preparePublicWrapperHarness','checkout','contract','derivations','closure',
-      'assert','mode','plan','basename','declared','checked','process'];
-    const run = new AsyncFunction(...names, source.slice(start, stop) + '\n}\n');
-    let called = false;
-    const requiredFailure = new Error('required-inert-GUI-result');
-    const values = ['aarch64-darwin', { 'theme-forge-nebular-fusion-payload': f.root, tfnf: f.root }, join,
-      hash, fs.readFileSync, { products: { 'theme-forge-nebular-fusion': { rawArchives: {
-        'aarch64-darwin': { executableSha256: hash('inert-gui-bytes') } } } } }, observeSidecarMode, f.evidence,
-      () => ({}), { tfnf: { implementation_sha256: {} } }, async () => ({ stdout: gui }), fs.realpathSync,
-      [], fs.writeFileSync, false, null, () => ({ adaptedPath: 'inert-harness', record: { transform: 'inert' } }),
-      f.root, {}, Buffer.alloc(0), Buffer.alloc(0), assert, 'fixture', { guiProfile: 'inert', adaptedScenarios: ['A'] },
-      basename, { bindingMember: 'p-test-adapter-binding.json' }, () => { called = true; throw requiredFailure; }, process];
-    // The installed Darwin route appends /Applications to its payload output.
-    values[1]['theme-forge-nebular-fusion-payload'] = join(f.root, 'package');
-    fs.mkdirSync(values[1]['theme-forge-nebular-fusion-payload'], { recursive: true });
-    fs.renameSync(f.launchRoot, join(values[1]['theme-forge-nebular-fusion-payload'], 'Applications'));
-    const boundGui = join(values[1]['theme-forge-nebular-fusion-payload'], 'Applications/Theme Forge Nebular Fusion.app/Contents/MacOS/theme-forge-nebular-fusion');
-    values[names.indexOf('dispatchProbe')] = async () => ({ stdout: boundGui });
-    let diagnostic;
-    values[names.indexOf('observeSidecarMode')] = input => { diagnostic = observeSidecarMode(input); return diagnostic; };
-    await assert.rejects(run(...values), error => error === requiredFailure);
-    assert.equal(called, true);
-    assert.equal(diagnostic.evidenceWriteStatus, 'written');
-    called = false;
-    // The second attempt also hits exclusive evidence-write refusal; the same
-    // required GUI callback and its original error must still survive.
-    await assert.rejects(run(...values), error => error === requiredFailure);
-    assert.equal(called, true);
-    assert.equal(diagnostic.evidenceWriteStatus, 'failed');
-    const record = JSON.parse(fs.readFileSync(join(f.evidence, member)));
+    const record = observeSidecarMode({ launchRoot: f.launchRoot, system: 'inert-unsupported', evidence: f.evidence });
     assert.equal(record.status, 'unavailable');
+    assert.equal(record.failureCategory, 'UNSUPPORTED_SYSTEM');
+    assert.equal(record.runtime, null);
     sanitized(record, f);
   } finally { f.close(); }
+});
+
+test('manifest replacement between initial and final reads refuses', () => {
+  const f = fixture(), originalRead = fs.readSync;
+  try {
+    const info = fs.statSync(f.runtime);
+    let replaced = false;
+    fs.readSync = (fd, ...args) => {
+      const current = fs.fstatSync(fd);
+      if (!replaced && current.dev === info.dev && current.ino === info.ino) {
+        replaced = true;
+        const replacement = join(f.payload, 'replacement.json');
+        fs.writeFileSync(replacement, JSON.stringify(f.manifest));
+        fs.renameSync(replacement, f.manifestPath);
+      }
+      return originalRead(fd, ...args);
+    };
+    syncBuiltinESMExports();
+    const record = observe(f);
+    assert.equal(replaced, true);
+    assert.equal(record.status, 'unavailable');
+    assert.equal(record.failureCategory, 'IDENTITY_CHANGED');
+    sanitized(record, f);
+  } finally { fs.readSync = originalRead; syncBuiltinESMExports(); f.close(); }
+});
+
+test('payload rename replacement during an opened read refuses', () => {
+  const f = fixture(), originalRead = fs.readSync;
+  try {
+    const path = join(f.payload, f.manifest.files[0].path), info = fs.statSync(path);
+    let replaced = false;
+    fs.readSync = (fd, ...args) => {
+      const current = fs.fstatSync(fd);
+      if (!replaced && current.dev === info.dev && current.ino === info.ino) {
+        replaced = true;
+        const replacement = join(f.payload, 'replacement.bin');
+        fs.writeFileSync(replacement, fs.readFileSync(path));
+        fs.renameSync(replacement, path);
+      }
+      return originalRead(fd, ...args);
+    };
+    syncBuiltinESMExports();
+    const record = observe(f);
+    assert.equal(replaced, true);
+    assert.equal(record.status, 'unavailable');
+    assert.equal(record.failureCategory, 'IDENTITY_CHANGED');
+    sanitized(record, f);
+  } finally { fs.readSync = originalRead; syncBuiltinESMExports(); f.close(); }
+});
+
+test('ancestor directory replacement during a payload read refuses', () => {
+  const f = fixture(), originalRead = fs.readSync;
+  try {
+    const path = join(f.payload, 'nested/data.bin'), info = fs.statSync(path);
+    let replaced = false;
+    fs.readSync = (fd, ...args) => {
+      const current = fs.fstatSync(fd);
+      if (!replaced && current.dev === info.dev && current.ino === info.ino) {
+        replaced = true;
+        const bytes = fs.readFileSync(path);
+        fs.renameSync(join(f.payload, 'nested'), join(f.payload, 'old-nested'));
+        fs.mkdirSync(join(f.payload, 'nested'));
+        fs.writeFileSync(path, bytes);
+      }
+      return originalRead(fd, ...args);
+    };
+    syncBuiltinESMExports();
+    const record = observe(f);
+    assert.equal(replaced, true);
+    assert.equal(record.status, 'unavailable');
+    assert.equal(record.failureCategory, 'IDENTITY_CHANGED');
+    sanitized(record, f);
+  } finally { fs.readSync = originalRead; syncBuiltinESMExports(); f.close(); }
 });

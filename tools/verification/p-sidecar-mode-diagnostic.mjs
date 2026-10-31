@@ -100,7 +100,7 @@ function observe(launchRoot, system) {
   const app = join(launchRoot, 'Theme Forge Nebular Fusion.app', 'Contents');
   const runtimePath = darwin ? join(app, 'MacOS/tfsb-studio-service') : join(launchRoot, 'bin/tfsb-studio-service');
   const payloadRoot = darwin ? join(app, 'Resources/sidecar-payload')
-    : join(launchRoot, 'lib/theme-forge-nebular-fusion/sidecar-payload');
+    : join(launchRoot, 'sidecar-payload');
   const manifestFile = readRegular(join(payloadRoot, 'manifest.json'), MANIFEST_LIMIT, true);
   let manifest;
   try { manifest = JSON.parse(manifestFile.contents); }
