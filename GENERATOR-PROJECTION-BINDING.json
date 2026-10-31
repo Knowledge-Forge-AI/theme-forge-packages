@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-31T01:41:13.949Z",
+  "generatedAt": "2026-10-31T09:17:55.895Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
-  "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
+  "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
-  "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "22d795caeb656392fe71384f887e8385d9f2ec4550758a60e803ebad4a00c591",
-  "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
+  "generationInputsSha256": "719dc4084474b638b71c0bf69a8a78c68d19acb7aa45b2c092950ab1a478e3a4",
+  "generationOverlayManifestSha256": "3841acc37fa5ac31e35a1fd030807a56865de98153335a7cc9a772ce3833fbb5",
+  "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "22d795caeb656392fe71384f887e8385d9f2ec4550758a60e803ebad4a00c591",
+  "treeManifestSha256": "3841acc37fa5ac31e35a1fd030807a56865de98153335a7cc9a772ce3833fbb5",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -40,7 +40,7 @@
     {
       "path": ".github/workflows/validate.yml",
       "bytes": 3689,
-      "sha256": "ffe71e3fc2383078bed60356d056e49a62e0ee4f935a89a98f3f22ea0ef2425b"
+      "sha256": "8eab7c7d26b5b68facbcc8e064558adca9f246da099337f8af21dd26866cb458"
     },
     {
       "path": "AUR-READINESS.md",
@@ -150,7 +150,7 @@
     {
       "path": "INSTALL.md",
       "bytes": 4861,
-      "sha256": "35e6a2bf570d603b37613e5a5d27c42dafde483956035cd2bb2a33a537fbedb2"
+      "sha256": "1cf45f8fe3884658e2cf778bdf16e4c209a16a26cd755ccfcf98ebc79bf56c64"
     },
     {
       "path": "keys/KEY-METADATA.json",
@@ -170,7 +170,7 @@
     {
       "path": "package-matrix.json",
       "bytes": 9636,
-      "sha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f"
+      "sha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d"
     },
     {
       "path": "PACKAGE-SIGNING-BOOTSTRAP.md",
@@ -180,7 +180,7 @@
     {
       "path": "packages/nebular-fusion.nix",
       "bytes": 5109,
-      "sha256": "69be82abed0ea69e70392eccbfc7a3ab5dcd1ad6ad434b5a92568292e26d6e80"
+      "sha256": "8d032d2b4bf245e7bda1f1af21215155d80c2e7a0824199a807585ca02a722ff"
     },
     {
       "path": "packages/solar-sail.nix",
@@ -200,12 +200,12 @@
     {
       "path": "README.md",
       "bytes": 4878,
-      "sha256": "55261111951d2a26c7a240a8239c6693927034656846f4887109e45c04c61a45"
+      "sha256": "1ce532042b37c9a5fbd3d01402c383747d211813a84adb32a31f4cfa78b6d4f4"
     },
     {
       "path": "release-lock.json",
-      "bytes": 7527,
-      "sha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c"
+      "bytes": 8118,
+      "sha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae"
     },
     {
       "path": "static/config/knowledge-forge-ai.repo",
@@ -220,7 +220,7 @@
     {
       "path": "static/index.html",
       "bytes": 1422,
-      "sha256": "f8523c22af79f04ea804e8c13f7594f282032e329d256a9e31483018e4f566c4"
+      "sha256": "34c403294fd7865f10f47128c22440d9888e0122d7625192dc23a605074b2cb2"
     },
     {
       "path": "templates/desktop/theme-forge-nebular-fusion.desktop",
@@ -459,13 +459,13 @@
     },
     {
       "path": "tools/verification/current-candidate-context.mjs",
-      "bytes": 3961,
-      "sha256": "8e59ef33a993e86a48cc92ee3a2264e034284a368c47e60d6d7c6f9ec8cb458c"
+      "bytes": 4234,
+      "sha256": "7984cd0f51946f96e5fd9e1e909e6d960b4d1d27abb030f854bc8e4e661c7b13"
     },
     {
       "path": "tools/verification/current-command-contracts.json",
       "bytes": 6910,
-      "sha256": "0a49e3ae9d5466d8e8ac91337e2914358af9c09d82bd59083d1709d76e0bd022"
+      "sha256": "d3e150ea37d6e4d28bf9ee2d10167d74bc6c20ea9856340a05cb2a087b97beb7"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
@@ -485,7 +485,7 @@
     {
       "path": "tools/verification/p-current-nix-contract.json",
       "bytes": 5642,
-      "sha256": "ef9c6dd21dc979662fc0103647bf174c6b8f4444d4689fe3a41058eb957ffecb"
+      "sha256": "568ce868c9ec7c033361a21d7c27849b41c58485806fd862ffeef0643b935d0a"
     },
     {
       "path": "tools/verification/p-native-gui-adapter.mjs",

@@ -193,12 +193,12 @@
       ],
       "source_guards": [
         "--version",
-        "0.7.0"
+        "0.7.1"
       ],
       "evidence": {
         "repository": "Knowledge-Forge-AI/theme-forge-nebular-fusion",
-        "commit": "cadb40c4972f68f314096ff60fbcfb4da950c161",
-        "tag": "v0.7.0",
+        "commit": "f2c527ee6f3cbd53fd44e095d5355ca7f5c7519a",
+        "tag": "v0.7.1",
         "research": "authenticated current release archive implementation; static inspection only"
       },
       "probes": [
@@ -210,13 +210,13 @@
           "input": "",
           "expect_exit": 0,
           "stdout_contains": [
-            "0.7.0"
+            "0.7.1"
           ]
         }
       ],
       "implementation_sha256": {
-        "Contents/Resources/bin/tfnf": "c46bc5c96cd401caf7ba44eaf136927ba2464ee04fd3d59479f63c99d7f8077b",
-        "bin/tfnf": "b15c5e9b15498f62442d3d6fe6793d065c7dfb050554be42ee7fdc8bd247897e"
+        "Contents/Resources/bin/tfnf": "8027775256743152b78bdf014a4797679b77755985edae6f8e4ea9fe40733e84",
+        "bin/tfnf": "1d169f7996ffbbfe0ee07368eef489ba3715f91bae7b64cf07c9a7134d6d655b"
       }
     }
   },

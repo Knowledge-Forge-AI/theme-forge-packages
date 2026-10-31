@@ -48,14 +48,14 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: Knowledge-Forge-AI/theme-forge-nebular-fusion
-          ref: cadb40c4972f68f314096ff60fbcfb4da950c161
+          ref: f2c527ee6f3cbd53fd44e095d5355ca7f5c7519a
           path: nebular
           persist-credentials: false
       - name: Authenticate current Nebular commit and tree
         run: |
           set -euo pipefail
-          test "$(git -C ../nebular rev-parse HEAD)" = cadb40c4972f68f314096ff60fbcfb4da950c161
-          test "$(git -C ../nebular rev-parse 'HEAD^{tree}')" = 27c643b6375c2aafde314799c4f08e844c14992c
+          test "$(git -C ../nebular rev-parse HEAD)" = f2c527ee6f3cbd53fd44e095d5355ca7f5c7519a
+          test "$(git -C ../nebular rev-parse 'HEAD^{tree}')" = 6e3561855f6ee0093fb709488ad976b69bf501d2
       - name: P recipe, wrapper, closure, native-addon and adapted GUI qualification
         env:
           P_SYSTEM: ${{ matrix.system }}
