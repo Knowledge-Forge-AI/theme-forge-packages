@@ -1,7 +1,7 @@
 /** Optional metadata observation. Never a qualification or launch decision. */
 import { createHash } from 'node:crypto';
 import { constants, lstatSync, openSync, closeSync, fstatSync, readSync,
-  writeFileSync, fchmodSync } from 'node:fs';
+  writeFileSync, fchmodSync, realpathSync } from 'node:fs';
 import { isAbsolute, normalize, join } from 'node:path';
 
 const MANIFEST_LIMIT = 2 * 1024 * 1024;
@@ -86,6 +86,17 @@ function readRegular(path, limit, contents = false, budget = null) {
     return result;
   } finally { closeSync(fd); }
 }
+function readRole(role, ...args) {
+  try { return readRegular(...args); }
+  catch (error) {
+    if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') {
+      const category = { manifest: 'MISSING_MANIFEST', runtime: 'MISSING_RUNTIME',
+        payload: 'MISSING_PAYLOAD_FILE' }[role];
+      throw new DiagnosticFailure(category);
+    }
+    throw error;
+  }
+}
 function expected(value) {
   need(value && typeof value === 'object' && !Array.isArray(value)
     && Number.isInteger(value.mode) && value.mode >= 0 && value.mode <= 0o777
@@ -100,14 +111,14 @@ function observe(launchRoot, system) {
   const app = join(launchRoot, 'Theme Forge Nebular Fusion.app', 'Contents');
   const runtimePath = darwin ? join(app, 'MacOS/tfsb-studio-service') : join(launchRoot, 'bin/tfsb-studio-service');
   const payloadRoot = darwin ? join(app, 'Resources/sidecar-payload')
-    : join(launchRoot, 'sidecar-payload');
-  const manifestFile = readRegular(join(payloadRoot, 'manifest.json'), MANIFEST_LIMIT, true);
+    : join(launchRoot, 'lib/theme-forge-nebular-fusion/sidecar-payload');
+  const manifestFile = readRole('manifest', join(payloadRoot, 'manifest.json'), MANIFEST_LIMIT, true);
   let manifest;
   try { manifest = JSON.parse(manifestFile.contents); }
   catch { throw new DiagnosticFailure('INVALID_MANIFEST'); }
   need(manifest && typeof manifest === 'object' && !Array.isArray(manifest)
-    && Array.isArray(manifest.files) && manifest.files.length > 0
-    && manifest.files.length <= FILE_COUNT_LIMIT, 'INVALID_MANIFEST');
+    && Array.isArray(manifest.files) && manifest.files.length > 0, 'INVALID_MANIFEST');
+  need(manifest.files.length <= FILE_COUNT_LIMIT, 'LIMIT_EXCEEDED');
   const runtimeExpected = expected(manifest.runtime);
   const seen = new Set();
   let totalExpected = 0;
@@ -120,15 +131,15 @@ function observe(launchRoot, system) {
     need(totalExpected <= PAYLOAD_LIMIT, 'LIMIT_EXCEEDED');
     return { path, metadata };
   });
-  const runtimeActual = readRegular(runtimePath, FILE_LIMIT);
+  const runtimeActual = readRole('runtime', runtimePath, FILE_LIMIT);
   const mismatches = { mode: 0, size: 0, sha256: 0 };
   const budget = { bytes: 0 };
   for (const file of files) {
-    const actual = readRegular(join(payloadRoot, file.path), FILE_LIMIT, false, budget);
+    const actual = readRole('payload', join(payloadRoot, file.path), FILE_LIMIT, false, budget);
     for (const field of ['mode', 'size', 'sha256']) mismatches[field] += Number(actual[field] !== file.metadata[field]);
   }
   // Reopen bounded manifest metadata after payload reads, without retaining its body.
-  const manifestAfter = readRegular(join(payloadRoot, 'manifest.json'), MANIFEST_LIMIT);
+  const manifestAfter = readRole('manifest', join(payloadRoot, 'manifest.json'), MANIFEST_LIMIT);
   need(manifestAfter.readIdentity === manifestFile.readIdentity
     && manifestAfter.sha256 === manifestFile.sha256, 'IDENTITY_CHANGED');
   const runtimeMismatches = Object.fromEntries(['mode', 'size', 'sha256'].map(field => [field, runtimeActual[field] !== runtimeExpected[field]]));
@@ -145,6 +156,7 @@ export function observeSidecarMode(input) {
   let record = { schema: 'theme-forge.p-sidecar-mode-diagnostic.v1',
     productionEnabled: false, publicationAuthority: false, productionAuthority: false,
     admitting: false, accepted: false, guiQualified: false,
+    fullDistributionVerified: false, unlistedTreeEnumerated: false,
     status: 'unavailable', failureCategory: null, runtime: null, payload: null, manifest: null,
     evidenceWriteStatus: 'unavailable', evidenceFailureCategory: null };
   try { record = { ...record, ...observe(input.launchRoot, input.system) }; }
@@ -153,8 +165,15 @@ export function observeSidecarMode(input) {
   // Never overwrite prior evidence or let diagnostic failure replace GUI work.
   try {
     absolute(input.evidence);
-    chain(input.evidence);
-    const fd = openSync(join(input.evidence, MEMBER), constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
+    const named = lstatSync(input.evidence, { bigint: true });
+    need(named.isDirectory() && !named.isSymbolicLink(), 'UNSAFE_PATH');
+    // Resolve only ancestors of the non-symlink evidence leaf. Hosted macOS
+    // temporary roots may use /var or /tmp aliases; installed paths stay strict.
+    const destination = realpathSync(input.evidence);
+    chain(destination);
+    need(directoryIdentity(lstatSync(input.evidence, { bigint: true })) === directoryIdentity(named)
+      && directoryIdentity(lstatSync(destination, { bigint: true })) === directoryIdentity(named), 'IDENTITY_CHANGED');
+    const fd = openSync(join(destination, MEMBER), constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
     try {
       fchmodSync(fd, 0o600);
       record.evidenceWriteStatus = 'written';
