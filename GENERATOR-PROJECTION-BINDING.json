@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-30T23:06:56.746Z",
+  "generatedAt": "2026-10-31T00:23:48.092Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c12e976de5660ae411f9ed1dd8c575a732afcdacfd3609bcf30eaa814061c96c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "edbe443cfcb8869372e3a56c22b047aad52b827061bf8de4268d183cc02429ad",
-  "generationOverlayManifestSha256": "3a91103fb51bad31dcbd3d1fcab5e45987159b7ba94a3a2ad98063aca7093075",
+  "generationOverlayManifestSha256": "c92ad118f8a82050d08ddd2e1bc7ebc46e0f62dfab4dc24fc3ff077d9c8cbebb",
   "packageMatrixSha256": "85316f9c08ef226130189fa680864e57bf360daeea087b9aa37081121105de5f",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "3a91103fb51bad31dcbd3d1fcab5e45987159b7ba94a3a2ad98063aca7093075",
+  "treeManifestSha256": "c92ad118f8a82050d08ddd2e1bc7ebc46e0f62dfab4dc24fc3ff077d9c8cbebb",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -179,8 +179,8 @@
     },
     {
       "path": "packages/nebular-fusion.nix",
-      "bytes": 5056,
-      "sha256": "a2eacc59abee73181bdc3343005c96a93f2cdb03965eb01086f3355e0ed25293"
+      "bytes": 5109,
+      "sha256": "69be82abed0ea69e70392eccbfc7a3ab5dcd1ad6ad434b5a92568292e26d6e80"
     },
     {
       "path": "packages/solar-sail.nix",
@@ -189,8 +189,8 @@
     },
     {
       "path": "packages/stellar-burst.nix",
-      "bytes": 2697,
-      "sha256": "1a91ddb8bfdf84b0cfa01c915c61e15d1f0f0f21e8a878fada452edc8db3c216"
+      "bytes": 2883,
+      "sha256": "8778d1831daa2752acea674031734ffdbab08e3087b2937aef7486bd76a5a435"
     },
     {
       "path": "packages/stellar-loom.nix",

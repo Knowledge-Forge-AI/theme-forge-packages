@@ -4,6 +4,7 @@
 , makeWrapper
 , buildFHSEnv ? null
 , gtk3
+, gdk-pixbuf
 , glib
 , webkitgtk_4_1
 , libsoup_3
@@ -101,6 +102,7 @@ let
       name = "tfnf";
       targetPkgs = pkgs: [
         gtk3
+        gdk-pixbuf
         glib
         webkitgtk_4_1
         libsoup_3
@@ -146,6 +148,7 @@ let
 
         LIBPATH="${lib.makeLibraryPath [
           gtk3
+          gdk-pixbuf
           glib
           webkitgtk_4_1
           libsoup_3

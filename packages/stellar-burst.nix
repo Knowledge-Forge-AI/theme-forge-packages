@@ -39,6 +39,10 @@ stdenv.mkDerivation {
 
   dontBuild = true;
 
+  # Keep authenticated release payloads, including native addons, byte-identical.
+  # The install phase creates fixed Node wrappers and vendors locked dependencies.
+  dontFixup = true;
+
   installPhase = ''
     runHook preInstall
 
