@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-10-31T23:39:34.733Z",
+  "generatedAt": "2026-11-01T04:19:18.438Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
-  "generationInputsSha256": "4e025e6d3022a405617d13d8d731e81138ab1f5e61aafb436d0ba9ffa862dba0",
-  "generationOverlayManifestSha256": "16b84a864d78149eb6d7b8b54e622d53de78565bb51a68c7f1d395ee04be1654",
+  "generationInputsSha256": "75cbb0da03c1e2871580e064eceecd221c77c136c9762b1ea1bf3a53539d637e",
+  "generationOverlayManifestSha256": "9018efccdc38c3e5af6432b7ce1b9505ac4a86eab7bc626b43d47a5c039cde98",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "16b84a864d78149eb6d7b8b54e622d53de78565bb51a68c7f1d395ee04be1654",
+  "treeManifestSha256": "9018efccdc38c3e5af6432b7ce1b9505ac4a86eab7bc626b43d47a5c039cde98",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -30,7 +30,7 @@
     {
       "path": ".github/workflows/probe-current-b3-lifecycle.yml",
       "bytes": 8363,
-      "sha256": "2b14d483be9aa7fbb5a0e4c2f076da5112e0fdcb35630c25352b911c7d4f1d36"
+      "sha256": "f0806c82f546932fd332e1e361c8cc9c13a7e2b9393d819742aedd06ee68f66e"
     },
     {
       "path": ".github/workflows/probe-current-process-predicate.yml",
@@ -129,8 +129,8 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 6511,
-      "sha256": "e38430cccbf4759da8777f5315358f8d72b59d9c9278371f36740af7ee8270aa"
+      "bytes": 7015,
+      "sha256": "9fa4d0af153c5b23b558cef68ceeafdfd66fa9abb2fb8d8b54eeb40ba721c8e8"
     },
     {
       "path": "docs/p-native-gui-controller.md",
@@ -514,8 +514,8 @@
     },
     {
       "path": "tools/verification/b3/prepare_isolated_global_config.py",
-      "bytes": 49007,
-      "sha256": "57cc7e323ba4bdd93e47a58b849ce36af851d2e475f3a28b5290a5ab44471625"
+      "bytes": 63755,
+      "sha256": "c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11"
     },
     {
       "path": "tools/verification/b3/PROMOTION-LIST.json",
@@ -529,8 +529,8 @@
     },
     {
       "path": "tools/verification/b3/test_prepare_isolated_global_config.py",
-      "bytes": 28278,
-      "sha256": "84156d9d9ae490adbfa5306a5b584ff5a40b1c8be78cf9e5256d5868a25ae66a"
+      "bytes": 47927,
+      "sha256": "93439c303944f3d802d7640d352a26e94c14c1a7a6a42f5315bcca9a0d71874f"
     },
     {
       "path": "tools/verification/check-nebular-fhs-closure.sh",

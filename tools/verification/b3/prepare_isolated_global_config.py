@@ -1,10 +1,12 @@
 """Proposed-unadopted build-time global-config isolation helper for the B3 Fedora 43 builder.
 
-Relocates only the package-manager-owned, unmodified /etc/gnupg/gpgconf.conf
-into a phase-owned non-GPG quarantine directory inside the disposable builder
-image and removes the proved-empty /etc/gnupg directory.  Refuses if
-/usr/bin/gpgconf.ctl is present (never removing it) or if ownership, inventory,
-hardlink count, mode, package tuple, or rpm verification fails.
+Supports two strict, authenticated preparation modes inside the disposable builder:
+1. Packaged regular-config relocation (relocated-packaged-regular-config): relocates
+   unmodified /etc/gnupg/gpgconf.conf into image quarantine and removes empty /etc/gnupg.
+2. Package-owned empty ghost-config directory removal (removed-empty-rpm-ghost-config-dir):
+   verifies installed RPM %ghost %config(noreplace) metadata (flags 81, size 0, empty
+   digest) and clean rpm -V, removes proved-empty /etc/gnupg, and writes a receipt-only
+   custody proof. Refuses if /usr/bin/gpgconf.ctl is present or any guard fails.
 """
 
 from __future__ import annotations
@@ -24,6 +26,17 @@ from typing import Any, Callable, Mapping
 SCHEMA = "tf.current-signer-native-b3-global-config-preparation.v1"
 SOURCE_AUTH_SCHEMA = "tf.current-signer-native-b3-global-config-source-auth.v1"
 PROPOSAL_STATUS = "proposed-unadopted"
+
+REGULAR_CONFIG_MODE = "relocated-packaged-regular-config"
+EMPTY_GHOST_DIR_MODE = "removed-empty-rpm-ghost-config-dir"
+
+RPMFILE_CONFIG = 1
+RPMFILE_NOREPLACE = 16
+RPMFILE_GHOST = 64
+EXPECTED_GHOST_CONFIG_FILEFLAGS = RPMFILE_CONFIG | RPMFILE_NOREPLACE | RPMFILE_GHOST
+EXPECTED_GHOST_CONFIG_FILESIZE = 0
+EXPECTED_GHOST_CONFIG_FILEDIGEST = ""
+EXPECTED_GHOST_CONFIG_DECLARATION = "ghost+config(noreplace)"
 
 EXPECTED_PACKAGE_NAME = "gnupg2-gpgconf"
 EXPECTED_PACKAGE_VERSION = "2.4.9"
@@ -55,6 +68,7 @@ MAX_JSON_BYTES = 65_536
 MAX_RPM_OUTPUT_BYTES = 4_096
 MAX_SOURCE_BYTES = 2_000_000
 
+_DECIMAL_INT = re.compile(r"^[0-9]+$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _SAFE_ABS_PATH = re.compile(r"^/[A-Za-z0-9/._-]+$")
 _FORBIDDEN_ENV_TOKENS = (
@@ -71,9 +85,14 @@ _FORBIDDEN_ENV_TOKENS = (
 class GlobalConfigError(RuntimeError):
     """Closed error boundary; callers must never emit raw exception strings or paths."""
 
-    def __init__(self, code: str, *, original_bytes_preserved: bool = True):
+    def __init__(
+        self, code: str, *, original_bytes_preserved: bool = True,
+        mutation_performed: bool = False, rollback_verified: bool | None = None,
+    ):
         self.code = code
         self.original_bytes_preserved = bool(original_bytes_preserved)
+        self.mutation_performed = bool(mutation_performed)
+        self.rollback_verified = None if rollback_verified is None else bool(rollback_verified)
         super().__init__(code)
 
 
@@ -89,6 +108,20 @@ class FsIdentity:
     size: int
     mtime_ns: int
     ctime_ns: int
+
+
+@dataclass(frozen=True)
+class _OpenedGnupgDir:
+    root_dir: Path
+    etc_dir: Path
+    etc_fd: int
+    etc_identity: FsIdentity
+    gnupg_dir: Path
+    gnupg_fd: int
+    gnupg_identity: FsIdentity
+    expected_uid: int
+    expected_gid: int | None
+    entries: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -419,6 +452,86 @@ def _verify_rpm_package_and_config(
     _verify_rpm_package_clean(command_runner)
 
 
+def _parse_rpm_file_metadata_line(raw_line: str) -> tuple[str, tuple[int, int, str]]:
+    parts = raw_line.split("\t")
+    if len(parts) != 4:
+        raise GlobalConfigError("RPM_GHOST_CONFIG_METADATA_QUERY_FAILED")
+    path_key, flags_raw, size_raw, digest_raw = (p.strip() for p in parts)
+    if not path_key or not _DECIMAL_INT.fullmatch(flags_raw) or not _DECIMAL_INT.fullmatch(size_raw):
+        raise GlobalConfigError("RPM_GHOST_CONFIG_METADATA_QUERY_FAILED")
+    return path_key, (int(flags_raw), int(size_raw), digest_raw.lower())
+
+
+def _parse_rpm_file_metadata(metadata_text: str) -> dict[str, tuple[int, int, str]]:
+    metadata_map: dict[str, tuple[int, int, str]] = {}
+    for raw_line in metadata_text.splitlines():
+        if not raw_line.strip():
+            continue
+        path_key, entry = _parse_rpm_file_metadata_line(raw_line)
+        if path_key in metadata_map:
+            raise GlobalConfigError("RPM_GHOST_CONFIG_METADATA_QUERY_FAILED")
+        metadata_map[path_key] = entry
+    return metadata_map
+
+
+def _verify_rpm_ghost_config_metadata(
+    command_runner: Callable[[list[str]], tuple[int, str]],
+) -> None:
+    rc, metadata_text = command_runner([
+        RPM_BINARY_PATH, "-q", "--queryformat",
+        "[%{FILENAMES}\t%{FILEFLAGS}\t%{FILESIZES}\t%{FILEDIGESTS}\n]",
+        EXPECTED_PACKAGE_NEVRA,
+    ])
+    if rc != 0 or not metadata_text:
+        raise GlobalConfigError("RPM_GHOST_CONFIG_METADATA_QUERY_FAILED")
+    metadata_map = _parse_rpm_file_metadata(metadata_text)
+    dir_meta = metadata_map.get(ETC_GNUPG_PATH)
+    cfg_meta = metadata_map.get(SOURCE_CONFIG_PATH)
+    if dir_meta is None or cfg_meta is None:
+        raise GlobalConfigError("RPM_GHOST_CONFIG_METADATA_QUERY_FAILED")
+    if dir_meta != (0, 0, ""):
+        raise GlobalConfigError("RPM_GNUPG_DIR_METADATA_MISMATCH")
+    flags, size, digest = cfg_meta
+    if flags != EXPECTED_GHOST_CONFIG_FILEFLAGS:
+        raise GlobalConfigError("RPM_GHOST_CONFIG_FLAGS_MISMATCH")
+    if size != EXPECTED_GHOST_CONFIG_FILESIZE:
+        raise GlobalConfigError("RPM_GHOST_CONFIG_SIZE_MISMATCH")
+    if digest != EXPECTED_GHOST_CONFIG_FILEDIGEST:
+        raise GlobalConfigError("RPM_GHOST_CONFIG_DIGEST_MISMATCH")
+
+
+def _verify_rpm_package_and_ghost_config(
+    command_runner: Callable[[list[str]], tuple[int, str]],
+) -> None:
+    _verify_rpm_owner_tuple(command_runner)
+    _verify_rpm_package_inventory(command_runner)
+    _verify_rpm_ghost_config_metadata(command_runner)
+    _verify_rpm_package_clean(command_runner)
+
+
+def _path_matches_identity(
+    path_or_name: Path | str, expected: FsIdentity, *, dir_fd: int | None = None
+) -> bool:
+    try:
+        info = os.lstat(path_or_name) if dir_fd is None else os.lstat(path_or_name, dir_fd=dir_fd)
+    except OSError:
+        return False
+    return _fs_identity(info) == expected
+
+
+def _gnupg_ancestry_matches(
+    etc_fd: int, gnupg_fd: int, etc_dir: Path, etc_identity: FsIdentity,
+    gnupg_dir: Path, gnupg_identity: FsIdentity,
+) -> bool:
+    return (
+        _fs_identity(os.fstat(etc_fd)) == etc_identity
+        and _path_matches_identity(etc_dir, etc_identity)
+        and _fs_identity(os.fstat(gnupg_fd)) == gnupg_identity
+        and _path_matches_identity(gnupg_dir, gnupg_identity)
+        and _path_matches_identity("gnupg", gnupg_identity, dir_fd=etc_fd)
+    )
+
+
 def _write_exact_file_at(dir_fd: int, name: str, data: bytes, mode: int) -> None:
     fd: int | None = None
     try:
@@ -618,7 +731,7 @@ def _open_verified_etc_ancestry(
         etc_fd = os.open("etc", _directory_open_flags(), dir_fd=root_fd)
         etc_identity = _fs_identity(os.fstat(etc_fd))
         if etc_identity != expected_etc_id or (
-            verify_etc_path and etc_identity != _fs_identity(os.lstat(root_dir / "etc"))
+            verify_etc_path and not _path_matches_identity(root_dir / "etc", etc_identity)
         ):
             raise GlobalConfigError("ETC_ANCESTRY_UNSAFE")
         return root_fd, etc_fd, etc_identity
@@ -646,14 +759,14 @@ def _lstat_verified_gnupg_dir(
     return _fs_identity(gnupg_lstat)
 
 
-def _open_verified_gnupg_dir(
+def _open_verified_gnupg_directory(
     root_dir: Path,
     etc_fd: int,
     etc_identity: FsIdentity,
     *,
     expected_uid: int,
     expected_gid: int | None,
-) -> tuple[int, _SourceConfigSnapshot]:
+) -> _OpenedGnupgDir:
     etc_dir = root_dir / "etc"
     gnupg_dir = etc_dir / "gnupg"
     expected_gnupg_id = _lstat_verified_gnupg_dir(
@@ -664,32 +777,47 @@ def _open_verified_gnupg_dir(
         gnupg_identity = _fs_identity(os.fstat(gnupg_fd))
         if (
             gnupg_identity != expected_gnupg_id
-            or gnupg_identity != _fs_identity(os.lstat(gnupg_dir))
+            or not _path_matches_identity(gnupg_dir, gnupg_identity)
         ):
             raise GlobalConfigError("GLOBAL_CONFIG_DIR_CHANGED")
-        if sorted(os.listdir(gnupg_fd)) != [SOURCE_CONFIG_NAME]:
+        entries = tuple(sorted(os.listdir(gnupg_fd)))
+        if entries not in ((), (SOURCE_CONFIG_NAME,)):
             raise GlobalConfigError("GLOBAL_CONFIG_DIR_INVENTORY_MISMATCH")
-        cfg_identity, cfg_bytes, cfg_sha256 = _read_verified_file_at(
-            gnupg_fd,
-            SOURCE_CONFIG_NAME,
-            expected_uid=expected_uid,
-            expected_gid=expected_gid,
-            max_bytes=MAX_CONFIG_BYTES,
-            error_prefix="GLOBAL_CONFIG_FILE",
-        )
-        snapshot = _SourceConfigSnapshot(
+        return _OpenedGnupgDir(
+            root_dir=root_dir,
             etc_dir=etc_dir,
+            etc_fd=etc_fd,
             etc_identity=etc_identity,
             gnupg_dir=gnupg_dir,
+            gnupg_fd=gnupg_fd,
             gnupg_identity=gnupg_identity,
-            config_identity=cfg_identity,
-            config_bytes=cfg_bytes,
-            config_sha256=cfg_sha256,
+            expected_uid=expected_uid,
+            expected_gid=expected_gid,
+            entries=entries,
         )
-        return gnupg_fd, snapshot
     except BaseException:
         _close_fds(gnupg_fd)
         raise
+
+
+def _snapshot_regular_source_config(opened: _OpenedGnupgDir) -> _SourceConfigSnapshot:
+    cfg_identity, cfg_bytes, cfg_sha256 = _read_verified_file_at(
+        opened.gnupg_fd,
+        SOURCE_CONFIG_NAME,
+        expected_uid=opened.expected_uid,
+        expected_gid=opened.expected_gid,
+        max_bytes=MAX_CONFIG_BYTES,
+        error_prefix="GLOBAL_CONFIG_FILE",
+    )
+    return _SourceConfigSnapshot(
+        etc_dir=opened.etc_dir,
+        etc_identity=opened.etc_identity,
+        gnupg_dir=opened.gnupg_dir,
+        gnupg_identity=opened.gnupg_identity,
+        config_identity=cfg_identity,
+        config_bytes=cfg_bytes,
+        config_sha256=cfg_sha256,
+    )
 
 
 def _recheck_source_layout_after_rpm(
@@ -710,10 +838,14 @@ def _recheck_source_layout_after_rpm(
         error_prefix="GLOBAL_CONFIG_FILE",
     )
     if (
-        _fs_identity(os.fstat(etc_fd)) != snapshot.etc_identity
-        or _fs_identity(os.lstat(snapshot.etc_dir)) != snapshot.etc_identity
-        or _fs_identity(os.fstat(gnupg_fd)) != snapshot.gnupg_identity
-        or _fs_identity(os.lstat(snapshot.gnupg_dir)) != snapshot.gnupg_identity
+        not _gnupg_ancestry_matches(
+            etc_fd,
+            gnupg_fd,
+            snapshot.etc_dir,
+            snapshot.etc_identity,
+            snapshot.gnupg_dir,
+            snapshot.gnupg_identity,
+        )
         or os.listdir(gnupg_fd) != [SOURCE_CONFIG_NAME]
         or post_rpm_identity != snapshot.config_identity
         or post_rpm_bytes != snapshot.config_bytes
@@ -725,18 +857,28 @@ def _recheck_source_layout_after_rpm(
     )
 
 
-def _rollback_quarantine_dir(etc_fd: int, quarantine_fd: int | None) -> None:
+def _rollback_quarantine_dir(
+    etc_fd: int, quarantine_fd: int | None, *, close_fd: bool = True
+) -> bool:
     if quarantine_fd is not None:
-        try:
-            os.unlink(SOURCE_CONFIG_NAME, dir_fd=quarantine_fd)
-        except OSError:
-            pass
-        _close_fds(quarantine_fd)
+        for name in (SOURCE_CONFIG_NAME, QUARANTINE_RECEIPT_NAME):
+            try:
+                os.unlink(name, dir_fd=quarantine_fd)
+            except OSError:
+                pass
+        if close_fd:
+            _close_fds(quarantine_fd)
     try:
         os.rmdir(QUARANTINE_DIR_NAME, dir_fd=etc_fd)
     except OSError:
         pass
-    return None
+    try:
+        os.lstat(QUARANTINE_DIR_NAME, dir_fd=etc_fd)
+    except FileNotFoundError:
+        return True
+    except OSError:
+        return False
+    return False
 
 
 def _create_and_open_quarantine_dir(
@@ -758,15 +900,21 @@ def _create_and_open_quarantine_dir(
         os.fchmod(quarantine_fd, 0o700)
         fstat_info = os.fstat(quarantine_fd)
         if (
-            _fs_identity(fstat_info) != _fs_identity(os.lstat(QUARANTINE_DIR_NAME, dir_fd=etc_fd))
+            not _path_matches_identity(
+                QUARANTINE_DIR_NAME, _fs_identity(fstat_info), dir_fd=etc_fd
+            )
             or not _owner_matches(fstat_info, expected_uid, expected_gid)
             or os.listdir(quarantine_fd) != []
         ):
             raise GlobalConfigError("QUARANTINE_CREATE_FAILED")
         return quarantine_fd
-    except BaseException:
-        _rollback_quarantine_dir(etc_fd, quarantine_fd)
-        raise
+    except BaseException as error:
+        cleanup_ok = _rollback_quarantine_dir(etc_fd, quarantine_fd)
+        code = error.code if isinstance(error, GlobalConfigError) else "QUARANTINE_CREATE_FAILED"
+        raise GlobalConfigError(
+            code, original_bytes_preserved=cleanup_ok,
+            mutation_performed=True, rollback_verified=cleanup_ok,
+        ) from error
 
 
 def _populate_and_verify_quarantine_config(
@@ -831,18 +979,13 @@ def _stage_verified_quarantine_copy(
             quarantine_writer=quarantine_writer,
         )
         return quarantine_fd
-    except BaseException:
-        _rollback_quarantine_dir(etc_fd, quarantine_fd)
-        raise
-
-
-def _cleanup_staged_quarantine(etc_fd: int, quarantine_fd: int) -> None:
-    try:
-        os.unlink(SOURCE_CONFIG_NAME, dir_fd=quarantine_fd)
-        _close_fds(quarantine_fd)
-        os.rmdir(QUARANTINE_DIR_NAME, dir_fd=etc_fd)
-    except OSError:
-        pass
+    except BaseException as error:
+        cleanup_ok = _rollback_quarantine_dir(etc_fd, quarantine_fd)
+        code = error.code if isinstance(error, GlobalConfigError) else "QUARANTINE_COPY_FAILED"
+        raise GlobalConfigError(
+            code, original_bytes_preserved=cleanup_ok,
+            mutation_performed=True, rollback_verified=cleanup_ok,
+        ) from error
 
 
 def _unlink_source_config(
@@ -854,16 +997,22 @@ def _unlink_source_config(
 ) -> None:
     if (
         os.listdir(gnupg_fd) != [SOURCE_CONFIG_NAME]
-        or _fs_identity(os.lstat(SOURCE_CONFIG_NAME, dir_fd=gnupg_fd)) != snapshot.config_identity
+        or not _path_matches_identity(
+            SOURCE_CONFIG_NAME, snapshot.config_identity, dir_fd=gnupg_fd
+        )
     ):
-        _cleanup_staged_quarantine(etc_fd, quarantine_fd)
-        raise GlobalConfigError("GLOBAL_CONFIG_LAYOUT_CHANGED")
+        cleanup_ok = _rollback_quarantine_dir(etc_fd, quarantine_fd, close_fd=False)
+        raise GlobalConfigError(
+            "GLOBAL_CONFIG_LAYOUT_CHANGED", original_bytes_preserved=cleanup_ok,
+            mutation_performed=True, rollback_verified=cleanup_ok,
+        )
     try:
         unlink_runner(gnupg_fd, SOURCE_CONFIG_NAME)
     except OSError as error:
-        _cleanup_staged_quarantine(etc_fd, quarantine_fd)
+        cleanup_ok = _rollback_quarantine_dir(etc_fd, quarantine_fd, close_fd=False)
         raise GlobalConfigError(
-            "GLOBAL_CONFIG_UNLINK_FAILED", original_bytes_preserved=True
+            "GLOBAL_CONFIG_UNLINK_FAILED", original_bytes_preserved=cleanup_ok,
+            mutation_performed=True, rollback_verified=cleanup_ok,
         ) from error
 
 
@@ -915,12 +1064,12 @@ def _remove_empty_gnupg_dir(
         )
         if not restored_ok:
             raise GlobalConfigError(
-                "GLOBAL_CONFIG_RMDIR_RESTORE_FAILED", original_bytes_preserved=False
+                "GLOBAL_CONFIG_RMDIR_RESTORE_FAILED", original_bytes_preserved=False,
+                mutation_performed=True, rollback_verified=False,
             ) from error
-        if isinstance(error, GlobalConfigError):
-            raise GlobalConfigError(error.code, original_bytes_preserved=True) from error
+        code = error.code if isinstance(error, GlobalConfigError) else "GLOBAL_CONFIG_RMDIR_FAILED"
         raise GlobalConfigError(
-            "GLOBAL_CONFIG_RMDIR_FAILED", original_bytes_preserved=True
+            code, original_bytes_preserved=True, mutation_performed=True, rollback_verified=True
         ) from error
 
 
@@ -951,7 +1100,83 @@ def _verify_post_removal_quarantine(
             raise GlobalConfigError("QUARANTINE_VERIFY_FAILED", original_bytes_preserved=False)
         return post_bytes, post_sha256
     except GlobalConfigError as error:
-        raise GlobalConfigError(error.code, original_bytes_preserved=False) from error
+        raise GlobalConfigError(
+            error.code, original_bytes_preserved=False,
+            mutation_performed=True, rollback_verified=False,
+        ) from error
+
+
+def _empty_gnupg_still_intact(opened: _OpenedGnupgDir) -> bool:
+    try:
+        etc_fstat = os.fstat(opened.etc_fd)
+        etc_lstat = os.lstat(opened.etc_dir)
+        etc_key = (opened.etc_identity.dev, opened.etc_identity.ino)
+        return (
+            (etc_fstat.st_dev, etc_fstat.st_ino) == etc_key
+            and (etc_lstat.st_dev, etc_lstat.st_ino) == etc_key
+            and _fs_identity(os.fstat(opened.gnupg_fd)) == opened.gnupg_identity
+            and _path_matches_identity(opened.gnupg_dir, opened.gnupg_identity)
+            and _path_matches_identity("gnupg", opened.gnupg_identity, dir_fd=opened.etc_fd)
+            and os.listdir(opened.gnupg_fd) == []
+        )
+    except OSError:
+        return False
+
+
+def _verify_opened_empty_gnupg_unchanged(opened: _OpenedGnupgDir) -> None:
+    if (
+        not _gnupg_ancestry_matches(
+            opened.etc_fd, opened.gnupg_fd, opened.etc_dir, opened.etc_identity,
+            opened.gnupg_dir, opened.gnupg_identity,
+        )
+        or os.listdir(opened.gnupg_fd) != []
+    ):
+        raise GlobalConfigError("GLOBAL_CONFIG_LAYOUT_CHANGED")
+
+
+def _stage_verified_empty_ghost_custody(
+    opened: _OpenedGnupgDir, command_runner: Callable[[list[str]], tuple[int, str]]
+) -> int:
+    _ensure_absent_at(opened.etc_fd, QUARANTINE_DIR_NAME, "QUARANTINE_DESTINATION_PREEXISTING")
+    _verify_rpm_package_and_ghost_config(command_runner)
+    _verify_opened_empty_gnupg_unchanged(opened)
+    _verify_usr_bin_and_absent_gpgconf_ctl(
+        opened.root_dir, expected_uid=opened.expected_uid, expected_gid=opened.expected_gid
+    )
+    return _create_and_open_quarantine_dir(
+        opened.etc_fd, expected_uid=opened.expected_uid, expected_gid=opened.expected_gid
+    )
+
+
+def _remove_empty_ghost_gnupg_dir(
+    opened: _OpenedGnupgDir, rmdir_runner: Callable[[int, str], None]
+) -> None:
+    try:
+        rmdir_runner(opened.etc_fd, "gnupg")
+    except GlobalConfigError:
+        raise
+    except BaseException as error:
+        raise GlobalConfigError("GLOBAL_CONFIG_RMDIR_FAILED") from error
+    _ensure_absent_at(opened.etc_fd, "gnupg", "GLOBAL_CONFIG_RMDIR_FAILED")
+
+
+def _verify_post_removal_empty_ghost_custody(
+    opened: _OpenedGnupgDir, quarantine_fd: int
+) -> None:
+    _verify_usr_bin_and_absent_gpgconf_ctl(
+        opened.root_dir, expected_uid=opened.expected_uid, expected_gid=opened.expected_gid
+    )
+    _ensure_absent_at(opened.etc_fd, "gnupg", "GLOBAL_CONFIG_RMDIR_FAILED")
+    if os.listdir(quarantine_fd) != []:
+        raise GlobalConfigError("QUARANTINE_VERIFY_FAILED", original_bytes_preserved=False)
+
+
+def _empty_ghost_failure_preserved(
+    opened: _OpenedGnupgDir, *, cleanup_ok: bool, rmdir_attempted: bool, gnupg_removed: bool
+) -> bool:
+    if not cleanup_ok or gnupg_removed:
+        return False
+    return True if not rmdir_attempted else _empty_gnupg_still_intact(opened)
 
 
 def _expected_package_payload(config_sha256: str) -> dict[str, Any]:
@@ -963,6 +1188,25 @@ def _expected_package_payload(config_sha256: str) -> dict[str, Any]:
         "release": EXPECTED_PACKAGE_RELEASE,
         "rpm_filedigest_sha256": config_sha256,
         "rpm_filedigest_verified": True,
+        "rpm_verify_clean": True,
+        "version": EXPECTED_PACKAGE_VERSION,
+    }
+
+
+def _expected_ghost_package_payload() -> dict[str, Any]:
+    return {
+        "arch": EXPECTED_PACKAGE_ARCH,
+        "config_declaration": EXPECTED_GHOST_CONFIG_DECLARATION,
+        "config_member_path": SOURCE_CONFIG_PATH,
+        "etc_inventory": [ETC_GNUPG_PATH, SOURCE_CONFIG_PATH],
+        "name": EXPECTED_PACKAGE_NAME,
+        "nevra": EXPECTED_PACKAGE_NEVRA,
+        "owner_verified": True,
+        "release": EXPECTED_PACKAGE_RELEASE,
+        "rpm_filedigest": EXPECTED_GHOST_CONFIG_FILEDIGEST,
+        "rpm_fileflags": EXPECTED_GHOST_CONFIG_FILEFLAGS,
+        "rpm_filesize": EXPECTED_GHOST_CONFIG_FILESIZE,
+        "rpm_ghost_config_verified": True,
         "rpm_verify_clean": True,
         "version": EXPECTED_PACKAGE_VERSION,
     }
@@ -988,11 +1232,36 @@ def _build_preparation_receipt(
         "helper_source_sha256": helper_source_sha256,
         "original_failed_guard_identified": False,
         "package": _expected_package_payload(config_sha256),
+        "preparation_mode": REGULAR_CONFIG_MODE,
         "production_authority": False,
         "proposal_status": PROPOSAL_STATUS,
         "quarantine_copy_verified": True,
         "quarantine_retained_bytes": retained_bytes_len,
         "quarantine_retained_sha256": retained_sha256,
+        "schema": SCHEMA,
+        "status": "isolated-global-config-prepared",
+    }
+
+
+def _build_empty_ghost_preparation_receipt(*, helper_source_sha256: str) -> dict[str, Any]:
+    return {
+        "admitting": False,
+        "c6_source_sha256": REVIEWED_C6_SOURCE_SHA256,
+        "c6_source_verified": False,
+        "config_file_present_at_prepare": False,
+        "etc_gnupg_absent_confirmed": True,
+        "etc_gnupg_empty_verified_before_and_after_rpm": True,
+        "etc_gnupg_initial_entry_count": 0,
+        "gpgconf_ctl_absent_confirmed": True,
+        "gpgconf_ctl_modified": False,
+        "helper_source_sha256": helper_source_sha256,
+        "original_failed_guard_identified": False,
+        "package": _expected_ghost_package_payload(),
+        "preparation_mode": EMPTY_GHOST_DIR_MODE,
+        "production_authority": False,
+        "proposal_status": PROPOSAL_STATUS,
+        "quarantine_copy_verified": False,
+        "quarantine_custody_files": [QUARANTINE_RECEIPT_NAME],
         "schema": SCHEMA,
         "status": "isolated-global-config-prepared",
     }
@@ -1008,8 +1277,79 @@ def _write_quarantine_receipt(
         os.fsync(etc_fd)
     except OSError as error:
         raise GlobalConfigError(
-            "QUARANTINE_RECEIPT_WRITE_FAILED", original_bytes_preserved=False
+            "QUARANTINE_RECEIPT_WRITE_FAILED", original_bytes_preserved=False,
+            mutation_performed=True, rollback_verified=False,
         ) from error
+
+
+def _prepare_regular_source_config(
+    opened: _OpenedGnupgDir, *, actual_helper_sha: str,
+    command_runner: Callable[[list[str]], tuple[int, str]],
+    quarantine_writer: Callable[[int, str, bytes, int], None],
+    unlink_runner: Callable[[int, str], None], rmdir_runner: Callable[[int, str], None],
+) -> dict[str, Any]:
+    snapshot = _snapshot_regular_source_config(opened)
+    quarantine_fd = _stage_verified_quarantine_copy(
+        opened.root_dir, opened.etc_fd, opened.gnupg_fd, snapshot,
+        expected_uid=opened.expected_uid, expected_gid=opened.expected_gid,
+        command_runner=command_runner, quarantine_writer=quarantine_writer,
+    )
+    try:
+        _unlink_source_config(
+            opened.etc_fd, opened.gnupg_fd, quarantine_fd, snapshot, unlink_runner
+        )
+        _remove_empty_gnupg_dir(
+            opened.etc_fd, opened.gnupg_fd, snapshot,
+            expected_uid=opened.expected_uid, expected_gid=opened.expected_gid,
+            rmdir_runner=rmdir_runner,
+        )
+        post_bytes, post_sha256 = _verify_post_removal_quarantine(
+            opened.root_dir, quarantine_fd, snapshot,
+            expected_uid=opened.expected_uid, expected_gid=opened.expected_gid,
+        )
+        receipt = _build_preparation_receipt(
+            helper_source_sha256=actual_helper_sha, config_bytes_len=len(snapshot.config_bytes),
+            config_sha256=snapshot.config_sha256, retained_bytes_len=len(post_bytes),
+            retained_sha256=post_sha256,
+        )
+        _write_quarantine_receipt(opened.etc_fd, quarantine_fd, receipt)
+        return receipt
+    finally:
+        _close_fds(quarantine_fd)
+
+
+def _prepare_empty_ghost_gnupg_dir(
+    opened: _OpenedGnupgDir, *, actual_helper_sha: str,
+    command_runner: Callable[[list[str]], tuple[int, str]],
+    rmdir_runner: Callable[[int, str], None],
+) -> dict[str, Any]:
+    quarantine_fd: int | None = _stage_verified_empty_ghost_custody(opened, command_runner)
+    rmdir_attempted = False
+    gnupg_removed = False
+    try:
+        if not _empty_gnupg_still_intact(opened):
+            raise GlobalConfigError("GLOBAL_CONFIG_LAYOUT_CHANGED")
+        rmdir_attempted = True
+        _remove_empty_ghost_gnupg_dir(opened, rmdir_runner)
+        gnupg_removed = True
+        _verify_post_removal_empty_ghost_custody(opened, quarantine_fd)
+        receipt = _build_empty_ghost_preparation_receipt(helper_source_sha256=actual_helper_sha)
+        _write_quarantine_receipt(opened.etc_fd, quarantine_fd, receipt)
+        return receipt
+    except BaseException as error:
+        cleanup_ok = _rollback_quarantine_dir(opened.etc_fd, quarantine_fd)
+        quarantine_fd = None
+        preserved = _empty_ghost_failure_preserved(
+            opened, cleanup_ok=cleanup_ok,
+            rmdir_attempted=rmdir_attempted, gnupg_removed=gnupg_removed,
+        )
+        code = error.code if isinstance(error, GlobalConfigError) else "GLOBAL_CONFIG_RMDIR_FAILED"
+        raise GlobalConfigError(
+            code, original_bytes_preserved=preserved,
+            mutation_performed=True, rollback_verified=preserved,
+        ) from error
+    finally:
+        _close_fds(quarantine_fd)
 
 
 def prepare_isolated_global_config(
@@ -1027,7 +1367,7 @@ def prepare_isolated_global_config(
     unlink_runner: Callable[[int, str], None] = lambda dir_fd, name: os.unlink(name, dir_fd=dir_fd),
     rmdir_runner: Callable[[int, str], None] = lambda dir_fd, name: os.rmdir(name, dir_fd=dir_fd),
 ) -> dict[str, Any]:
-    """Validate and relocate unmodified /etc/gnupg/gpgconf.conf into image quarantine."""
+    """Validate and isolate /etc/gnupg via packaged regular-config or empty ghost-dir mode."""
     _, actual_helper_sha = _verify_execution_and_helper_digest(
         expected_helper_sha256=expected_helper_sha256,
         support_checker=support_checker,
@@ -1044,58 +1384,29 @@ def prepare_isolated_global_config(
     root_fd, etc_fd, etc_identity = _open_verified_etc_ancestry(
         root_dir, expected_uid=expected_file_uid, expected_gid=expected_file_gid
     )
-    gnupg_fd: int | None = None
-    quarantine_fd: int | None = None
+    opened: _OpenedGnupgDir | None = None
     try:
-        gnupg_fd, snapshot = _open_verified_gnupg_dir(
-            root_dir,
-            etc_fd,
-            etc_identity,
-            expected_uid=expected_file_uid,
-            expected_gid=expected_file_gid,
+        opened = _open_verified_gnupg_directory(
+            root_dir, etc_fd, etc_identity,
+            expected_uid=expected_file_uid, expected_gid=expected_file_gid,
         )
-        quarantine_fd = _stage_verified_quarantine_copy(
-            root_dir,
-            etc_fd,
-            gnupg_fd,
-            snapshot,
-            expected_uid=expected_file_uid,
-            expected_gid=expected_file_gid,
-            command_runner=command_runner,
-            quarantine_writer=quarantine_writer,
+        if opened.entries == ():
+            return _prepare_empty_ghost_gnupg_dir(
+                opened, actual_helper_sha=actual_helper_sha,
+                command_runner=command_runner, rmdir_runner=rmdir_runner,
+            )
+        return _prepare_regular_source_config(
+            opened, actual_helper_sha=actual_helper_sha,
+            command_runner=command_runner, quarantine_writer=quarantine_writer,
+            unlink_runner=unlink_runner, rmdir_runner=rmdir_runner,
         )
-        _unlink_source_config(etc_fd, gnupg_fd, quarantine_fd, snapshot, unlink_runner)
-        _remove_empty_gnupg_dir(
-            etc_fd,
-            gnupg_fd,
-            snapshot,
-            expected_uid=expected_file_uid,
-            expected_gid=expected_file_gid,
-            rmdir_runner=rmdir_runner,
-        )
-        post_bytes, post_sha256 = _verify_post_removal_quarantine(
-            root_dir,
-            quarantine_fd,
-            snapshot,
-            expected_uid=expected_file_uid,
-            expected_gid=expected_file_gid,
-        )
-        receipt = _build_preparation_receipt(
-            helper_source_sha256=actual_helper_sha,
-            config_bytes_len=len(snapshot.config_bytes),
-            config_sha256=snapshot.config_sha256,
-            retained_bytes_len=len(post_bytes),
-            retained_sha256=post_sha256,
-        )
-        _write_quarantine_receipt(etc_fd, quarantine_fd, receipt)
-        return receipt
     finally:
-        _close_fds(quarantine_fd, gnupg_fd, etc_fd, root_fd)
+        _close_fds(None if opened is None else opened.gnupg_fd, etc_fd, root_fd)
 
 
 def _open_verified_quarantine_dir(
     etc_fd: int, *, expected_uid: int, expected_gid: int | None
-) -> int:
+) -> tuple[int, tuple[str, ...]]:
     try:
         quarantine_lstat = os.lstat(QUARANTINE_DIR_NAME, dir_fd=etc_fd)
     except FileNotFoundError as error:
@@ -1113,10 +1424,14 @@ def _open_verified_quarantine_dir(
     try:
         if _fs_identity(os.fstat(quarantine_fd)) != _fs_identity(quarantine_lstat):
             raise GlobalConfigError("QUARANTINE_DIR_UNSAFE")
-        q_entries = sorted(os.listdir(quarantine_fd))
-        if q_entries != sorted([QUARANTINE_RECEIPT_NAME, SOURCE_CONFIG_NAME]):
+        q_entries = tuple(sorted(os.listdir(quarantine_fd)))
+        valid_inventories = (
+            (QUARANTINE_RECEIPT_NAME,),
+            tuple(sorted((QUARANTINE_RECEIPT_NAME, SOURCE_CONFIG_NAME))),
+        )
+        if q_entries not in valid_inventories:
             raise GlobalConfigError("QUARANTINE_INVENTORY_MISMATCH")
-        return quarantine_fd
+        return quarantine_fd, q_entries
     except BaseException:
         _close_fds(quarantine_fd)
         raise
@@ -1142,27 +1457,66 @@ def _read_quarantine_receipt_json(
     return receipt
 
 
-def _validate_quarantine_receipt(
+def _exact_value_matches(actual: Any, expected: Any) -> bool:
+    if type(actual) is not type(expected):
+        return False
+    if isinstance(expected, dict):
+        return set(actual.keys()) == set(expected.keys()) and all(
+            _exact_value_matches(actual[k], expected[k]) for k in expected
+        )
+    if isinstance(expected, list):
+        return len(actual) == len(expected) and all(
+            _exact_value_matches(a, e) for a, e in zip(actual, expected)
+        )
+    return bool(actual == expected)
+
+
+def _validate_exact_receipt_dict(
+    receipt: Mapping[str, Any], expected: Mapping[str, Any]
+) -> None:
+    if not _exact_value_matches(dict(receipt), dict(expected)):
+        raise GlobalConfigError("QUARANTINE_RECEIPT_MISMATCH")
+
+
+def _verify_quarantine_mode_and_contents(
+    quarantine_fd: int,
+    q_entries: tuple[str, ...],
     receipt: Mapping[str, Any],
     *,
     actual_helper_sha: str,
-    retained_bytes_len: int,
-    retained_sha256: str,
+    expected_uid: int,
+    expected_gid: int | None,
 ) -> None:
-    expected = _build_preparation_receipt(
-        helper_source_sha256=actual_helper_sha,
-        config_bytes_len=retained_bytes_len,
-        config_sha256=retained_sha256,
-        retained_bytes_len=retained_bytes_len,
-        retained_sha256=retained_sha256,
-    )
-    for key, expected_value in expected.items():
-        actual_value = receipt.get(key)
-        if isinstance(expected_value, bool):
-            if actual_value is not expected_value:
-                raise GlobalConfigError("QUARANTINE_RECEIPT_MISMATCH")
-        elif actual_value != expected_value:
-            raise GlobalConfigError("QUARANTINE_RECEIPT_MISMATCH")
+    mode = receipt.get("preparation_mode")
+    if mode == REGULAR_CONFIG_MODE:
+        if q_entries != tuple(sorted((QUARANTINE_RECEIPT_NAME, SOURCE_CONFIG_NAME))):
+            raise GlobalConfigError("QUARANTINE_INVENTORY_MISMATCH")
+        _, retained_bytes, retained_sha256 = _read_verified_file_at(
+            quarantine_fd,
+            SOURCE_CONFIG_NAME,
+            expected_uid=expected_uid,
+            expected_gid=expected_gid,
+            max_bytes=MAX_CONFIG_BYTES,
+            error_prefix="QUARANTINE_FILE",
+        )
+        expected = _build_preparation_receipt(
+            helper_source_sha256=actual_helper_sha,
+            config_bytes_len=len(retained_bytes),
+            config_sha256=retained_sha256,
+            retained_bytes_len=len(retained_bytes),
+            retained_sha256=retained_sha256,
+        )
+        _validate_exact_receipt_dict(receipt, expected)
+        return
+    if mode == EMPTY_GHOST_DIR_MODE:
+        if q_entries != (QUARANTINE_RECEIPT_NAME,):
+            raise GlobalConfigError("QUARANTINE_INVENTORY_MISMATCH")
+        expected = _build_empty_ghost_preparation_receipt(
+            helper_source_sha256=actual_helper_sha,
+        )
+        _validate_exact_receipt_dict(receipt, expected)
+        return
+    raise GlobalConfigError("QUARANTINE_RECEIPT_MODE_INVALID")
 
 
 def verify_prepared_global_config(
@@ -1200,25 +1554,19 @@ def verify_prepared_global_config(
     quarantine_fd: int | None = None
     try:
         _ensure_absent_at(etc_fd, "gnupg", "GLOBAL_CONFIG_DIR_STILL_PRESENT")
-        quarantine_fd = _open_verified_quarantine_dir(
+        quarantine_fd, q_entries = _open_verified_quarantine_dir(
             etc_fd, expected_uid=expected_file_uid, expected_gid=expected_file_gid
         )
         receipt = _read_quarantine_receipt_json(
             quarantine_fd, expected_uid=expected_file_uid, expected_gid=expected_file_gid
         )
-        _, retained_bytes, retained_sha256 = _read_verified_file_at(
+        _verify_quarantine_mode_and_contents(
             quarantine_fd,
-            SOURCE_CONFIG_NAME,
-            expected_uid=expected_file_uid,
-            expected_gid=expected_file_gid,
-            max_bytes=MAX_CONFIG_BYTES,
-            error_prefix="QUARANTINE_FILE",
-        )
-        _validate_quarantine_receipt(
+            q_entries,
             receipt,
             actual_helper_sha=actual_helper_sha,
-            retained_bytes_len=len(retained_bytes),
-            retained_sha256=retained_sha256,
+            expected_uid=expected_file_uid,
+            expected_gid=expected_file_gid,
         )
         return dict(receipt)
     finally:
@@ -1253,14 +1601,19 @@ def _write_json_output(path_str: str | None, payload: Mapping[str, Any]) -> None
         _close_fds(fd)
 
 
-def _failure_payload(code: str, *, schema: str = SCHEMA, preserved: bool = True) -> dict[str, Any]:
+def _failure_payload(
+    code: str, *, schema: str = SCHEMA, preserved: bool = True,
+    mutation_performed: bool = False, rollback_verified: bool | None = None,
+) -> dict[str, Any]:
     return {
         "admitting": False,
         "error_code": code,
+        "mutation_performed": bool(mutation_performed),
         "original_bytes_preserved": bool(preserved),
         "original_failed_guard_identified": False,
         "production_authority": False,
         "proposal_status": PROPOSAL_STATUS,
+        "rollback_verified": None if rollback_verified is None else bool(rollback_verified),
         "schema": schema,
         "status": "failed-closed",
     }
@@ -1362,7 +1715,8 @@ def main(argv: list[str] | None = None) -> int:
         _write_json_output(args.out, receipt)
     except GlobalConfigError as error:
         failure = _failure_payload(
-            error.code, schema=target_schema, preserved=error.original_bytes_preserved
+            error.code, schema=target_schema, preserved=error.original_bytes_preserved,
+            mutation_performed=error.mutation_performed, rollback_verified=error.rollback_verified,
         )
         try:
             _write_json_output(args.out, failure)
