@@ -29,7 +29,7 @@ if _MODULE_DIR not in sys.path:
 import b3_fixture_entrypoint as entry
 import prepare_isolated_global_config as helper
 
-EXPECTED_HELPER_SHA256 = "57cc7e323ba4bdd93e47a58b849ce36af851d2e475f3a28b5290a5ab44471625"
+EXPECTED_HELPER_SHA256 = "c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11"
 SAMPLE_CONFIG_BYTES = (
     b"# Default packaged Fedora 43 gpgconf.conf fixture\n"
     b"# Must never appear in any receipt or diagnostic output\n"
@@ -86,13 +86,46 @@ def _valid_rpm_runner(argv: list[str]) -> tuple[int, str]:
     return 1, ""
 
 
-def _stat_with_config_owner(
+def _valid_ghost_rpm_runner(argv: list[str]) -> tuple[int, str]:
+    if argv == [
+        "/usr/bin/rpm",
+        "-q",
+        "--queryformat",
+        "[%{FILENAMES}\t%{FILEFLAGS}\t%{FILESIZES}\t%{FILEDIGESTS}\n]",
+        "gnupg2-gpgconf-2.4.9-5.fc43.x86_64",
+    ]:
+        return (
+            0,
+            "\n".join([
+                "/etc/gnupg\t0\t0\t",
+                "/etc/gnupg/gpgconf.conf\t81\t0\t",
+                f"/usr/bin/gpgconf\t0\t120112\t{'a' * 64}",
+                f"/usr/share/man/man1/gpgconf.1.gz\t2\t5843\t{'b' * 64}",
+            ])
+            + "\n",
+        )
+    return _valid_rpm_runner(argv)
+
+
+def _ghost_rpm_runner_override(
+    match_arg: str,
+    rc: int,
+    out: str,
+    argv: list[str],
+) -> tuple[int, str]:
+    if match_arg in argv:
+        return rc, out
+    return _valid_ghost_rpm_runner(argv)
+
+
+def _stat_with_target_owner(
     st: os.stat_result,
     path: object,
+    target_name: str,
     uid: int,
     gid: int,
 ) -> os.stat_result:
-    if path != helper.SOURCE_CONFIG_NAME:
+    if path != target_name:
         return st
     return os.stat_result((
         st.st_mode,
@@ -106,6 +139,15 @@ def _stat_with_config_owner(
         st.st_mtime,
         st.st_ctime,
     ))
+
+
+def _stat_with_config_owner(
+    st: os.stat_result,
+    path: object,
+    uid: int,
+    gid: int,
+) -> os.stat_result:
+    return _stat_with_target_owner(st, path, helper.SOURCE_CONFIG_NAME, uid, gid)
 
 
 def _rpm_runner_override(
@@ -158,6 +200,41 @@ def _rmdir_then_corrupt_quarantine(root: Path, dir_fd: int, name: str) -> None:
     q_cfg = root / "etc" / helper.QUARANTINE_DIR_NAME / "gpgconf.conf"
     q_cfg.chmod(0o600)
     q_cfg.write_bytes(b"post-rmdir-tamper\n")
+
+
+def _ghost_rpm_runner_add_late_member(root: Path, argv: list[str]) -> tuple[int, str]:
+    if "-V" in argv:
+        (root / "etc/gnupg/late.conf").write_bytes(b"late\n")
+    return _valid_ghost_rpm_runner(argv)
+
+
+def _ghost_rpm_runner_replace_gnupg_dir(root: Path, argv: list[str]) -> tuple[int, str]:
+    if "-V" in argv:
+        moved = root / "etc/gnupg-moved"
+        (root / "etc/gnupg").rename(moved)
+        replacement = root / "etc/gnupg"
+        replacement.mkdir(mode=0o755)
+    return _valid_ghost_rpm_runner(argv)
+
+
+def _ghost_rpm_runner_replace_etc_dir(root: Path, argv: list[str]) -> tuple[int, str]:
+    if "-V" in argv:
+        moved = root / "etc-moved"
+        (root / "etc").rename(moved)
+        replacement = root / "etc/gnupg"
+        replacement.mkdir(parents=True, mode=0o755)
+        (root / "etc").chmod(0o755)
+    return _valid_ghost_rpm_runner(argv)
+
+
+def _rmdir_then_raise(dir_fd: int, name: str) -> None:
+    os.rmdir(name, dir_fd=dir_fd)
+    raise OSError("simulated uncertain post-rmdir failure")
+
+
+def _rmdir_with_stuck_quarantine(root: Path, _dir_fd: int, _name: str) -> None:
+    (root / "etc" / helper.QUARANTINE_DIR_NAME / "stuck").write_bytes(b"stuck\n")
+    raise OSError("simulated rmdir failure with stuck quarantine")
 
 
 def _rooted_c6_lstat(root: Path, uid: int, path: object, *args, **kwargs):
@@ -283,6 +360,7 @@ class PrepareIsolatedGlobalConfigTests(unittest.TestCase):
         self.assertEqual(receipt["schema"], helper.SCHEMA)
         self.assertEqual(receipt["status"], "isolated-global-config-prepared")
         self.assertEqual(receipt["proposal_status"], "proposed-unadopted")
+        self.assertEqual(receipt["preparation_mode"], helper.REGULAR_CONFIG_MODE)
         self.assertFalse(receipt["production_authority"])
         self.assertFalse(receipt["admitting"])
         self.assertFalse(receipt["original_failed_guard_identified"])
@@ -322,6 +400,60 @@ class PrepareIsolatedGlobalConfigTests(unittest.TestCase):
 
         verified = self._run_verify()
         self.assertEqual(verified, receipt)
+
+    def test_empty_ghost_dir_mode_removes_empty_etc_gnupg_writes_receipt_only_and_verifies(
+        self,
+    ) -> None:
+        (self.root / "etc/gnupg/gpgconf.conf").unlink()
+        receipt = self._run_prepare(command_runner=_valid_ghost_rpm_runner)
+        self.assertEqual(
+            receipt,
+            {
+                "admitting": False,
+                "c6_source_sha256": helper.REVIEWED_C6_SOURCE_SHA256,
+                "c6_source_verified": False,
+                "config_file_present_at_prepare": False,
+                "etc_gnupg_absent_confirmed": True,
+                "etc_gnupg_empty_verified_before_and_after_rpm": True,
+                "etc_gnupg_initial_entry_count": 0,
+                "gpgconf_ctl_absent_confirmed": True,
+                "gpgconf_ctl_modified": False,
+                "helper_source_sha256": EXPECTED_HELPER_SHA256,
+                "original_failed_guard_identified": False,
+                "package": {
+                    "arch": "x86_64",
+                    "config_declaration": "ghost+config(noreplace)",
+                    "config_member_path": "/etc/gnupg/gpgconf.conf",
+                    "etc_inventory": ["/etc/gnupg", "/etc/gnupg/gpgconf.conf"],
+                    "name": "gnupg2-gpgconf",
+                    "nevra": "gnupg2-gpgconf-2.4.9-5.fc43.x86_64",
+                    "owner_verified": True,
+                    "release": "5.fc43",
+                    "rpm_filedigest": "",
+                    "rpm_fileflags": 81,
+                    "rpm_filesize": 0,
+                    "rpm_ghost_config_verified": True,
+                    "rpm_verify_clean": True,
+                    "version": "2.4.9",
+                },
+                "preparation_mode": helper.EMPTY_GHOST_DIR_MODE,
+                "production_authority": False,
+                "proposal_status": "proposed-unadopted",
+                "quarantine_copy_verified": False,
+                "quarantine_custody_files": [helper.QUARANTINE_RECEIPT_NAME],
+                "schema": helper.SCHEMA,
+                "status": "isolated-global-config-prepared",
+            },
+        )
+        self.assertFalse((self.root / "etc/gnupg").exists())
+        self.assertFalse((self.root / "usr/bin/gpgconf.ctl").exists())
+        q_dir = self.root / "etc" / helper.QUARANTINE_DIR_NAME
+        self.assertEqual(sorted(os.listdir(q_dir)), [helper.QUARANTINE_RECEIPT_NAME])
+        self.assertFalse((q_dir / "gpgconf.conf").exists())
+        q_rcpt = q_dir / helper.QUARANTINE_RECEIPT_NAME
+        self.assertEqual(stat.S_IMODE(q_rcpt.lstat().st_mode), 0o600)
+        self.assertEqual(q_rcpt.lstat().st_nlink, 1)
+        self.assertEqual(self._run_verify(), receipt)
 
     def test_rejects_non_linux_non_root_and_credential_environment_before_mutation(self) -> None:
         with self.assertRaisesRegex(helper.GlobalConfigError, "CREDENTIAL_ENV_FORBIDDEN"):
@@ -407,9 +539,16 @@ class PrepareIsolatedGlobalConfigTests(unittest.TestCase):
         extra.unlink()
 
         cfg = self.root / "etc/gnupg/gpgconf.conf"
-        cfg.unlink()
+        wrong = self.root / "etc/gnupg/wrong.conf"
+        cfg.rename(wrong)
         with self.assertRaisesRegex(helper.GlobalConfigError, "GLOBAL_CONFIG_DIR_INVENTORY_MISMATCH"):
-            self._run_prepare(command_runner=lambda _: self.fail("must reject empty dir"))
+            self._run_prepare(command_runner=lambda _: self.fail("must reject wrong member name"))
+        wrong.unlink()
+
+        with self.assertRaisesRegex(
+            helper.GlobalConfigError, "RPM_GHOST_CONFIG_METADATA_QUERY_FAILED"
+        ):
+            self._run_prepare()
         cfg.write_bytes(SAMPLE_CONFIG_BYTES)
         cfg.chmod(0o644)
 
@@ -672,6 +811,285 @@ class PrepareIsolatedGlobalConfigTests(unittest.TestCase):
             self._run_prepare()
             layout = real_c6._preflight_external_paths()
             self.assertEqual(layout.alias_target, "/run")
+
+            shutil.rmtree(self.root / "etc" / helper.QUARANTINE_DIR_NAME)
+            (self.root / "etc/gnupg").mkdir(mode=0o755)
+            with self.assertRaises(real_c6.OwnedAgentError) as empty_err:
+                real_c6._preflight_external_paths()
+            self.assertEqual(empty_err.exception.code, "GLOBAL_CONFIG_REJECTED")
+            self._run_prepare(command_runner=_valid_ghost_rpm_runner)
+            layout_after_empty = real_c6._preflight_external_paths()
+            self.assertEqual(layout_after_empty.alias_target, "/run")
+
+    def test_empty_ghost_dir_rejects_invalid_rpm_ghost_metadata_owner_inventory_or_verify(
+        self,
+    ) -> None:
+        (self.root / "etc/gnupg/gpgconf.conf").unlink()
+        qfmt = "[%{FILENAMES}\t%{FILEFLAGS}\t%{FILESIZES}\t%{FILEDIGESTS}\n]"
+        wrong_owner = "gnupg2\t2.4.9\t5.fc43\tx86_64\n"
+        cases = [
+            ("-qf", 1, "", "RPM_OWNER_QUERY_FAILED"),
+            ("-qf", 0, wrong_owner * 2, "RPM_PACKAGE_TUPLE_MISMATCH"),
+            (
+                "-ql",
+                0,
+                "/etc/gnupg\n/etc/gnupg/gpgconf.conf\n/etc/gnupg/extra.conf\n",
+                "RPM_PACKAGE_INVENTORY_MISMATCH",
+            ),
+            (
+                "-ql",
+                0,
+                "/etc/gnupg\n/etc/gnupg/gpgconf.conf\n/usr/bin/gpgconf.ctl\n",
+                "GPGCONF_CTL_PRESENT_REFUSED",
+            ),
+            (qfmt, 1, "", "RPM_GHOST_CONFIG_METADATA_QUERY_FAILED"),
+            (qfmt, 0, "/etc/gnupg\t0\t0\n", "RPM_GHOST_CONFIG_METADATA_QUERY_FAILED"),
+            (qfmt, 0, "/etc/gnupg\tx\t0\t\n/etc/gnupg/gpgconf.conf\t81\t0\t\n", "RPM_GHOST_CONFIG_METADATA_QUERY_FAILED"),
+            (
+                qfmt,
+                0,
+                "/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t81\t0\t\n/etc/gnupg/gpgconf.conf\t81\t0\t\n",
+                "RPM_GHOST_CONFIG_METADATA_QUERY_FAILED",
+            ),
+            (qfmt, 0, "/etc/gnupg\t0\t0\t\n", "RPM_GHOST_CONFIG_METADATA_QUERY_FAILED"),
+            (qfmt, 0, "/etc/gnupg\t16\t0\t\n/etc/gnupg/gpgconf.conf\t81\t0\t\n", "RPM_GNUPG_DIR_METADATA_MISMATCH"),
+            (qfmt, 0, "/etc/gnupg\t0\t4096\t\n/etc/gnupg/gpgconf.conf\t81\t0\t\n", "RPM_GNUPG_DIR_METADATA_MISMATCH"),
+            (
+                qfmt,
+                0,
+                f"/etc/gnupg\t0\t0\t{'c' * 64}\n/etc/gnupg/gpgconf.conf\t81\t0\t\n",
+                "RPM_GNUPG_DIR_METADATA_MISMATCH",
+            ),
+            (qfmt, 0, "/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t0\t0\t\n", "RPM_GHOST_CONFIG_FLAGS_MISMATCH"),
+            (qfmt, 0, "/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t17\t0\t\n", "RPM_GHOST_CONFIG_FLAGS_MISMATCH"),
+            (qfmt, 0, "/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t64\t0\t\n", "RPM_GHOST_CONFIG_FLAGS_MISMATCH"),
+            (qfmt, 0, "/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t65\t0\t\n", "RPM_GHOST_CONFIG_FLAGS_MISMATCH"),
+            (qfmt, 0, "/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t81\t110\t\n", "RPM_GHOST_CONFIG_SIZE_MISMATCH"),
+            (
+                qfmt,
+                0,
+                f"/etc/gnupg\t0\t0\t\n/etc/gnupg/gpgconf.conf\t81\t0\t{'a' * 64}\n",
+                "RPM_GHOST_CONFIG_DIGEST_MISMATCH",
+            ),
+            ("-V", 1, "missing   c /etc/gnupg/gpgconf.conf\n", "RPM_VERIFY_MODIFIED_OR_FAILED"),
+        ]
+        for match_arg, rc, out, expected_code in cases:
+            with self.assertRaisesRegex(helper.GlobalConfigError, expected_code) as cm:
+                self._run_prepare(
+                    command_runner=lambda argv, m=match_arg, r=rc, o=out: _ghost_rpm_runner_override(
+                        m, r, o, argv
+                    )
+                )
+            self.assertTrue(cm.exception.original_bytes_preserved)
+            self.assertFalse(cm.exception.mutation_performed)
+            self.assertIsNone(cm.exception.rollback_verified)
+        self.assertTrue((self.root / "etc/gnupg").is_dir())
+        self.assertEqual(os.listdir(self.root / "etc/gnupg"), [])
+        self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+
+    def test_empty_ghost_dir_layout_change_rmdir_and_receipt_failures_never_fabricate_config(
+        self,
+    ) -> None:
+        (self.root / "etc/gnupg/gpgconf.conf").unlink()
+        with self.assertRaisesRegex(helper.GlobalConfigError, "GLOBAL_CONFIG_LAYOUT_CHANGED") as cm:
+            self._run_prepare(
+                command_runner=lambda argv: _ghost_rpm_runner_add_late_member(self.root, argv)
+            )
+        self.assertTrue(cm.exception.original_bytes_preserved)
+        self.assertFalse(cm.exception.mutation_performed)
+        self.assertIsNone(cm.exception.rollback_verified)
+        self.assertEqual((self.root / "etc/gnupg/late.conf").read_bytes(), b"late\n")
+        (self.root / "etc/gnupg/late.conf").unlink()
+        self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+
+        with self.assertRaisesRegex(helper.GlobalConfigError, "GLOBAL_CONFIG_LAYOUT_CHANGED") as cm:
+            self._run_prepare(
+                command_runner=lambda argv: _ghost_rpm_runner_replace_gnupg_dir(self.root, argv)
+            )
+        self.assertTrue(cm.exception.original_bytes_preserved)
+        self.assertFalse(cm.exception.mutation_performed)
+        self.assertIsNone(cm.exception.rollback_verified)
+        self.assertTrue((self.root / "etc/gnupg").is_dir())
+        shutil.rmtree(self.root / "etc/gnupg-moved", ignore_errors=True)
+        self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+
+        with self.assertRaisesRegex(helper.GlobalConfigError, "GLOBAL_CONFIG_LAYOUT_CHANGED") as cm:
+            self._run_prepare(
+                command_runner=lambda argv: _ghost_rpm_runner_replace_etc_dir(self.root, argv)
+            )
+        self.assertTrue(cm.exception.original_bytes_preserved)
+        self.assertFalse(cm.exception.mutation_performed)
+        self.assertIsNone(cm.exception.rollback_verified)
+        shutil.rmtree(self.root / "etc-moved", ignore_errors=True)
+        self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+
+    def test_empty_ghost_dir_rmdir_and_receipt_rollback_semantics(self) -> None:
+        (self.root / "etc/gnupg/gpgconf.conf").unlink()
+        for intact_rmdir in (_failing_rmdir, lambda _dfd, _name: None):
+            with self.assertRaisesRegex(
+                helper.GlobalConfigError, "GLOBAL_CONFIG_RMDIR_FAILED"
+            ) as cm:
+                self._run_prepare(
+                    command_runner=_valid_ghost_rpm_runner,
+                    rmdir_runner=intact_rmdir,
+                )
+            self.assertTrue(cm.exception.original_bytes_preserved)
+            self.assertTrue(cm.exception.mutation_performed)
+            self.assertTrue(cm.exception.rollback_verified)
+            self.assertTrue((self.root / "etc/gnupg").is_dir())
+            self.assertFalse((self.root / "etc/gnupg/gpgconf.conf").exists())
+            self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+
+        with self.assertRaisesRegex(
+            helper.GlobalConfigError, "GLOBAL_CONFIG_RMDIR_FAILED"
+        ) as cm:
+            self._run_prepare(
+                command_runner=_valid_ghost_rpm_runner,
+                rmdir_runner=lambda dfd, n: _rmdir_with_stuck_quarantine(self.root, dfd, n),
+            )
+        self.assertFalse(cm.exception.original_bytes_preserved)
+        self.assertTrue(cm.exception.mutation_performed)
+        self.assertFalse(cm.exception.rollback_verified)
+        shutil.rmtree(self.root / "etc" / helper.QUARANTINE_DIR_NAME, ignore_errors=True)
+
+        with self.assertRaisesRegex(
+            helper.GlobalConfigError, "GLOBAL_CONFIG_RMDIR_FAILED"
+        ) as cm:
+            self._run_prepare(
+                command_runner=_valid_ghost_rpm_runner,
+                rmdir_runner=_rmdir_then_raise,
+            )
+        self.assertFalse(cm.exception.original_bytes_preserved)
+        self.assertTrue(cm.exception.mutation_performed)
+        self.assertFalse(cm.exception.rollback_verified)
+        self.assertFalse((self.root / "etc/gnupg").exists())
+        self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+        (self.root / "etc/gnupg").mkdir(mode=0o755)
+
+        with patch(
+            "prepare_isolated_global_config._write_exact_file_at",
+            side_effect=OSError("simulated receipt write failure"),
+        ):
+            with self.assertRaisesRegex(
+                helper.GlobalConfigError, "QUARANTINE_RECEIPT_WRITE_FAILED"
+            ) as cm:
+                self._run_prepare(command_runner=_valid_ghost_rpm_runner)
+        self.assertFalse(cm.exception.original_bytes_preserved)
+        self.assertTrue(cm.exception.mutation_performed)
+        self.assertFalse(cm.exception.rollback_verified)
+        self.assertFalse((self.root / "etc/gnupg").exists())
+        self.assertFalse((self.root / "etc" / helper.QUARANTINE_DIR_NAME).exists())
+
+    def test_verify_prepared_enforces_mode_inventory_and_strict_receipt_types(self) -> None:
+        (self.root / "etc/gnupg/gpgconf.conf").unlink()
+        receipt = self._run_prepare(command_runner=_valid_ghost_rpm_runner)
+        q_dir = self.root / "etc" / helper.QUARANTINE_DIR_NAME
+        q_rcpt = q_dir / helper.QUARANTINE_RECEIPT_NAME
+
+        (self.root / "etc/gnupg").mkdir(mode=0o755)
+        with self.assertRaisesRegex(helper.GlobalConfigError, "GLOBAL_CONFIG_DIR_STILL_PRESENT"):
+            self._run_verify()
+        (self.root / "etc/gnupg").rmdir()
+
+        with self.assertRaisesRegex(helper.GlobalConfigError, "HELPER_SOURCE_DIGEST_MISMATCH"):
+            self._run_verify(expected_helper_sha256="0" * 64)
+
+        extra_cfg = q_dir / "gpgconf.conf"
+        extra_cfg.write_bytes(SAMPLE_CONFIG_BYTES)
+        extra_cfg.chmod(0o600)
+        with self.assertRaisesRegex(helper.GlobalConfigError, "QUARANTINE_INVENTORY_MISMATCH"):
+            self._run_verify()
+        extra_cfg.unlink()
+
+        bad_mode = dict(receipt, preparation_mode="forged-mode")
+        q_rcpt.chmod(0o600)
+        q_rcpt.write_text(json.dumps(bad_mode, sort_keys=True) + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(helper.GlobalConfigError, "QUARANTINE_RECEIPT_MODE_INVALID"):
+            self._run_verify()
+
+        wrong_mode = dict(receipt, preparation_mode=helper.REGULAR_CONFIG_MODE)
+        q_rcpt.write_text(json.dumps(wrong_mode, sort_keys=True) + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(helper.GlobalConfigError, "QUARANTINE_INVENTORY_MISMATCH"):
+            self._run_verify()
+
+        tampered_receipts = [
+            dict(receipt, etc_gnupg_initial_entry_count=False),
+            dict(receipt, helper_source_sha256="0" * 64),
+            dict(receipt, package=dict(receipt["package"], rpm_fileflags=17)),
+            dict(receipt, package=dict(receipt["package"], rpm_filesize=1)),
+            dict(receipt, package=dict(receipt["package"], rpm_filedigest="a" * 64)),
+            dict(receipt, package=dict(receipt["package"], nevra="gnupg2-2.4.9-5.fc43.x86_64")),
+        ]
+        for tampered in tampered_receipts:
+            q_rcpt.write_text(json.dumps(tampered, sort_keys=True) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(helper.GlobalConfigError, "QUARANTINE_RECEIPT_MISMATCH"):
+                self._run_verify()
+
+    def test_empty_ghost_dir_rejects_symlinks_unsafe_modes_ctl_and_preexisting_quarantine(
+        self,
+    ) -> None:
+        (self.root / "etc/gnupg/gpgconf.conf").unlink()
+        with self.assertRaisesRegex(helper.GlobalConfigError, "HELPER_SOURCE_DIGEST_MISMATCH"):
+            self._run_prepare(
+                expected_helper_sha256="0" * 64,
+                command_runner=lambda _: self.fail("must refuse helper drift before rpm"),
+            )
+
+        ctl = self.root / "usr/bin/gpgconf.ctl"
+        ctl.write_bytes(b"rootdir = /etc/gnupg\n")
+        with self.assertRaisesRegex(helper.GlobalConfigError, "GPGCONF_CTL_PRESENT_REFUSED"):
+            self._run_prepare(command_runner=lambda _: self.fail("must refuse ctl before rpm"))
+        ctl.unlink()
+
+        gnupg_dir = self.root / "etc/gnupg"
+        gnupg_dir.chmod(0o777)
+        with self.assertRaisesRegex(
+            helper.GlobalConfigError, "GLOBAL_CONFIG_DIR_UNSAFE_MODE_OR_OWNER"
+        ):
+            self._run_prepare(command_runner=lambda _: self.fail("must refuse unsafe dir mode"))
+        gnupg_dir.chmod(0o755)
+
+        real_lstat = os.lstat
+        for bad_uid, bad_gid in ((self.uid + 1, self.gid), (self.uid, self.gid + 1)):
+            with patch(
+                "prepare_isolated_global_config.os.lstat",
+                side_effect=lambda p, *a, _u=bad_uid, _g=bad_gid, **kw: _stat_with_target_owner(
+                    real_lstat(p, *a, **kw), p, "gnupg", _u, _g
+                ),
+            ):
+                with self.assertRaisesRegex(
+                    helper.GlobalConfigError, "GLOBAL_CONFIG_DIR_UNSAFE_MODE_OR_OWNER"
+                ):
+                    self._run_prepare(
+                        command_runner=lambda _: self.fail("must refuse gnupg owner mismatch")
+                    )
+
+        real_gnupg = self.root / "etc/gnupg-real"
+        gnupg_dir.rename(real_gnupg)
+        gnupg_dir.symlink_to(real_gnupg)
+        with self.assertRaisesRegex(
+            helper.GlobalConfigError, "GLOBAL_CONFIG_DIR_NOT_PHYSICAL_DIR"
+        ):
+            self._run_prepare(command_runner=lambda _: self.fail("must refuse symlink dir"))
+        gnupg_dir.unlink()
+        real_gnupg.rename(gnupg_dir)
+
+        etc_dir = self.root / "etc"
+        real_etc = self.root / "etc-real"
+        etc_dir.rename(real_etc)
+        etc_dir.symlink_to(real_etc)
+        with self.assertRaisesRegex(helper.GlobalConfigError, "ETC_ANCESTRY_UNSAFE"):
+            self._run_prepare(command_runner=lambda _: self.fail("must refuse symlink etc"))
+        etc_dir.unlink()
+        real_etc.rename(etc_dir)
+
+        q_dir = self.root / "etc" / helper.QUARANTINE_DIR_NAME
+        q_dir.mkdir(mode=0o700)
+        with self.assertRaisesRegex(
+            helper.GlobalConfigError, "QUARANTINE_DESTINATION_PREEXISTING"
+        ):
+            self._run_prepare(command_runner=lambda _: self.fail("must refuse preexisting dest"))
+        q_dir.rmdir()
 
 
 if __name__ == "__main__":
