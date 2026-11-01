@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-01T18:27:12.890Z",
+  "generatedAt": "2026-11-01T21:02:16.819Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
-  "generationInputsSha256": "45cf143dddc1f4c5885b7c3e78766b2437a11931e11f4b9450c1b0385eee57b4",
-  "generationOverlayManifestSha256": "31a18b60a840992778f6a33611200930e786e42ad97543a25577e634f44e2dc1",
+  "generationInputsSha256": "be0f4446cd50cb54945c8ec28891200b5883619bee2193eb6d085b22907c1167",
+  "generationOverlayManifestSha256": "0e755ab9fc910a14517f9f74991394dffbd2c01daa3f548f47d92c8612d4ab52",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "31a18b60a840992778f6a33611200930e786e42ad97543a25577e634f44e2dc1",
+  "treeManifestSha256": "0e755ab9fc910a14517f9f74991394dffbd2c01daa3f548f47d92c8612d4ab52",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -129,8 +129,8 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 8196,
-      "sha256": "e772861bb295a430e51b7dfa57f94b7e3af6894d049121503d00a86c13c8133d"
+      "bytes": 10372,
+      "sha256": "88825dd937e7870ee4571fb2b5befcf8594a556e9a215a41c4a306bf09509e37"
     },
     {
       "path": "docs/p-native-gui-controller.md",
@@ -464,8 +464,8 @@
     },
     {
       "path": "tools/verification/b3/b3_fixture_entrypoint.py",
-      "bytes": 25507,
-      "sha256": "859ab90d3f756f23a187f5b62bbf161ec4b2af728b9ff6499dd5ea7239be88a3"
+      "bytes": 26180,
+      "sha256": "8c2f06fa4f8cd292c1bb8c6b7d258b17d6b12d5733f816d6acea27d972782d0c"
     },
     {
       "path": "tools/verification/b3/b3_fixture_inputs.py",
@@ -479,8 +479,8 @@
     },
     {
       "path": "tools/verification/b3/b3_fixture_workspace.py",
-      "bytes": 11471,
-      "sha256": "b00d5bf34ef5f782a161ca45c377a4973c6ccff9d02eb93702895eecec442d15"
+      "bytes": 14029,
+      "sha256": "9f66356f13e79a5e07237742d9e3f01314830e7b3c763b2839867ad44a0858ff"
     },
     {
       "path": "tools/verification/b3/inputs/CANONICAL-C6-SUBSET.json",
@@ -510,7 +510,7 @@
     {
       "path": "tools/verification/b3/manifest.json",
       "bytes": 4489,
-      "sha256": "67c50a26d107ae44360bcbdd28102f9be4bb3beb2bb4d7bb65b6d9b936e1097d"
+      "sha256": "cd62f9d78de39da2d5cbdf7dc643950e8954844ac2b670dbbb0eb180002a550c"
     },
     {
       "path": "tools/verification/b3/prepare_isolated_global_config.py",
@@ -520,12 +520,12 @@
     {
       "path": "tools/verification/b3/PROMOTION-LIST.json",
       "bytes": 1939,
-      "sha256": "65ec25149cbe6724696571c57298a8c346e4ea19706e2ba031010f4d4a4ec009"
+      "sha256": "d1dd23b782b930003df27b17610e09af5cceedf95abd2bfd6f575c2ecadc74ad"
     },
     {
       "path": "tools/verification/b3/test_b3_fixture_entrypoint.py",
-      "bytes": 54371,
-      "sha256": "3a1b05c041feff4951d45a4cff65e13b2a5cbb2ef486f75870d29df0c9000835"
+      "bytes": 65307,
+      "sha256": "a7e1c763ad2b5f5661c328e07ecd1dcd89448119b3e79f603a8e7f6c8ad4308d"
     },
     {
       "path": "tools/verification/b3/test_prepare_isolated_global_config.py",

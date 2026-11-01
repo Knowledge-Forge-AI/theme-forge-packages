@@ -364,14 +364,21 @@ def _closed_agent_observation(
     }
 
 
+_LIFECYCLE_PROGRESS_FIELDS = (
+    "start_returned",
+    "live_check_returned",
+    "close_returned",
+    "cleanup_confirmed",
+    "closed_observation_returned",
+)
+
+
 def _new_lifecycle_progress() -> dict[str, bool]:
-    return {
-        "start_returned": False,
-        "live_check_returned": False,
-        "close_returned": False,
-        "cleanup_confirmed": False,
-        "closed_observation_returned": False,
-    }
+    return dict.fromkeys(_LIFECYCLE_PROGRESS_FIELDS, False)
+
+
+def _lifecycle_cleanup_confirmed(progress: Mapping[str, object]) -> bool:
+    return all(progress.get(field) is True for field in _LIFECYCLE_PROGRESS_FIELDS)
 
 
 def _remove_lifecycle_workspace(
@@ -379,15 +386,24 @@ def _remove_lifecycle_workspace(
     progress: Mapping[str, bool],
     *,
     closed_observation_returned: bool = False,
+    allow_empty_private_keys_dir: bool = False,
 ) -> None:
+    lifecycle_progress = {
+        **progress,
+        "closed_observation_returned": closed_observation_returned,
+    }
+    allow_private_keys_cleanup = (
+        allow_empty_private_keys_dir is True
+        and _lifecycle_cleanup_confirmed(lifecycle_progress)
+    )
     try:
-        _remove_fresh_workspace(workspace)
+        _remove_fresh_workspace(
+            workspace,
+            allow_empty_private_keys_dir=allow_private_keys_cleanup,
+        )
     except FixtureError as error:
         detail = dict(error.sanitized_detail) if error.sanitized_detail is not None else {}
-        detail["lifecycle_progress"] = {
-            **progress,
-            "closed_observation_returned": closed_observation_returned,
-        }
+        detail["lifecycle_progress"] = lifecycle_progress
         raise FixtureError(
             error.code,
             retained_custody=error.retained_custody,
@@ -435,7 +451,7 @@ def run_lifecycle(
         except BaseException as error:
             cleanup = error
 
-    progress["cleanup_confirmed"] = bool(getattr(agent, "cleanup_confirmed", False))
+    progress["cleanup_confirmed"] = getattr(agent, "cleanup_confirmed", False) is True
     if cleanup is not None or not progress["cleanup_confirmed"]:
         _close_workspace_binding(workspace)
         raise FixtureError("CUSTODY_RETAINED", retained_custody=True, retained_root=workspace.root) from cleanup or primary
@@ -447,7 +463,14 @@ def run_lifecycle(
     except FixtureError:
         _close_workspace_binding(workspace)
         raise
-    _remove_lifecycle_workspace(workspace, progress, closed_observation_returned=True)
+    _remove_lifecycle_workspace(
+        workspace,
+        progress,
+        closed_observation_returned=True,
+        allow_empty_private_keys_dir=_lifecycle_cleanup_confirmed(
+            {**progress, "closed_observation_returned": True}
+        ),
+    )
     observation["cleanup"]["workspace_removed_confirmed"] = True
     tool_facts_out = dict(facts_summary)
     tool_facts_out["stage2_tool_digests_matched_c6_custody"] = (

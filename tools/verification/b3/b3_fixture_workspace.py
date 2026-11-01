@@ -271,21 +271,109 @@ def _summarize_cleanup_leftovers(
     }
 
 
-def _remove_fresh_workspace(binding: WorkspaceBinding) -> None:
+def _workspace_identities_intact(binding: WorkspaceBinding) -> bool:
+    return (
+        _same_fd_identity(binding.parent_fd, binding.parent_identity)
+        and _same_path_identity(binding.parent, binding.parent_identity)
+        and _same_fd_identity(binding.root_fd, binding.root_identity)
+        and _same_path_identity(binding.root, binding.root_identity)
+        and _same_fd_identity(binding.home_fd, binding.home_identity)
+        and _same_path_identity(binding.home, binding.home_identity)
+    )
+
+
+def _entry_absent(name: str, dir_fd: int) -> bool:
+    try:
+        os.lstat(name, dir_fd=dir_fd)
+    except FileNotFoundError:
+        return True
+    except OSError:
+        return False
+    return False
+
+
+def _private_keys_dir_identity(home_fd: int) -> FsIdentity | None:
+    try:
+        info = os.lstat(_PRIVATE_KEYS_DIR_NAME, dir_fd=home_fd)
+    except OSError:
+        return None
+    if (
+        stat.S_ISLNK(info.st_mode)
+        or not stat.S_ISDIR(info.st_mode)
+        or info.st_uid != os.getuid()
+        or stat.S_IMODE(info.st_mode) != 0o700
+    ):
+        return None
+    return _fs_identity(info)
+
+
+def _private_keys_dir_ready_for_rmdir(
+    binding: WorkspaceBinding,
+    pk_fd: int,
+    expected: FsIdentity,
+) -> bool:
+    pk_path = binding.home / _PRIVATE_KEYS_DIR_NAME
+    return (
+        _workspace_identities_intact(binding)
+        and os.listdir(binding.root_fd) == [binding.home.name]
+        and os.listdir(binding.home_fd) == [_PRIVATE_KEYS_DIR_NAME]
+        and _same_fd_identity(pk_fd, expected)
+        and _same_path_identity(pk_path, expected)
+        and _private_keys_dir_identity(binding.home_fd) == expected
+    )
+
+
+def _remove_empty_private_keys_dir(binding: WorkspaceBinding) -> bool:
+    """Remove fixed empty 0700 private-keys-v1.d via dir_fd rmdir; final name-to-rmdir race is narrow, not globally atomic."""
+    expected = _private_keys_dir_identity(binding.home_fd)
+    if expected is None:
+        return False
+    pk_path = binding.home / _PRIVATE_KEYS_DIR_NAME
+    pk_fd: int | None = None
+    try:
+        pk_fd = os.open(_PRIVATE_KEYS_DIR_NAME, _directory_open_flags(), dir_fd=binding.home_fd)
+        if (
+            not _same_fd_identity(pk_fd, expected)
+            or not _same_path_identity(pk_path, expected)
+            or os.listdir(pk_fd)
+            or not _private_keys_dir_ready_for_rmdir(binding, pk_fd, expected)
+        ):
+            return False
+        os.rmdir(_PRIVATE_KEYS_DIR_NAME, dir_fd=binding.home_fd)
+    except OSError:
+        return False
+    finally:
+        _close_partial_fds(pk_fd)
+    return _entry_absent(_PRIVATE_KEYS_DIR_NAME, binding.home_fd)
+
+
+def _rmdir_verified(name: str, dir_fd: int, root: Path) -> None:
+    os.rmdir(name, dir_fd=dir_fd)
+    if not _entry_absent(name, dir_fd):
+        raise FixtureError("WORKSPACE_CLEANUP_UNCONFIRMED", retained_custody=True, retained_root=root)
+
+
+def _remove_fresh_workspace(
+    binding: WorkspaceBinding,
+    *,
+    allow_empty_private_keys_dir: bool = False,
+) -> None:
     """Remove only the exact empty entries proven by the held identities."""
     root = binding.root
     try:
-        if (
-            not _same_fd_identity(binding.parent_fd, binding.parent_identity)
-            or not _same_path_identity(binding.parent, binding.parent_identity)
-            or not _same_fd_identity(binding.root_fd, binding.root_identity)
-            or not _same_path_identity(root, binding.root_identity)
-            or not _same_fd_identity(binding.home_fd, binding.home_identity)
-            or not _same_path_identity(binding.home, binding.home_identity)
-        ):
+        if not _workspace_identities_intact(binding):
             raise FixtureError("WORKSPACE_IDENTITY_CHANGED", retained_custody=True, retained_root=root)
         root_entries = os.listdir(binding.root_fd)
         home_entries = os.listdir(binding.home_fd)
+        if (
+            allow_empty_private_keys_dir is True
+            and (root_entries, home_entries) == ([binding.home.name], [_PRIVATE_KEYS_DIR_NAME])
+            and _remove_empty_private_keys_dir(binding)
+        ):
+            root_entries = os.listdir(binding.root_fd)
+            home_entries = os.listdir(binding.home_fd)
+        if not _workspace_identities_intact(binding):
+            raise FixtureError("WORKSPACE_IDENTITY_CHANGED", retained_custody=True, retained_root=root)
         if set(root_entries) != {binding.home.name} or home_entries:
             raise FixtureError(
                 "WORKSPACE_CLEANUP_UNCONFIRMED",
@@ -298,19 +386,8 @@ def _remove_fresh_workspace(binding: WorkspaceBinding) -> None:
                     binding.home.name,
                 ),
             )
-        os.rmdir(binding.home.name, dir_fd=binding.root_fd)
-        try:
-            os.lstat(binding.home.name, dir_fd=binding.root_fd)
-        except FileNotFoundError:
-            pass
-        else:
-            raise FixtureError("WORKSPACE_CLEANUP_UNCONFIRMED", retained_custody=True, retained_root=root)
-        os.rmdir(root.name, dir_fd=binding.parent_fd)
-        try:
-            os.lstat(root.name, dir_fd=binding.parent_fd)
-        except FileNotFoundError:
-            return
-        raise FixtureError("WORKSPACE_CLEANUP_UNCONFIRMED", retained_custody=True, retained_root=root)
+        _rmdir_verified(binding.home.name, binding.root_fd, root)
+        _rmdir_verified(root.name, binding.parent_fd, root)
     except FixtureError:
         raise
     except OSError as error:
