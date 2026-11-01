@@ -74,7 +74,7 @@
     "entrypoint": {
       "path": "b3_fixture_entrypoint.py",
       "role": "Stage 1 authentication, Stage 2 metadata measurement, lifecycle receipt, and explicit CLI refusal boundary",
-      "sha256": "0bb9af381c744d1ca575709dcf9c54db5daa1226105cebb1de55490730dd1c23"
+      "sha256": "859ab90d3f756f23a187f5b62bbf161ec4b2af728b9ff6499dd5ea7239be88a3"
     },
     "inputs": {
       "path": "b3_fixture_inputs.py",
@@ -84,7 +84,7 @@
     "tests": {
       "path": "test_b3_fixture_entrypoint.py",
       "role": "pure behavioral, isolated-CLI, copied-root relocation, Stage 2 metadata/privacy, and copied C6 custody coverage",
-      "sha256": "744debad7ccde029b0a2e4b7ddae5f414171777b884024bacca5ea6ed21e8625"
+      "sha256": "3a1b05c041feff4951d45a4cff65e13b2a5cbb2ef486f75870d29df0c9000835"
     },
     "types": {
       "path": "b3_fixture_types.py",
@@ -94,7 +94,7 @@
     "workspace": {
       "path": "b3_fixture_workspace.py",
       "role": "fresh parent/root/home identity, dirfd custody, and sanitized fail-closed cleanup",
-      "sha256": "bdb0afeb6d30837807724bac18c5104020971a4f1a1504b1f84ecdc1b96ecddd"
+      "sha256": "b00d5bf34ef5f782a161ca45c377a4973c6ccff9d02eb93702895eecec442d15"
     }
   },
   "production_authority": false,
