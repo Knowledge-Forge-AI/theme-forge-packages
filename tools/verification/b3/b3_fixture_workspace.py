@@ -14,6 +14,43 @@ if _MODULE_DIR not in sys.path:
 
 from b3_fixture_types import FixtureError, FsIdentity, WorkspaceBinding
 
+_MAX_DIAGNOSTIC_ENTRIES = 64
+_PRIVATE_KEYS_DIR_NAME = "private-keys-v1.d"
+_HOME_NAME_CATEGORIES = (
+    "private_keys_directory",
+    "random_seed",
+    "primary_socket",
+    "extra_socket",
+    "browser_socket",
+    "ssh_socket",
+    "common_config",
+    "other",
+)
+_KNOWN_HOME_ENTRY_NAMES = {
+    _PRIVATE_KEYS_DIR_NAME: "private_keys_directory",
+    "random_seed": "random_seed",
+    "S.gpg-agent": "primary_socket",
+    "S.gpg-agent.extra": "extra_socket",
+    "S.gpg-agent.browser": "browser_socket",
+    "S.gpg-agent.ssh": "ssh_socket",
+    "common.conf": "common_config",
+}
+_HOME_TYPE_CATEGORIES = (
+    "regular",
+    "directory",
+    "symlink",
+    "socket",
+    "other",
+    "vanished",
+    "unreadable",
+)
+_MODE_TYPE_LABELS = (
+    (stat.S_ISREG, "regular"),
+    (stat.S_ISDIR, "directory"),
+    (stat.S_ISLNK, "symlink"),
+    (stat.S_ISSOCK, "socket"),
+)
+
 
 def _validate_job_parent(path: str | os.PathLike[str]) -> Path:
     parent = _absolute_path(path, "job parent")
@@ -131,6 +168,109 @@ def _fresh_workspace(parent: Path) -> WorkspaceBinding:
         raise FixtureError("WORKSPACE_CREATE", retained_custody=job_root is not None, retained_root=job_root) from error
 
 
+def _entry_type_key(name: str, home_fd: int) -> str:
+    try:
+        mode = os.lstat(name, dir_fd=home_fd).st_mode
+    except FileNotFoundError:
+        return "vanished"
+    except OSError:
+        return "unreadable"
+    for check, label in _MODE_TYPE_LABELS:
+        if check(mode):
+            return label
+    return "other"
+
+
+def _private_keys_dir_summary(
+    status: str = "absent",
+    *,
+    empty: bool = False,
+    entry_count: int = 0,
+) -> dict[str, int | bool | str]:
+    return {
+        "present": status != "absent",
+        "status": status,
+        "identity_verified": status in {"complete", "truncated"},
+        "empty": empty,
+        "entry_count": entry_count,
+        "truncated": status == "truncated",
+    }
+
+
+def _inspect_private_keys_dir(home_fd: int, present: bool) -> dict[str, int | bool | str]:
+    if not present:
+        return _private_keys_dir_summary()
+    pk_fd: int | None = None
+    try:
+        info = os.lstat(_PRIVATE_KEYS_DIR_NAME, dir_fd=home_fd)
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+            return _private_keys_dir_summary("not-directory")
+        expected = _fs_identity(info)
+        pk_fd = os.open(_PRIVATE_KEYS_DIR_NAME, _directory_open_flags(), dir_fd=home_fd)
+        if info.st_uid != os.getuid() or not _same_fd_identity(pk_fd, expected):
+            return _private_keys_dir_summary("identity-mismatch")
+        children = os.listdir(pk_fd)
+    except FileNotFoundError:
+        return _private_keys_dir_summary("vanished")
+    except Exception:
+        return _private_keys_dir_summary("unreadable")
+    finally:
+        _close_partial_fds(pk_fd)
+    truncated = len(children) > _MAX_DIAGNOSTIC_ENTRIES
+    count = min(len(children), _MAX_DIAGNOSTIC_ENTRIES)
+    return _private_keys_dir_summary(
+        "truncated" if truncated else "complete",
+        empty=(not truncated and count == 0),
+        entry_count=count,
+    )
+
+
+def _summarize_cleanup_leftovers(
+    home_fd: int,
+    root_entries: list[str],
+    home_entries: list[str],
+    home_name: str,
+) -> dict[str, object]:
+    category_counts = dict.fromkeys(_HOME_NAME_CATEGORIES, 0)
+    type_counts = dict.fromkeys(_HOME_TYPE_CATEGORIES, 0)
+    extra_root = len(root_entries) - int(home_name in root_entries)
+    bounded_home = home_entries[:_MAX_DIAGNOSTIC_ENTRIES]
+    home_truncated = len(home_entries) > _MAX_DIAGNOSTIC_ENTRIES
+    truncated = home_truncated or len(root_entries) > _MAX_DIAGNOSTIC_ENTRIES
+    incomplete = False
+    inspected = 0
+    try:
+        for name in bounded_home:
+            inspected += 1
+            category_counts[_KNOWN_HOME_ENTRY_NAMES.get(name, "other")] += 1
+            type_counts[_entry_type_key(name, home_fd)] += 1
+    except Exception:
+        incomplete = True
+    pk_summary = _inspect_private_keys_dir(home_fd, _PRIVATE_KEYS_DIR_NAME in home_entries)
+    incomplete = (
+        incomplete
+        or type_counts["vanished"] > 0
+        or type_counts["unreadable"] > 0
+        or pk_summary["status"] in {"identity-mismatch", "vanished", "unreadable"}
+    )
+    status = (
+        "incomplete"
+        if incomplete
+        else ("truncated" if (truncated or bool(pk_summary["truncated"])) else "complete")
+    )
+    return {
+        "workspace_removed_confirmed": False,
+        "unexpected_root_entry_count": extra_root,
+        "unexpected_home_entry_count": len(home_entries),
+        "home_diagnostics_status": status,
+        "home_entries_inspected_count": inspected,
+        "home_entries_truncated": home_truncated,
+        "home_entry_category_counts": category_counts,
+        "home_entry_type_counts": type_counts,
+        "private_keys_directory": pk_summary,
+    }
+
+
 def _remove_fresh_workspace(binding: WorkspaceBinding) -> None:
     """Remove only the exact empty entries proven by the held identities."""
     root = binding.root
@@ -147,16 +287,16 @@ def _remove_fresh_workspace(binding: WorkspaceBinding) -> None:
         root_entries = os.listdir(binding.root_fd)
         home_entries = os.listdir(binding.home_fd)
         if set(root_entries) != {binding.home.name} or home_entries:
-            extra_root = len([name for name in root_entries if name != binding.home.name])
             raise FixtureError(
                 "WORKSPACE_CLEANUP_UNCONFIRMED",
                 retained_custody=True,
                 retained_root=root,
-                sanitized_detail={
-                    "workspace_removed_confirmed": False,
-                    "unexpected_root_entry_count": extra_root,
-                    "unexpected_home_entry_count": len(home_entries),
-                },
+                sanitized_detail=_summarize_cleanup_leftovers(
+                    binding.home_fd,
+                    root_entries,
+                    home_entries,
+                    binding.home.name,
+                ),
             )
         os.rmdir(binding.home.name, dir_fd=binding.root_fd)
         try:

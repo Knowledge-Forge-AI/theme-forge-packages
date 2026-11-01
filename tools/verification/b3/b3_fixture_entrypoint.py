@@ -364,6 +364,38 @@ def _closed_agent_observation(
     }
 
 
+def _new_lifecycle_progress() -> dict[str, bool]:
+    return {
+        "start_returned": False,
+        "live_check_returned": False,
+        "close_returned": False,
+        "cleanup_confirmed": False,
+        "closed_observation_returned": False,
+    }
+
+
+def _remove_lifecycle_workspace(
+    workspace: WorkspaceBinding,
+    progress: Mapping[str, bool],
+    *,
+    closed_observation_returned: bool = False,
+) -> None:
+    try:
+        _remove_fresh_workspace(workspace)
+    except FixtureError as error:
+        detail = dict(error.sanitized_detail) if error.sanitized_detail is not None else {}
+        detail["lifecycle_progress"] = {
+            **progress,
+            "closed_observation_returned": closed_observation_returned,
+        }
+        raise FixtureError(
+            error.code,
+            retained_custody=error.retained_custody,
+            retained_root=error.retained_root,
+            sanitized_detail=detail,
+        ) from error
+
+
 def run_lifecycle(
     spec: FixtureSpec,
     facts: dict[str, Any],
@@ -380,44 +412,42 @@ def run_lifecycle(
     support_checker()
     module = module_loader(spec)
     workspace = _fresh_workspace(job_parent)
+    progress = _new_lifecycle_progress()
     try:
         agent = module.OwnedGpgAgent(workspace.home, workspace.root)
     except BaseException as error:
-        try:
-            _remove_fresh_workspace(workspace)
-        except FixtureError:
-            raise
+        _remove_lifecycle_workspace(workspace, progress)
         raise FixtureError("AGENT_CONSTRUCTOR_FAILED") from error
 
     primary: BaseException | None = None
     cleanup: BaseException | None = None
     try:
         agent.start()
+        progress["start_returned"] = True
         agent.require_live()
+        progress["live_check_returned"] = True
     except BaseException as error:
         primary = error
     finally:
         try:
             agent.close()
+            progress["close_returned"] = True
         except BaseException as error:
             cleanup = error
 
-    confirmed = bool(getattr(agent, "cleanup_confirmed", False))
-    if cleanup is not None or not confirmed:
+    progress["cleanup_confirmed"] = bool(getattr(agent, "cleanup_confirmed", False))
+    if cleanup is not None or not progress["cleanup_confirmed"]:
         _close_workspace_binding(workspace)
         raise FixtureError("CUSTODY_RETAINED", retained_custody=True, retained_root=workspace.root) from cleanup or primary
     if primary is not None:
-        try:
-            _remove_fresh_workspace(workspace)
-        except FixtureError:
-            raise
+        _remove_lifecycle_workspace(workspace, progress)
         raise FixtureError("LIFECYCLE_FAILED") from primary
     try:
         observation = _closed_agent_observation(agent, workspace, fixture_seam, facts_summary)
     except FixtureError:
         _close_workspace_binding(workspace)
         raise
-    _remove_fresh_workspace(workspace)
+    _remove_lifecycle_workspace(workspace, progress, closed_observation_returned=True)
     observation["cleanup"]["workspace_removed_confirmed"] = True
     tool_facts_out = dict(facts_summary)
     tool_facts_out["stage2_tool_digests_matched_c6_custody"] = (

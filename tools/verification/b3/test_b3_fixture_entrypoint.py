@@ -17,6 +17,7 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import socket
 import stat
 import subprocess
 import sys
@@ -89,6 +90,17 @@ def _facts(mode: str = "fixture") -> dict[str, object]:
         },
         "images": _images(),
     }
+
+
+def _bind_inert_socket(directory: Path, name: str) -> None:
+    cwd = os.getcwd()
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        os.chdir(directory)
+        sock.bind(name)
+    finally:
+        os.chdir(cwd)
+        sock.close()
 
 
 class _FakeAgent:
@@ -347,14 +359,21 @@ class FixtureEntrypointTests(unittest.TestCase):
         (binding.home / "foreign").write_text("retained", encoding="utf-8")
         with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
             workspace._remove_fresh_workspace(binding)
-        self.assertEqual(
-            raised.exception.sanitized_detail,
-            {
-                "workspace_removed_confirmed": False,
-                "unexpected_root_entry_count": 0,
-                "unexpected_home_entry_count": 1,
+        self.assertEqual(raised.exception.sanitized_detail, {
+            "workspace_removed_confirmed": False, "unexpected_root_entry_count": 0, "unexpected_home_entry_count": 1,
+            "home_diagnostics_status": "complete", "home_entries_inspected_count": 1, "home_entries_truncated": False,
+            "home_entry_category_counts": {
+                "private_keys_directory": 0, "random_seed": 0, "primary_socket": 0, "extra_socket": 0,
+                "browser_socket": 0, "ssh_socket": 0, "common_config": 0, "other": 1,
             },
-        )
+            "home_entry_type_counts": {
+                "regular": 1, "directory": 0, "symlink": 0, "socket": 0, "other": 0, "vanished": 0, "unreadable": 0,
+            },
+            "private_keys_directory": {
+                "present": False, "status": "absent", "identity_verified": False,
+                "empty": False, "entry_count": 0, "truncated": False,
+            },
+        })
         for fd in (binding.parent_fd, binding.root_fd, binding.home_fd):
             with self.assertRaises(OSError):
                 os.fstat(fd)
@@ -435,6 +454,7 @@ class FixtureEntrypointTests(unittest.TestCase):
                 OwnedGpgAgent=_HomeReplacementAgent), support_checker=lambda: None, fixture_seam=True)
         retained = raised.exception.retained_root
         self.assertTrue(raised.exception.retained_custody)
+        self.assertTrue(raised.exception.sanitized_detail["lifecycle_progress"]["closed_observation_returned"])
         self.assertEqual((retained / "home" / "foreign").read_text(encoding="utf-8"), "replacement")
 
     def test_parent_identity_replacement_retains_foreign_parent(self):
@@ -872,6 +892,180 @@ class FixtureEntrypointTests(unittest.TestCase):
             if added and c6_dir in sys.path:
                 sys.path.remove(c6_dir)
             shutil.rmtree(short_root, ignore_errors=True)
+
+    def test_cleanup_leftover_known_unknown_names_and_mixed_types_without_disclosure(self):
+        binding = workspace._fresh_workspace(self.parent)
+        outside = self.parent / "outside-secret.txt"
+        outside.write_text("outside-target-secret", encoding="utf-8")
+        (binding.home / "private-keys-v1.d").mkdir(mode=0o700)
+        (binding.home / "random_seed").write_text("seed-bytes-secret", encoding="utf-8")
+        (binding.home / "common.conf").write_text("no-autostart", encoding="utf-8")
+        (binding.home / "secret-unknown.gpg").write_text("confidential-payload", encoding="utf-8")
+        os.symlink(outside, binding.home / "outside-link")
+        os.mkfifo(binding.home / "fifo-entry")
+        for sock_name in ("S.gpg-agent", "S.gpg-agent.extra", "S.gpg-agent.browser", "S.gpg-agent.ssh"):
+            _bind_inert_socket(binding.home, sock_name)
+        with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+            workspace._remove_fresh_workspace(binding)
+        detail = raised.exception.sanitized_detail
+        self.assertEqual((detail["unexpected_home_entry_count"], detail["home_diagnostics_status"]), (10, "complete"))
+        self.assertEqual(detail["home_entry_category_counts"], {
+            "private_keys_directory": 1, "random_seed": 1, "primary_socket": 1, "extra_socket": 1,
+            "browser_socket": 1, "ssh_socket": 1, "common_config": 1, "other": 3})
+        self.assertEqual(detail["home_entry_type_counts"], {
+            "regular": 3, "directory": 1, "symlink": 1, "socket": 4, "other": 1, "vanished": 0, "unreadable": 0})
+        self.assertEqual(detail["private_keys_directory"], {
+            "present": True, "status": "complete", "identity_verified": True,
+            "empty": True, "entry_count": 0, "truncated": False})
+        for token in ("private-keys-v1.d", "S.gpg-agent", "secret-unknown.gpg", "outside-link", "fifo-entry",
+                      "seed-bytes-secret", "confidential-payload", "outside-target-secret"):
+            self.assertNotIn(token, json.dumps(detail, sort_keys=True))
+        self.assertEqual((outside.read_text(encoding="utf-8"), (binding.home / "secret-unknown.gpg").read_text(encoding="utf-8")),
+                         ("outside-target-secret", "confidential-payload"))
+        shutil.rmtree(binding.root, ignore_errors=True)
+
+    def test_private_keys_directory_nonempty_symlink_and_identity_race_metadata(self):
+        binding = workspace._fresh_workspace(self.parent)
+        pk_dir = binding.home / "private-keys-v1.d"
+        pk_dir.mkdir(mode=0o700)
+        (pk_dir / "alpha.key").write_text("k1", encoding="utf-8")
+        (pk_dir / "beta.key").write_text("k2", encoding="utf-8")
+        with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+            workspace._remove_fresh_workspace(binding)
+        detail = raised.exception.sanitized_detail
+        self.assertEqual(detail["private_keys_directory"], {
+            "present": True, "status": "complete", "identity_verified": True,
+            "empty": False, "entry_count": 2, "truncated": False})
+        self.assertNotIn("alpha.key", json.dumps(detail))
+        self.assertEqual((pk_dir / "alpha.key").read_text(encoding="utf-8"), "k1")
+        shutil.rmtree(binding.root, ignore_errors=True)
+        binding2 = workspace._fresh_workspace(self.parent)
+        ext_dir = self.parent / "ext-keys"
+        ext_dir.mkdir(mode=0o700)
+        (ext_dir / "ext.key").write_text("ext", encoding="utf-8")
+        os.symlink(ext_dir, binding2.home / "private-keys-v1.d")
+        with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised2:
+            workspace._remove_fresh_workspace(binding2)
+        self.assertEqual((raised2.exception.sanitized_detail["private_keys_directory"]["status"],
+                          raised2.exception.sanitized_detail["home_entry_type_counts"]["symlink"]), ("not-directory", 1))
+        shutil.rmtree(binding2.root, ignore_errors=True)
+        binding3 = workspace._fresh_workspace(self.parent)
+        (binding3.home / "private-keys-v1.d").mkdir(mode=0o700)
+        orig_same_fd = workspace._same_fd_identity
+        held_fds = {binding3.parent_fd, binding3.root_fd, binding3.home_fd}
+        with patch.object(workspace, "_same_fd_identity",
+                          side_effect=lambda fd, exp: orig_same_fd(fd, exp) if fd in held_fds else False), \
+                self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised3:
+            workspace._remove_fresh_workspace(binding3)
+        self.assertEqual((raised3.exception.sanitized_detail["private_keys_directory"]["status"],
+                          raised3.exception.sanitized_detail["home_diagnostics_status"]), ("identity-mismatch", "incomplete"))
+        shutil.rmtree(binding3.root, ignore_errors=True)
+
+    def test_cleanup_leftover_vanished_unreadable_and_entry_cap_truncation(self):
+        binding = workspace._fresh_workspace(self.parent)
+        (binding.home / "private-keys-v1.d").mkdir(mode=0o700)
+        (binding.home / "ok").write_text("ok", encoding="utf-8")
+        orig_lstat = os.lstat
+        def fake_lstat(path, *args, **kwargs):
+            if kwargs.get("dir_fd") == binding.home_fd and path in {"vanished-entry", "denied-entry"}:
+                raise (FileNotFoundError if path == "vanished-entry" else PermissionError)(path)
+            return orig_lstat(path, *args, **kwargs)
+        home_list = ["vanished-entry", "denied-entry"] + ["ok"] * 62 + ["private-keys-v1.d"]
+        root_list = ["home"] + [f"r-{i}" for i in range(65)]
+        with patch.object(os, "listdir", side_effect=lambda fd: home_list if fd == binding.home_fd else root_list), \
+                patch.object(os, "lstat", side_effect=fake_lstat), \
+                patch.object(os, "open", side_effect=PermissionError("private-keys-v1.d")), \
+                self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+            workspace._remove_fresh_workspace(binding)
+        detail = raised.exception.sanitized_detail
+        self.assertEqual(
+            (detail["unexpected_root_entry_count"], detail["unexpected_home_entry_count"],
+             detail["home_entries_truncated"], detail["home_diagnostics_status"],
+             detail["home_entry_type_counts"]["vanished"], detail["home_entry_type_counts"]["unreadable"],
+             detail["private_keys_directory"]["status"]),
+            (65, 65, True, "incomplete", 1, 1, "unreadable"))
+        self.assertNotIn("denied-entry", json.dumps(detail))
+        shutil.rmtree(binding.root, ignore_errors=True)
+        binding2 = workspace._fresh_workspace(self.parent)
+        pk2 = binding2.home / "private-keys-v1.d"
+        pk2.mkdir(mode=0o700)
+        for idx in range(68):
+            (pk2 / f"k-{idx:02d}").write_text("x", encoding="utf-8")
+            (binding2.home / f"z-{idx:02d}").write_text("y", encoding="utf-8")
+        with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised2:
+            workspace._remove_fresh_workspace(binding2)
+        detail2 = raised2.exception.sanitized_detail
+        self.assertEqual((detail2["unexpected_home_entry_count"], detail2["home_entries_inspected_count"],
+                          detail2["home_entries_truncated"], detail2["home_diagnostics_status"]), (69, 64, True, "truncated"))
+        self.assertEqual(detail2["private_keys_directory"], {
+            "present": True, "status": "truncated", "identity_verified": True,
+            "empty": False, "entry_count": 64, "truncated": True})
+        shutil.rmtree(binding2.root, ignore_errors=True)
+
+    def test_lifecycle_progress_booleans_across_start_live_close_observation_and_cleanup(self):
+        class _StepAgent(_NativeReceiptShapeAgent):
+            step = ""
+            leave_entry = True
+            def _act(self, name: str, result: object = None) -> object:
+                if type(self).step == name:
+                    if type(self).leave_entry:
+                        (self.home / "private-keys-v1.d").mkdir(mode=0o700)
+                    raise RuntimeError(name)
+                return result
+            def __init__(self, home, job_root):
+                super().__init__(home, job_root)
+                self._act("ctor")
+            def start(self):
+                return self._act("start", super().start())
+            def require_live(self):
+                return self._act("live", super().require_live())
+            def close(self):
+                super().close()
+                if type(self).step == "post_close":
+                    (self.home / "private-keys-v1.d").mkdir(mode=0o700)
+                elif type(self).step == "stale_socket":
+                    (self.home / "S.gpg-agent").write_text("stale", encoding="utf-8")
+        loader = lambda _: types.SimpleNamespace(OwnedGpgAgent=_StepAgent)
+        _StepAgent.step, _StepAgent.leave_entry = "live", False
+        with self.assertRaisesRegex(entry.FixtureError, "LIFECYCLE_FAILED"):
+            entry.run_lifecycle(_spec(), _facts(), self.parent, module_loader=loader,
+                                support_checker=lambda: None, fixture_seam=True)
+        _StepAgent.step, _StepAgent.leave_entry = "stale_socket", False
+        with self.assertRaisesRegex(entry.FixtureError, "NATIVE_SOCKET_DISAPPEARANCE_UNCONFIRMED") as sock_err:
+            entry.run_lifecycle(_spec(), _facts("hosted-native"), self.parent, module_loader=loader,
+                                support_checker=lambda: None, fixture_seam=False)
+        shutil.rmtree(sock_err.exception.retained_root, ignore_errors=True)
+        for step_name, is_fixture, flags in (("ctor", True, (False, False, False, False, False)),
+                                             ("start", True, (False, False, True, True, False)),
+                                             ("live", True, (True, False, True, True, False)),
+                                             ("post_close", False, (True, True, True, True, True))):
+            _StepAgent.step, _StepAgent.leave_entry = step_name, True
+            with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+                entry.run_lifecycle(_spec(), _facts("fixture" if is_fixture else "hosted-native"), self.parent,
+                                    module_loader=loader, support_checker=lambda: None, fixture_seam=is_fixture)
+            self.assertTrue(raised.exception.retained_custody)
+            self.assertEqual(raised.exception.sanitized_detail["lifecycle_progress"], dict(zip(
+                ("start_returned", "live_check_returned", "close_returned",
+                 "cleanup_confirmed", "closed_observation_returned"), flags)))
+            shutil.rmtree(raised.exception.retained_root, ignore_errors=True)
+
+
+    def test_unexpected_metadata_error_counts_only_attempted_entries(self):
+        binding = workspace._fresh_workspace(self.parent)
+        for name in ("opaque-fixture-one", "opaque-fixture-two"):
+            (binding.home / name).write_text("retained", encoding="utf-8")
+        with patch.object(workspace, "_entry_type_key", side_effect=RuntimeError("withheld-fixture-detail")):
+            with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+                workspace._remove_fresh_workspace(binding)
+        detail = raised.exception.sanitized_detail
+        self.assertEqual(detail["home_entries_inspected_count"], 1)
+        self.assertEqual(detail["home_diagnostics_status"], "incomplete")
+        self.assertEqual(detail["unexpected_home_entry_count"], 2)
+        rendered = json.dumps(detail)
+        self.assertNotIn("opaque-fixture", rendered)
+        self.assertNotIn("withheld-fixture-detail", rendered)
+        self.assertEqual((binding.home / "opaque-fixture-two").read_text(encoding="utf-8"), "retained")
+        shutil.rmtree(binding.root)
 
 
 if __name__ == "__main__":
