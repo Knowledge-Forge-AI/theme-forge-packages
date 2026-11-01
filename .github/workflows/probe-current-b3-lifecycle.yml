@@ -38,6 +38,12 @@ jobs:
             --manifest "$PWD/tools/verification/b3/manifest.json" \
             --out "$evidence_dir/b3-stage1-authentication.json"
           python3 -I -B tools/verification/b3/test_b3_fixture_entrypoint.py
+          python3 -I -B tools/verification/b3/prepare_isolated_global_config.py \
+            --authenticate-source \
+            --expected-helper-sha256 57cc7e323ba4bdd93e47a58b849ce36af851d2e475f3a28b5290a5ab44471625 \
+            --expected-tests-sha256 84156d9d9ae490adbfa5306a5b584ff5a40b1c8be78cf9e5256d5868a25ae66a \
+            --out "$evidence_dir/b3-global-config-preparation.json"
+          python3 -I -B tools/verification/b3/test_prepare_isolated_global_config.py
       - name: Provision current R Fedora 43 builder and execute Stage 2 metadata plus B3 lifecycle
         env:
           B3_BASE_IMAGE: registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd
@@ -48,13 +54,20 @@ jobs:
           evidence_dir="$RUNNER_TEMP/p-b3-lifecycle-evidence"
           build_ctx="$(mktemp -d "$RUNNER_TEMP/p-b3-build-XXXXXXXX")"
           chmod 0700 "$build_ctx"
+          python3 -I -B tools/verification/b3/prepare_isolated_global_config.py \
+            --authenticate-source \
+            --expected-helper-sha256 57cc7e323ba4bdd93e47a58b849ce36af851d2e475f3a28b5290a5ab44471625 \
+            --expected-tests-sha256 84156d9d9ae490adbfa5306a5b584ff5a40b1c8be78cf9e5256d5868a25ae66a \
+            --out "$evidence_dir/b3-global-config-preparation.json"
+          install -m 0644 tools/verification/b3/prepare_isolated_global_config.py "$build_ctx/prepare_isolated_global_config.py"
           docker pull --platform linux/amd64 "$B3_BASE_IMAGE"
           distro_check="$(docker run --rm --network none --platform linux/amd64 "$B3_BASE_IMAGE" sh -c 'cat /etc/os-release; uname -m')"
           grep -q '^VERSION_ID=43$' <<<"$distro_check"
           grep -q '^x86_64$' <<<"$distro_check"
           cat >"$build_ctx/Dockerfile" <<'EOF'
           FROM registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd
-          RUN dnf install -y gnupg2 rpm-sign python3 && dnf clean all
+          COPY prepare_isolated_global_config.py /tmp/prepare_isolated_global_config.py
+          RUN dnf install -y gnupg2 rpm-sign python3 && dnf clean all && /usr/bin/python3 -I -B /tmp/prepare_isolated_global_config.py --prepare-image --expected-helper-sha256 57cc7e323ba4bdd93e47a58b849ce36af851d2e475f3a28b5290a5ab44471625 && rm -f /tmp/prepare_isolated_global_config.py
           EOF
           docker build --platform linux/amd64 -t "$B3_BUILDER_TAG" "$build_ctx"
           rm -rf "$build_ctx"
@@ -70,6 +83,10 @@ jobs:
             "$B3_BUILDER_TAG" \
             /usr/bin/bash -c '
               set -euo pipefail
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/prepare_isolated_global_config.py \
+                --verify-prepared \
+                --expected-helper-sha256 57cc7e323ba4bdd93e47a58b849ce36af851d2e475f3a28b5290a5ab44471625 \
+                --out /evidence/b3-global-config-preparation.json
               install -d -m 0700 -o 0 -g 0 /tmp/tf-b3-job-parent
               /usr/bin/python3 -I -B /workspace/tools/verification/b3/b3_fixture_entrypoint.py \
                 --measure-stage2 \
@@ -127,6 +144,7 @@ jobs:
           name: p-b3-lifecycle-evidence-x86_64-linux
           path: |
             ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-stage1-authentication.json
+            ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-global-config-preparation.json
             ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-stage2-metadata.json
             ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-lifecycle-receipt.json
             ${{ runner.temp }}/p-b3-lifecycle-evidence/b3-container-cleanup.json
