@@ -15,19 +15,19 @@
     },
     {
       "path": "b3_fixture_workspace.py",
-      "sha256": "b00d5bf34ef5f782a161ca45c377a4973c6ccff9d02eb93702895eecec442d15"
+      "sha256": "9f66356f13e79a5e07237742d9e3f01314830e7b3c763b2839867ad44a0858ff"
     },
     {
       "path": "b3_fixture_entrypoint.py",
-      "sha256": "859ab90d3f756f23a187f5b62bbf161ec4b2af728b9ff6499dd5ea7239be88a3"
+      "sha256": "8c2f06fa4f8cd292c1bb8c6b7d258b17d6b12d5733f816d6acea27d972782d0c"
     },
     {
       "path": "test_b3_fixture_entrypoint.py",
-      "sha256": "3a1b05c041feff4951d45a4cff65e13b2a5cbb2ef486f75870d29df0c9000835"
+      "sha256": "a7e1c763ad2b5f5661c328e07ecd1dcd89448119b3e79f603a8e7f6c8ad4308d"
     },
     {
       "path": "manifest.json",
-      "sha256": "67c50a26d107ae44360bcbdd28102f9be4bb3beb2bb4d7bb65b6d9b936e1097d"
+      "sha256": "cd62f9d78de39da2d5cbdf7dc643950e8954844ac2b670dbbb0eb180002a550c"
     },
     {
       "path": "inputs/CANONICAL-C6-SUBSET.json",

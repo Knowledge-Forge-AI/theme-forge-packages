@@ -1022,7 +1022,7 @@ class FixtureEntrypointTests(unittest.TestCase):
             def close(self):
                 super().close()
                 if type(self).step == "post_close":
-                    (self.home / "private-keys-v1.d").mkdir(mode=0o700)
+                    (self.home / "random_seed").write_text("stale", encoding="utf-8")
                 elif type(self).step == "stale_socket":
                     (self.home / "S.gpg-agent").write_text("stale", encoding="utf-8")
         loader = lambda _: types.SimpleNamespace(OwnedGpgAgent=_StepAgent)
@@ -1066,6 +1066,225 @@ class FixtureEntrypointTests(unittest.TestCase):
         self.assertNotIn("withheld-fixture-detail", rendered)
         self.assertEqual((binding.home / "opaque-fixture-two").read_text(encoding="utf-8"), "retained")
         shutil.rmtree(binding.root)
+
+    def _assert_fds_closed(self, descriptors: list[int]) -> None:
+        for fd in descriptors:
+            with self.assertRaises(OSError):
+                os.fstat(fd)
+
+    def test_empty_owned_private_keys_dir_removed_only_after_confirmed_lifecycle(self):
+        class _EmptyPkDirAgent(_NativeReceiptShapeAgent):
+            def close(self):
+                super().close()
+                (self.home / "private-keys-v1.d").mkdir(mode=0o700)
+
+        loader = lambda _: types.SimpleNamespace(OwnedGpgAgent=_EmptyPkDirAgent)
+        for mode, seam in (("fixture", True), ("hosted-native", False)):
+            receipt = entry.run_lifecycle(
+                _spec(),
+                _facts(mode),
+                self.parent,
+                module_loader=loader,
+                support_checker=lambda: None,
+                fixture_seam=seam,
+            )
+            self.assertTrue(receipt["cleanup"]["workspace_removed_confirmed"])
+            self.assertEqual(list(self.parent.iterdir()), [])
+
+        binding = workspace._fresh_workspace(self.parent)
+        (binding.home / "private-keys-v1.d").mkdir(mode=0o700)
+        opened_fds = [binding.parent_fd, binding.root_fd, binding.home_fd]
+        closed_fds: list[int] = []
+        orig_open, orig_close = os.open, os.close
+
+        def tracking_open(path, flags, *args, **kwargs):
+            fd = orig_open(path, flags, *args, **kwargs)
+            opened_fds.append(fd)
+            return fd
+
+        def tracking_close(fd):
+            closed_fds.append(fd)
+            return orig_close(fd)
+
+        with (
+            patch.object(os, "open", side_effect=tracking_open),
+            patch.object(os, "close", side_effect=tracking_close),
+            patch.object(os, "unlink", side_effect=AssertionError("unlink forbidden")),
+        ):
+            workspace._remove_fresh_workspace(binding, allow_empty_private_keys_dir=True)
+        self.assertEqual(len(opened_fds), 4)
+        self.assertEqual(sorted(closed_fds), sorted(opened_fds))
+        self._assert_fds_closed(opened_fds)
+        self.assertEqual(list(self.parent.iterdir()), [])
+
+        empty_binding = workspace._fresh_workspace(self.parent)
+        empty_fds = [empty_binding.parent_fd, empty_binding.root_fd, empty_binding.home_fd]
+        workspace._remove_fresh_workspace(empty_binding, allow_empty_private_keys_dir=True)
+        self._assert_fds_closed(empty_fds)
+        self.assertEqual(list(self.parent.iterdir()), [])
+
+    def test_empty_private_keys_dir_refuses_by_default_nonliteral_true_and_failed_lifecycle(self):
+        for bad_opt in (None, False, 1, "true", ["true"]):
+            binding = workspace._fresh_workspace(self.parent)
+            (binding.home / "private-keys-v1.d").mkdir(mode=0o700)
+            fds = [binding.parent_fd, binding.root_fd, binding.home_fd]
+            with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+                if bad_opt is None:
+                    workspace._remove_fresh_workspace(binding)
+                else:
+                    workspace._remove_fresh_workspace(binding, allow_empty_private_keys_dir=bad_opt)
+            self.assertTrue((binding.home / "private-keys-v1.d").is_dir())
+            self.assertTrue(raised.exception.sanitized_detail["private_keys_directory"]["empty"])
+            self._assert_fds_closed(fds)
+            shutil.rmtree(binding.root, ignore_errors=True)
+
+        all_true = {
+            "start_returned": True,
+            "live_check_returned": True,
+            "close_returned": True,
+            "cleanup_confirmed": True,
+            "closed_observation_returned": True,
+        }
+        for key in all_true:
+            for non_true in (False, 1):
+                binding = workspace._fresh_workspace(self.parent)
+                (binding.home / "private-keys-v1.d").mkdir(mode=0o700)
+                progress = {**all_true, key: non_true}
+                closed_obs = progress["closed_observation_returned"]
+                with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED"):
+                    entry._remove_lifecycle_workspace(
+                        binding,
+                        progress,
+                        closed_observation_returned=closed_obs,
+                        allow_empty_private_keys_dir=True,
+                    )
+                self.assertTrue((binding.home / "private-keys-v1.d").is_dir())
+                shutil.rmtree(binding.root, ignore_errors=True)
+
+    def test_empty_private_keys_dir_opt_in_retains_nonempty_symlink_file_and_extra_entries(self):
+        binding = workspace._fresh_workspace(self.parent)
+        pk_dir = binding.home / "private-keys-v1.d"
+        pk_dir.mkdir(mode=0o700)
+        child = pk_dir / "opaque-fixture.bin"
+        child.write_text("opaque-synthetic-fixture", encoding="utf-8")
+        orig_open = os.open
+
+        def forbid_child_open(path, flags, *args, **kwargs):
+            if "opaque-fixture" in str(path):
+                raise AssertionError("child open forbidden")
+            return orig_open(path, flags, *args, **kwargs)
+
+        with (
+            patch.object(os, "open", side_effect=forbid_child_open),
+            patch.object(os, "unlink", side_effect=AssertionError("unlink forbidden")),
+            self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised,
+        ):
+            workspace._remove_fresh_workspace(binding, allow_empty_private_keys_dir=True)
+        detail = raised.exception.sanitized_detail
+        self.assertEqual(detail["private_keys_directory"]["entry_count"], 1)
+        self.assertFalse(detail["private_keys_directory"]["empty"])
+        self.assertNotIn("opaque-fixture.bin", json.dumps(detail))
+        self.assertEqual(child.read_text(encoding="utf-8"), "opaque-synthetic-fixture")
+        shutil.rmtree(binding.root, ignore_errors=True)
+
+        ext_dir = self.parent / "ext-empty-dir"
+        ext_dir.mkdir(mode=0o700)
+        for kind in ("symlink", "file", "extra_home", "extra_root"):
+            ws = workspace._fresh_workspace(self.parent)
+            target = ws.home / "private-keys-v1.d"
+            if kind == "symlink":
+                os.symlink(ext_dir, target)
+            elif kind == "file":
+                target.write_text("regular", encoding="utf-8")
+                target.chmod(0o700)
+            else:
+                target.mkdir(mode=0o700)
+                extra = (ws.home / "random_seed") if kind == "extra_home" else (ws.root / "extra-root")
+                extra.write_text("retained", encoding="utf-8")
+            with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED"):
+                workspace._remove_fresh_workspace(ws, allow_empty_private_keys_dir=True)
+            self.assertTrue(os.path.lexists(target))
+            shutil.rmtree(ws.root, ignore_errors=True)
+        self.assertTrue(ext_dir.is_dir())
+
+    def test_empty_private_keys_dir_opt_in_retains_foreign_owner_and_wrong_mode(self):
+        for bad_mode in (0o755, 0o750, 0o500):
+            binding = workspace._fresh_workspace(self.parent)
+            pk_dir = binding.home / "private-keys-v1.d"
+            pk_dir.mkdir(mode=bad_mode)
+            pk_dir.chmod(bad_mode)
+            fds = [binding.parent_fd, binding.root_fd, binding.home_fd]
+            with self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised:
+                workspace._remove_fresh_workspace(binding, allow_empty_private_keys_dir=True)
+            self.assertTrue(pk_dir.is_dir())
+            self.assertTrue(raised.exception.retained_custody)
+            self._assert_fds_closed(fds)
+            pk_dir.chmod(0o700)
+            shutil.rmtree(binding.root, ignore_errors=True)
+
+        binding2 = workspace._fresh_workspace(self.parent)
+        pk_dir2 = binding2.home / "private-keys-v1.d"
+        pk_dir2.mkdir(mode=0o700)
+        fds2 = [binding2.parent_fd, binding2.root_fd, binding2.home_fd]
+        with (
+            patch.object(os, "getuid", return_value=os.getuid() + 1),
+            self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised2,
+        ):
+            workspace._remove_fresh_workspace(binding2, allow_empty_private_keys_dir=True)
+        self.assertEqual(raised2.exception.sanitized_detail["private_keys_directory"]["status"], "identity-mismatch")
+        self.assertTrue(pk_dir2.is_dir())
+        self._assert_fds_closed(fds2)
+        shutil.rmtree(binding2.root, ignore_errors=True)
+
+    def test_empty_private_keys_dir_refuses_identity_swap_and_populate_before_rmdir_races(self):
+        binding = workspace._fresh_workspace(self.parent)
+        pk_dir = binding.home / "private-keys-v1.d"
+        pk_dir.mkdir(mode=0o700)
+        swapped_out = self.parent / "swapped-original-pk"
+        held_fds = {binding.parent_fd, binding.root_fd, binding.home_fd}
+        orig_listdir = os.listdir
+        swapped = False
+
+        def swap_on_pk_listdir(fd):
+            nonlocal swapped
+            items = orig_listdir(fd)
+            if not swapped and fd not in held_fds:
+                swapped = True
+                pk_dir.rename(swapped_out)
+                pk_dir.mkdir(mode=0o700)
+            return items
+
+        with (
+            patch.object(os, "listdir", side_effect=swap_on_pk_listdir),
+            patch.object(os, "rmdir", side_effect=AssertionError("must refuse before rmdir")),
+            self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED"),
+        ):
+            workspace._remove_fresh_workspace(binding, allow_empty_private_keys_dir=True)
+        self.assertTrue(swapped_out.is_dir())
+        self.assertTrue(pk_dir.is_dir())
+        self._assert_fds_closed(list(held_fds))
+        shutil.rmtree(binding.root, ignore_errors=True)
+
+        binding2 = workspace._fresh_workspace(self.parent)
+        pk_dir2 = binding2.home / "private-keys-v1.d"
+        pk_dir2.mkdir(mode=0o700)
+        orig_rmdir = os.rmdir
+
+        def populate_before_rmdir(path, *args, **kwargs):
+            if path == "private-keys-v1.d":
+                (pk_dir2 / "late-child.opaque").write_text("retained", encoding="utf-8")
+            return orig_rmdir(path, *args, **kwargs)
+
+        with (
+            patch.object(os, "rmdir", side_effect=populate_before_rmdir),
+            self.assertRaisesRegex(entry.FixtureError, "WORKSPACE_CLEANUP_UNCONFIRMED") as raised2,
+        ):
+            workspace._remove_fresh_workspace(binding2, allow_empty_private_keys_dir=True)
+        detail2 = raised2.exception.sanitized_detail["private_keys_directory"]
+        self.assertEqual((detail2["empty"], detail2["entry_count"]), (False, 1))
+        self.assertEqual((pk_dir2 / "late-child.opaque").read_text(encoding="utf-8"), "retained")
+        self._assert_fds_closed([binding2.parent_fd, binding2.root_fd, binding2.home_fd])
+        shutil.rmtree(binding2.root, ignore_errors=True)
 
 
 if __name__ == "__main__":
