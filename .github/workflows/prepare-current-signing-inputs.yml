@@ -1,0 +1,152 @@
+name: Prepare Current Signing Inputs (Key Free)
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  resolve-quarantine:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      EXPECTED_ROOTS_SHA256: "05422a81ce3f2ac359b2673717436f46f4628cdbbaa187b78e76680962616be3"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Resolve public archives without installing packages
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]*$ && "$GITHUB_RUN_ATTEMPT" == 1 ]]
+          work="$RUNNER_TEMP/tf-tool-inputs-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir -m 0700 "$work"
+          mkdir -m 1777 "$work/quarantine"
+          umask 077
+          create_attempted=false
+          cleanup() {
+            status=$?
+            trap - EXIT
+            cleaned=false
+            if [[ "$create_attempted" == false ]]; then
+              cleaned=true
+            fi
+            if [[ -s "$work/container.id" ]]; then
+              cid="$(cat "$work/container.id")"
+              if [[ "$cid" =~ ^[0-9a-f]{64}$ ]]; then
+                if /usr/bin/docker rm -f "$cid" >"$work/cleanup.out" 2>"$work/cleanup.err"; then
+                  if remaining="$(/usr/bin/docker container ls --all --quiet --filter "id=$cid" 2>"$work/readback.err")" && [[ -z "$remaining" ]]; then
+                    cleaned=true
+                  fi
+                fi
+              fi
+            fi
+            /usr/bin/python3 -I -B - "$work/cleanup.json" "$cleaned" <<'PY'
+          import json, sys
+          from pathlib import Path
+          Path(sys.argv[1]).write_text(json.dumps({
+              "schema":"tf.runtime-resolution-cleanup.v1",
+              "cleanup_confirmed":sys.argv[2]=="true",
+              "production_authority":False
+          })+"\n")
+          PY
+            chmod 0700 "$work/quarantine"
+            if [[ "$cleaned" != true ]]; then
+              exit 2
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          /usr/bin/python3 -I -B - "$work/specs.json" <<'PY'
+          import hashlib, json, os, sys
+          from pathlib import Path
+          source=Path("tools/verification/current_signer/runtime-class-roots.json").read_bytes()
+          if hashlib.sha256(source).hexdigest()!=os.environ["EXPECTED_ROOTS_SHA256"]:
+              raise SystemExit("ROOTS_PIN")
+          if any("SIGNING" in k.upper() or "PASSPHRASE" in k.upper() for k in os.environ):
+              raise SystemExit("UNEXPECTED_SIGNING_ENVIRONMENT")
+          Path(sys.argv[1]).write_bytes(source)
+          PY
+          create_attempted=true
+          /usr/bin/docker create --platform linux/amd64 --user 0:0 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --mount "type=bind,src=$work/quarantine,dst=/quarantine" \
+            "registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd" \
+            /usr/bin/dnf --quiet --assumeyes \
+              --setopt=install_weak_deps=False --setopt=gpgcheck=True \
+              --exclude='*-devel' --exclude='*-debuginfo' --exclude='*-debugsource' \
+              --exclude='gcc*' --exclude='clang*' --exclude='kernel*' \
+              install --downloadonly --destdir=/quarantine \
+              "bsdtar-3.8.4-1.fc43.x86_64" \
+              "createrepo_c-1.2.1-3.fc43.x86_64" \
+              "createrepo_c-libs-1.2.1-3.fc43.x86_64" \
+              "gh-2.87.3-1.fc43.x86_64" \
+              "git-core-2.56.0-1.fc43.x86_64" \
+              "gnupg2-2.4.9-5.fc43.x86_64" \
+              "libalpm-7.0.0-5.fc43.x86_64" \
+              "libarchive-3.8.4-1.fc43.x86_64" \
+              "pacman-7.0.0-5.fc43.x86_64" \
+              "pacman-filesystem-7.0.0-5.fc43.noarch" \
+              "python3-3.14.8-1.fc43.x86_64" \
+              "rpm-sign-6.0.2-1.fc43.x86_64" \
+            >"$work/container.id" 2>"$work/create.err"
+          cid="$(cat "$work/container.id")"
+          [[ "$cid" =~ ^[0-9a-f]{64}$ ]]
+          /usr/bin/docker start --attach "$cid" >"$work/resolve.out" 2>"$work/resolve.err"
+          state="$(/usr/bin/docker inspect --format '{{.State.Status}} {{.State.ExitCode}}' "$cid" 2>"$work/state.err")"
+          [[ "$state" == "exited 0" ]]
+          chmod 0700 "$work/quarantine"
+          /usr/bin/python3 -I -B - "$work" <<'PY'
+          import hashlib, json, os, re, stat, sys
+          from pathlib import Path
+          root=Path(sys.argv[1]); directory=root/"quarantine"
+          document=json.loads((root/"specs.json").read_bytes())
+          expected={r["filename"]:r for r in document["roots"]}
+          found={}; total=0
+          for path in sorted(directory.iterdir()):
+              info=path.lstat()
+              if (not re.fullmatch(r"[A-Za-z0-9+_][A-Za-z0-9+_.-]*[.]rpm",path.name)
+                  or not stat.S_ISREG(info.st_mode) or info.st_nlink!=1
+                  or not 0<info.st_size<=64*1024*1024):
+                  raise SystemExit("QUARANTINE_MEMBER")
+              digest=hashlib.sha256()
+              with path.open("rb") as handle:
+                  while block:=handle.read(1024*1024):
+                      digest.update(block)
+              total+=info.st_size
+              found[path.name]={"bytes":info.st_size,"sha256":digest.hexdigest()}
+          if not 1<=len(found)<=160 or total>256*1024*1024:
+              raise SystemExit("QUARANTINE_BOUND")
+          for name,row in expected.items():
+              if name in found and found[name]!={"bytes":row["bytes"],"sha256":row["sha256"]}:
+                  raise SystemExit("QUARANTINE_ROOT_MISMATCH")
+          result={"schema":"tf.current-signer-quarantine.v1",
+                  "status":"quarantined-unadmitted","installed":False,
+                  "base_image":document["baseImage"],
+                  "production_authority":False,"source_commit":os.environ["GITHUB_SHA"],
+                  "archives":found,"total_bytes":total,
+                  "roots_absent_from_download":[n for n in expected if n not in found],
+                  "signature_license_collision_review":"pending"}
+          (directory/"QUARANTINE.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
+          print("PUBLIC_ARCHIVES_QUARANTINED",len(found),total)
+          PY
+      - name: Retain bounded public quarantine for separate admission
+        if: steps.resolve.outcome == 'success'
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: current-signer-quarantine-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/tf-tool-inputs-${{ github.run_id }}-${{ github.run_attempt }}/quarantine
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain fixed cleanup facts on failure as well
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: current-signer-quarantine-cleanup-${{ github.run_id }}
+          path: ${{ runner.temp }}/tf-tool-inputs-${{ github.run_id }}-${{ github.run_attempt }}/cleanup.json
+          if-no-files-found: warn
+          retention-days: 7
