@@ -139,10 +139,10 @@ jobs:
             --mount "type=bind,src=$work/quarantine,dst=/quarantine" \
             "registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd" \
             /usr/bin/dnf --quiet --assumeyes \
-              --setopt=install_weak_deps=False --setopt=gpgcheck=True \
+              --setopt=install_weak_deps=False --setopt=gpgcheck=True --setopt=destdir=/quarantine \
               --exclude='*-devel' --exclude='*-debuginfo' --exclude='*-debugsource' \
               --exclude='gcc*' --exclude='clang*' --exclude='kernel*' \
-              install --downloadonly --destdir=/quarantine \
+              install --downloadonly \
               "bsdtar-3.8.4-1.fc43.x86_64" \
               "createrepo_c-1.2.1-3.fc43.x86_64" \
               "createrepo_c-libs-1.2.1-3.fc43.x86_64" \

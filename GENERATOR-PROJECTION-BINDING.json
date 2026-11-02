@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-02T23:37:10.500Z",
+  "generatedAt": "2026-11-02T23:51:27.868Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "1f162d662638b2732d0a33ae1a38f1da63829db5feaaac20c551d74158866234",
+  "generationOverlayManifestSha256": "0176ad8011b68a9bc95221260b24560017830451f8a56600f92a3e06778d30fc",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "1f162d662638b2732d0a33ae1a38f1da63829db5feaaac20c551d74158866234",
+  "treeManifestSha256": "0176ad8011b68a9bc95221260b24560017830451f8a56600f92a3e06778d30fc",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -29,8 +29,8 @@
     },
     {
       "path": ".github/workflows/prepare-current-signing-inputs.yml",
-      "bytes": 11394,
-      "sha256": "ef56d177def980bc609a6088811fc3c502dabda2fc7b3b462f7d989b162e9b80"
+      "bytes": 11401,
+      "sha256": "494098d3b7b10a4b78c1b37a4c68d32e72551d17b38b83635b851e837f1b3f4f"
     },
     {
       "path": ".github/workflows/probe-current-b3-lifecycle.yml",
