@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-02T03:42:22.640Z",
+  "generatedAt": "2026-11-02T15:19:11.951Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
-  "generationInputsSha256": "be0f4446cd50cb54945c8ec28891200b5883619bee2193eb6d085b22907c1167",
-  "generationOverlayManifestSha256": "c7af8f0b17aae7de675dbc784d07f2ff391f63b2f09b86367a2ca6883a938824",
+  "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
+  "generationOverlayManifestSha256": "f37e35ccc70baa99605197dc76ae09b1ac6d01c84bd3cd88ba186523c44220e0",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "c7af8f0b17aae7de675dbc784d07f2ff391f63b2f09b86367a2ca6883a938824",
+  "treeManifestSha256": "f37e35ccc70baa99605197dc76ae09b1ac6d01c84bd3cd88ba186523c44220e0",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 139,
+  "totalFiles": 144,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -38,9 +38,14 @@
       "sha256": "c9af15f612a7864eab3e08464742c7e9d0262ac6a7aac8a12470ece07acdc234"
     },
     {
+      "path": ".github/workflows/probe-current-signer-c6-apt.yml",
+      "bytes": 11430,
+      "sha256": "9770ab7ce408fa57a24425d57080c94df0c805953a65800e42fc4d2ac9670a92"
+    },
+    {
       "path": ".github/workflows/probe-current-signer-c6-gpg.yml",
       "bytes": 11294,
-      "sha256": "9824f60fc367f8a2d278952abe8258c170515ed58b08be804a19facdd3b51859"
+      "sha256": "e630ca7ee41d4ed0841d59a74c1e31634505dcad08cda066a9fb6548d9cce997"
     },
     {
       "path": ".github/workflows/publish.yml",
@@ -134,8 +139,13 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 5458,
-      "sha256": "a66596f53443da772cbd1cbca9120c7fef89edef413f077500aa28dc015d415c"
+      "bytes": 6099,
+      "sha256": "5b9aec059717bff041cb67a8b47978aa9bc13c0e1431d7b8409f111c2375784b"
+    },
+    {
+      "path": "docs/current-signer-apt-probe-policy.md",
+      "bytes": 4166,
+      "sha256": "ec1edeab3e6029fc27931537d9f2b055cf7aae9f10375a685c51b97e46f918fa"
     },
     {
       "path": "docs/current-signer-gpg-probe-policy.md",
@@ -214,8 +224,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 6571,
-      "sha256": "df2b81806ab85d3b3d2738c6b956eb9d00031259753be3b95e0c6aeec29b7742"
+      "bytes": 6869,
+      "sha256": "b9f93699c647cc0b0edee5f545570f33a32791f1b6b083f7dd649a782c1d3637"
     },
     {
       "path": "release-lock.json",
@@ -493,6 +503,11 @@
       "sha256": "9f66356f13e79a5e07237742d9e3f01314830e7b3c763b2839867ad44a0858ff"
     },
     {
+      "path": "tools/verification/b3/inputs/apt_signature_adapter.py",
+      "bytes": 50533,
+      "sha256": "710e2858e98f42f7a61b2629a641fe5d6738a12a6e3ee608ce047d868691e8f8"
+    },
+    {
       "path": "tools/verification/b3/inputs/CANONICAL-C6-SUBSET.json",
       "bytes": 236,
       "sha256": "60b0c748b4fc618bde2d52cd759180871636c1597074188434ecb879c93c3801"
@@ -524,8 +539,8 @@
     },
     {
       "path": "tools/verification/b3/inputs/protected_signing_runtime.py",
-      "bytes": 66815,
-      "sha256": "1f631952f882a86d04cc5d5d36969866a8b72ea15c26f92ad8fc87601413cf60"
+      "bytes": 76910,
+      "sha256": "fbcbc1eaf3ffc0c7c35f23059c73aa830331c446c9717b05869121def46701f4"
     },
     {
       "path": "tools/verification/b3/inputs/signing_status_proof.py",
@@ -548,9 +563,14 @@
       "sha256": "c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11"
     },
     {
+      "path": "tools/verification/b3/probe_current_signer_c6_apt.py",
+      "bytes": 16415,
+      "sha256": "73f8324981c78894972e3a71538f3f755eba131248a3def01a56ed15a7fe9801"
+    },
+    {
       "path": "tools/verification/b3/probe_current_signer_c6_gpg.py",
       "bytes": 22257,
-      "sha256": "86e6314350ccc695675625eb7d543203149a96c4d7e55e77e08e742176551f95"
+      "sha256": "b580a0adff2ba3eb3f5d22b76b2b40bbe0ce1f2d9da478780caa6b22722957a1"
     },
     {
       "path": "tools/verification/b3/PROMOTION-LIST.json",
@@ -566,6 +586,11 @@
       "path": "tools/verification/b3/test_prepare_isolated_global_config.py",
       "bytes": 47927,
       "sha256": "93439c303944f3d802d7640d352a26e94c14c1a7a6a42f5315bcca9a0d71874f"
+    },
+    {
+      "path": "tools/verification/b3/test_probe_current_signer_c6_apt.py",
+      "bytes": 13006,
+      "sha256": "da292b8a85eb8d82f4b5a6141f5cfeaac5778bb86845da8e7e1a8e167794b8b0"
     },
     {
       "path": "tools/verification/b3/test_probe_current_signer_c6_gpg.py",
