@@ -26,6 +26,7 @@ jobs:
           mkdir -m 0700 "$work"
           mkdir -m 1777 "$work/quarantine"
           umask 077
+          phase=setup
           create_attempted=false
           cleanup() {
             status=$?
@@ -44,22 +45,83 @@ jobs:
                 fi
               fi
             fi
-            /usr/bin/python3 -I -B - "$work/cleanup.json" "$cleaned" <<'PY'
-          import json, sys
+            if ! chmod 0700 "$work/quarantine" 2>"$work/permissions.err"; then
+              cleaned=false
+            fi
+            diagnostic_written=false
+            if /usr/bin/python3 -I -B - "$work/cleanup.json" "$cleaned" "$phase" "$status" 2>"$work/diagnostic-reader.err" <<'PY'
+          import json, os, stat, sys
           from pathlib import Path
-          Path(sys.argv[1]).write_text(json.dumps({
-              "schema":"tf.runtime-resolution-cleanup.v1",
-              "cleanup_confirmed":sys.argv[2]=="true",
-              "production_authority":False
+          target=Path(sys.argv[1])
+          allowed={"setup","roots-check","image-create","container-run","container-readback","quarantine-admit","complete"}
+          phase=sys.argv[3] if sys.argv[3] in allowed else "unknown"
+          raw_code=sys.argv[4]
+          exit_code=int(raw_code) if raw_code.isascii() and raw_code.isdecimal() and len(raw_code)<=3 else None
+          if exit_code is not None and exit_code>255:
+              exit_code=None
+          refused=exit_code is None
+          patterns={
+              "daemon-unavailable":(b"cannot connect to the docker daemon",),
+              "registry-access":(b"pull access denied",b"unauthorized",b"manifest unknown"),
+              "unsupported-option":(b"unknown argument",b"unknown option",b"unknown flag",b"unrecognized argument"),
+              "package-spec-unavailable":(b"no match for argument",b"no package matches",b"unable to find a match"),
+              "dependency-resolution":(b"conflicting requests",b"nothing provides",b"cannot install"),
+              "filesystem-permission":(b"permission denied",b"operation not permitted"),
+              "missing-executable":(b"executable file not found",b"no such file or directory"),
+              "execution-format":(b"exec format error",),
+              "signature-verification":(b"gpg check failed",b"signature verification failed"),
+              "network-resolution":(b"could not resolve",b"couldn't resolve",b"connection timed out"),
+              "repository-metadata":(b"failed to download metadata",b"cannot download repomd"),
+          }
+          markers=set();truncated=False
+          for name in ("create.err","resolve.err","resolve.out","state.err"):
+              path=target.parent/name
+              try:
+                  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK|os.O_CLOEXEC)
+              except FileNotFoundError:
+                  continue
+              except OSError:
+                  refused=True
+                  continue
+              try:
+                  info=os.fstat(fd)
+                  if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:
+                      refused=True
+                      continue
+                  truncated=truncated or info.st_size>65536
+                  os.lseek(fd,max(0,info.st_size-65536),os.SEEK_SET)
+                  data=os.read(fd,65536).lower()
+                  markers.update(label for label,needles in patterns.items() if any(x in data for x in needles))
+              except OSError:
+                  refused=True
+              finally:
+                  try:
+                      os.close(fd)
+                  except OSError:
+                      refused=True
+          target.write_text(json.dumps({
+              "schema":"tf.runtime-resolution-cleanup.v2",
+              "cleanup_confirmed":sys.argv[2]=="true","production_authority":False,
+              "failed_phase":phase if exit_code else None,"original_exit_code":exit_code,
+              "tool_error_markers":sorted(markers),"diagnostic_input_truncated":truncated,
+              "diagnostic_input_refused":refused,"diagnostic_writer_failed":False
           })+"\n")
           PY
-            chmod 0700 "$work/quarantine"
-            if [[ "$cleaned" != true ]]; then
-              exit 2
+            then
+              diagnostic_written=true
+            else
+              printf 'DIAGNOSTIC_READER_FAILED\n' >&2
+              printf '{"schema":"tf.runtime-resolution-cleanup.v2","cleanup_confirmed":%s,"production_authority":false,"failed_phase":"diagnostic-write","original_exit_code":%s,"tool_error_markers":[],"diagnostic_input_truncated":false,"diagnostic_input_refused":true,"diagnostic_writer_failed":true}\n' "$cleaned" "$status" >"$work/cleanup.json" || true
+            fi
+            if [[ "$cleaned" != true || "$diagnostic_written" != true ]]; then
+              if [[ "$status" == 0 ]]; then
+                status=2
+              fi
             fi
             exit "$status"
           }
           trap cleanup EXIT
+          phase=roots-check
           /usr/bin/python3 -I -B - "$work/specs.json" <<'PY'
           import hashlib, json, os, sys
           from pathlib import Path
@@ -70,6 +132,7 @@ jobs:
               raise SystemExit("UNEXPECTED_SIGNING_ENVIRONMENT")
           Path(sys.argv[1]).write_bytes(source)
           PY
+          phase=image-create
           create_attempted=true
           /usr/bin/docker create --platform linux/amd64 --user 0:0 \
             --cap-drop ALL --security-opt no-new-privileges \
@@ -95,10 +158,13 @@ jobs:
             >"$work/container.id" 2>"$work/create.err"
           cid="$(cat "$work/container.id")"
           [[ "$cid" =~ ^[0-9a-f]{64}$ ]]
+          phase=container-run
           /usr/bin/docker start --attach "$cid" >"$work/resolve.out" 2>"$work/resolve.err"
+          phase=container-readback
           state="$(/usr/bin/docker inspect --format '{{.State.Status}} {{.State.ExitCode}}' "$cid" 2>"$work/state.err")"
           [[ "$state" == "exited 0" ]]
           chmod 0700 "$work/quarantine"
+          phase=quarantine-admit
           /usr/bin/python3 -I -B - "$work" <<'PY'
           import hashlib, json, os, re, stat, sys
           from pathlib import Path
@@ -133,6 +199,7 @@ jobs:
           (directory/"QUARANTINE.json").write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
           print("PUBLIC_ARCHIVES_QUARANTINED",len(found),total)
           PY
+          phase=complete
       - name: Retain bounded public quarantine for separate admission
         if: steps.resolve.outcome == 'success'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
@@ -148,5 +215,5 @@ jobs:
         with:
           name: current-signer-quarantine-cleanup-${{ github.run_id }}
           path: ${{ runner.temp }}/tf-tool-inputs-${{ github.run_id }}-${{ github.run_attempt }}/cleanup.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 7
