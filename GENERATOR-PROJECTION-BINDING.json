@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-01T21:02:16.819Z",
+  "generatedAt": "2026-11-02T03:42:22.640Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "be0f4446cd50cb54945c8ec28891200b5883619bee2193eb6d085b22907c1167",
-  "generationOverlayManifestSha256": "0e755ab9fc910a14517f9f74991394dffbd2c01daa3f548f47d92c8612d4ab52",
+  "generationOverlayManifestSha256": "c7af8f0b17aae7de675dbc784d07f2ff391f63b2f09b86367a2ca6883a938824",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "0e755ab9fc910a14517f9f74991394dffbd2c01daa3f548f47d92c8612d4ab52",
+  "treeManifestSha256": "c7af8f0b17aae7de675dbc784d07f2ff391f63b2f09b86367a2ca6883a938824",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 131,
+  "totalFiles": 139,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -36,6 +36,11 @@
       "path": ".github/workflows/probe-current-process-predicate.yml",
       "bytes": 2526,
       "sha256": "c9af15f612a7864eab3e08464742c7e9d0262ac6a7aac8a12470ece07acdc234"
+    },
+    {
+      "path": ".github/workflows/probe-current-signer-c6-gpg.yml",
+      "bytes": 11294,
+      "sha256": "9824f60fc367f8a2d278952abe8258c170515ed58b08be804a19facdd3b51859"
     },
     {
       "path": ".github/workflows/publish.yml",
@@ -129,8 +134,13 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 10372,
-      "sha256": "88825dd937e7870ee4571fb2b5befcf8594a556e9a215a41c4a306bf09509e37"
+      "bytes": 5458,
+      "sha256": "a66596f53443da772cbd1cbca9120c7fef89edef413f077500aa28dc015d415c"
+    },
+    {
+      "path": "docs/current-signer-gpg-probe-policy.md",
+      "bytes": 3046,
+      "sha256": "317651cef625098fe3b331bce39c05efbd7f0aa9c7265b944f324a0421f5291e"
     },
     {
       "path": "docs/p-native-gui-controller.md",
@@ -204,8 +214,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 5364,
-      "sha256": "4ccc1452ced958427b0bd35fe3ce2211ab589013c06cb6d7bda53f398b4273c3"
+      "bytes": 6571,
+      "sha256": "df2b81806ab85d3b3d2738c6b956eb9d00031259753be3b95e0c6aeec29b7742"
     },
     {
       "path": "release-lock.json",
@@ -488,6 +498,11 @@
       "sha256": "60b0c748b4fc618bde2d52cd759180871636c1597074188434ecb879c93c3801"
     },
     {
+      "path": "tools/verification/b3/inputs/current_protected_signing.py",
+      "bytes": 19715,
+      "sha256": "c04d30b55ea9632c93512e4bb1271101cc7aff0f62dba6dfdb0222b4e7c5b041"
+    },
+    {
       "path": "tools/verification/b3/inputs/CURRENT-B3-TOOLCHAIN-CATALOG.json",
       "bytes": 5418,
       "sha256": "23c78119024c0f8a1072768eb7c318ec4ea23b52dfa69070cd7de4d6049ce882"
@@ -501,6 +516,21 @@
       "path": "tools/verification/b3/inputs/owned_gpg_agent.py",
       "bytes": 50589,
       "sha256": "305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf"
+    },
+    {
+      "path": "tools/verification/b3/inputs/protected_passphrase_fd.py",
+      "bytes": 9737,
+      "sha256": "abec0b730be0043ade1cdc9a022234941d467854e977f3f3727b25283899b325"
+    },
+    {
+      "path": "tools/verification/b3/inputs/protected_signing_runtime.py",
+      "bytes": 66815,
+      "sha256": "1f631952f882a86d04cc5d5d36969866a8b72ea15c26f92ad8fc87601413cf60"
+    },
+    {
+      "path": "tools/verification/b3/inputs/signing_status_proof.py",
+      "bytes": 8648,
+      "sha256": "1f7cef1c8c73d9979c3bb48d5b241dcf51aebc660a5a4fbc555ec7f3a463d5e9"
     },
     {
       "path": "tools/verification/b3/inputs/test_owned_gpg_agent.py",
@@ -518,6 +548,11 @@
       "sha256": "c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11"
     },
     {
+      "path": "tools/verification/b3/probe_current_signer_c6_gpg.py",
+      "bytes": 22257,
+      "sha256": "86e6314350ccc695675625eb7d543203149a96c4d7e55e77e08e742176551f95"
+    },
+    {
       "path": "tools/verification/b3/PROMOTION-LIST.json",
       "bytes": 1939,
       "sha256": "d1dd23b782b930003df27b17610e09af5cceedf95abd2bfd6f575c2ecadc74ad"
@@ -531,6 +566,11 @@
       "path": "tools/verification/b3/test_prepare_isolated_global_config.py",
       "bytes": 47927,
       "sha256": "93439c303944f3d802d7640d352a26e94c14c1a7a6a42f5315bcca9a0d71874f"
+    },
+    {
+      "path": "tools/verification/b3/test_probe_current_signer_c6_gpg.py",
+      "bytes": 15176,
+      "sha256": "0dc5a41fa948c322169d5d97115f80ee9b8847ecf1f4d7c80a6cd684e62dd397"
     },
     {
       "path": "tools/verification/check-nebular-fhs-closure.sh",

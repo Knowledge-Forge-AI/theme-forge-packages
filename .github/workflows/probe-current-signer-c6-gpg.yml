@@ -1,0 +1,200 @@
+name: Pending Policy P Current Signer C6 GPG Native Probe
+
+# PREPARED ONLY (proposed-unadopted). Review artifact only; owner approval class and campaign authorization precede any promotion or dispatch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  c6-gpg-native-probe:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: github-pages
+    defaults:
+      run:
+        shell: bash
+        working-directory: p
+    steps:
+      - name: Checkout exact P proposal
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: p
+          persist-credentials: false
+      - name: Setup existing Node class for candidate authentication
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+      - name: Authenticate held candidate, Stage 1 B3, and C6 GPG probe source closure
+        run: |
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-c6-gpg-probe-evidence"
+          install -d -m 0755 "$evidence_dir"
+          node tools/verification/fetch-locked-assets.mjs --candidate-validation --lock release-lock.json --dest "$RUNNER_TEMP/p-c6-gpg-assets"
+          node tools/verification/verify-release-lock.mjs --candidate-validation release-lock.json --require-assets --assets-dir "$RUNNER_TEMP/p-c6-gpg-assets"
+          python3 -I -B tools/verification/b3/b3_fixture_entrypoint.py \
+            --authenticate-stage1 \
+            --manifest "$PWD/tools/verification/b3/manifest.json" \
+            --out "$evidence_dir/b3-stage1-authentication.json"
+          python3 -I -B tools/verification/b3/test_b3_fixture_entrypoint.py
+          python3 -I -B tools/verification/b3/prepare_isolated_global_config.py \
+            --authenticate-source \
+            --expected-helper-sha256 c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11 \
+            --expected-tests-sha256 93439c303944f3d802d7640d352a26e94c14c1a7a6a42f5315bcca9a0d71874f \
+            --out "$evidence_dir/b3-global-config-preparation.json"
+          python3 -I -B tools/verification/b3/test_prepare_isolated_global_config.py
+          python3 -I -B tools/verification/b3/probe_current_signer_c6_gpg.py \
+            --authenticate-stage1 \
+            --expected-probe-sha256 86e6314350ccc695675625eb7d543203149a96c4d7e55e77e08e742176551f95 \
+            --expected-tests-sha256 0dc5a41fa948c322169d5d97115f80ee9b8847ecf1f4d7c80a6cd684e62dd397 \
+            --repo-root "$PWD" \
+            --out "$evidence_dir/c6-gpg-stage1-authentication.json"
+          python3 -I -B tools/verification/b3/test_probe_current_signer_c6_gpg.py
+      - name: Provision current R Fedora 43 builder image (credential-free)
+        env:
+          B3_BASE_IMAGE: registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd
+          B3_BUILDER_TAG: tf-c6-gpg-probe-builder:${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-c6-gpg-probe-evidence"
+          build_ctx="$(mktemp -d "$RUNNER_TEMP/p-c6-gpg-build-XXXXXXXX")"
+          chmod 0700 "$build_ctx"
+          python3 -I -B tools/verification/b3/prepare_isolated_global_config.py \
+            --authenticate-source \
+            --expected-helper-sha256 c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11 \
+            --expected-tests-sha256 93439c303944f3d802d7640d352a26e94c14c1a7a6a42f5315bcca9a0d71874f \
+            --out "$evidence_dir/b3-global-config-preparation.json"
+          install -m 0644 tools/verification/b3/prepare_isolated_global_config.py "$build_ctx/prepare_isolated_global_config.py"
+          docker pull --platform linux/amd64 "$B3_BASE_IMAGE"
+          distro_check="$(docker run --rm --network none --platform linux/amd64 "$B3_BASE_IMAGE" sh -c 'cat /etc/os-release; uname -m')"
+          grep -q '^VERSION_ID=43$' <<<"$distro_check"
+          grep -q '^x86_64$' <<<"$distro_check"
+          cat >"$build_ctx/Dockerfile" <<'EOF'
+          FROM registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd
+          COPY prepare_isolated_global_config.py /tmp/prepare_isolated_global_config.py
+          RUN dnf install -y gnupg2 rpm-sign python3 && dnf clean all && /usr/bin/python3 -I -B /tmp/prepare_isolated_global_config.py --prepare-image --expected-helper-sha256 c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11 && rm -f /tmp/prepare_isolated_global_config.py
+          EOF
+          docker build --platform linux/amd64 -t "$B3_BUILDER_TAG" "$build_ctx"
+          rm -rf "$build_ctx"
+          docker run --rm --network none --platform linux/amd64 "$B3_BUILDER_TAG" true
+      - name: Execute Stage 2 metadata, B3 lifecycle, and C6 GPG native probe
+        env:
+          B3_BUILDER_TAG: tf-c6-gpg-probe-builder:${{ github.run_id }}-${{ github.run_attempt }}
+          B3_CONTAINER_NAME: tf-c6-gpg-probe-run-${{ github.run_id }}-${{ github.run_attempt }}
+          PACKAGE_SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          PACKAGE_SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+        run: |
+          set +x
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-c6-gpg-probe-evidence"
+          python3 -I -B tools/verification/b3/probe_current_signer_c6_gpg.py \
+            --emit-stdin-frame \
+            --expected-probe-sha256 86e6314350ccc695675625eb7d543203149a96c4d7e55e77e08e742176551f95 \
+            --availability-out "$evidence_dir/c6-gpg-secret-availability.json" | \
+          docker run --rm -i \
+            --name "$B3_CONTAINER_NAME" \
+            --network none \
+            --platform linux/amd64 \
+            --user 0:0 \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -v "$PWD:/workspace:ro" \
+            -v "$evidence_dir:/evidence:rw" \
+            "$B3_BUILDER_TAG" \
+            /usr/bin/bash -c '
+              set -euo pipefail
+              exec 3<&0
+              exec </dev/null
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/prepare_isolated_global_config.py \
+                --verify-prepared \
+                --expected-helper-sha256 c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11 \
+                --out /evidence/b3-global-config-preparation.json
+              install -d -m 0700 -o 0 -g 0 /tmp/tf-b3-job-parent
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/b3_fixture_entrypoint.py \
+                --measure-stage2 \
+                --manifest /workspace/tools/verification/b3/manifest.json \
+                --job-parent /tmp/tf-b3-job-parent \
+                --facts-out /tmp/tf-b3-stage2-facts.json \
+                --metadata-out /evidence/b3-stage2-metadata.json
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/b3_fixture_entrypoint.py \
+                --execute-native \
+                --manifest /workspace/tools/verification/b3/manifest.json \
+                --facts /tmp/tf-b3-stage2-facts.json \
+                --job-parent /tmp/tf-b3-job-parent \
+                --receipt-out /evidence/b3-lifecycle-receipt.json
+              probe_rc=0
+              /usr/bin/python3 -I -B /workspace/tools/verification/b3/probe_current_signer_c6_gpg.py \
+                --execute-native \
+                --expected-probe-sha256 86e6314350ccc695675625eb7d543203149a96c4d7e55e77e08e742176551f95 \
+                --expected-tests-sha256 0dc5a41fa948c322169d5d97115f80ee9b8847ecf1f4d7c80a6cd684e62dd397 \
+                --repo-root /workspace \
+                --facts /tmp/tf-b3-stage2-facts.json \
+                --probe-parent /tmp/tf-b3-job-parent \
+                --receipt-out /evidence/c6-gpg-probe-receipt.json <&3 || probe_rc=$?
+              exec 3<&-
+              rm -f /tmp/tf-b3-stage2-facts.json
+              rmdir /tmp/tf-b3-job-parent 2>/dev/null || true
+              exit "$probe_rc"
+            '
+      - name: Cleanup exact phase-owned container and builder image
+        if: always()
+        env:
+          B3_BUILDER_TAG: tf-c6-gpg-probe-builder:${{ github.run_id }}-${{ github.run_attempt }}
+          B3_CONTAINER_NAME: tf-c6-gpg-probe-run-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          evidence_dir="$RUNNER_TEMP/p-c6-gpg-probe-evidence"
+          install -d -m 0755 "$evidence_dir"
+          container_removed=true
+          if docker container inspect "$B3_CONTAINER_NAME" >/dev/null 2>&1; then
+            docker rm -f "$B3_CONTAINER_NAME" >/dev/null 2>&1 || container_removed=false
+          fi
+          image_removed=true
+          if docker image inspect "$B3_BUILDER_TAG" >/dev/null 2>&1; then
+            docker rmi -f "$B3_BUILDER_TAG" >/dev/null 2>&1 || image_removed=false
+          fi
+          # A failed daemon query is unconfirmed cleanup, never absence.
+          if remaining_containers="$(docker container ls --all --quiet --filter "name=^/${B3_CONTAINER_NAME}$")"; then
+            [[ -z "$remaining_containers" ]] || container_removed=false
+          else
+            container_removed=false
+          fi
+          if remaining_images="$(docker image ls --quiet "$B3_BUILDER_TAG")"; then
+            [[ -z "$remaining_images" ]] || image_removed=false
+          else
+            image_removed=false
+          fi
+          python3 -I -B - "$evidence_dir/c6-gpg-container-cleanup.json" "$container_removed" "$image_removed" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          out = Path(sys.argv[1])
+          c_ok = sys.argv[2] == "true"
+          i_ok = sys.argv[3] == "true"
+          payload = {
+              "schema": "tf.current-signer-c6-gpg-container-cleanup.v1",
+              "status": "pass" if (c_ok and i_ok) else "fail",
+              "production_authority": False,
+              "phase_owned_container_absent": c_ok,
+              "phase_owned_builder_image_absent": i_ok,
+          }
+          out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+          [[ "$container_removed" == true && "$image_removed" == true ]]
+      - name: Upload named safe JSON evidence only
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: p-c6-gpg-probe-evidence-x86_64-linux
+          path: |
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/b3-stage1-authentication.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/b3-global-config-preparation.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/c6-gpg-stage1-authentication.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/c6-gpg-secret-availability.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/b3-stage2-metadata.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/b3-lifecycle-receipt.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/c6-gpg-probe-receipt.json
+            ${{ runner.temp }}/p-c6-gpg-probe-evidence/c6-gpg-container-cleanup.json
+          if-no-files-found: warn

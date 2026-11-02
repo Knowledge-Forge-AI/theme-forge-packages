@@ -1,0 +1,15 @@
+# Current signer GPG probe policy
+
+This is prepared source for one separately controlled, non-admitting native probe. It does not enable production publication.
+
+The proposed runner class is p-current-signer-c6-gpg-throwaway-probe-v1: Ubuntu 24.04 hosting the existing prepared Fedora 43 B3 container without container networking. It exercises the existing owned-agent controller, CI secret-subkey topology parser, detached signing and verification through ProtectedSigningRuntime.execute on one synthetic throwaway object. It does not admit release packages, exercise RPM or repository-index signing, or use the live signing lease.
+
+The workflow is manual, restricted to this repository's exact main, with read-only contents permission and the protected github-pages environment. Existing reviewer and exact-branch protections remain in force. Only its existing two signing secrets enter the execution step, after credential-free image preparation. Both secrets travel to the container in one bounded standard-input frame. The GPG signing operation supplies the matching passphrase through its subprocess stdin pipe (loopback passphrase FD 0); the separate rpmsign-only passphrase adapter remains unexercised. No key rotation, new export, repository-wide secret or production upload is involved.
+
+Only named sanitized JSON evidence is retained: source authentication, secret availability booleans, tool metadata, owned-agent lifecycle, fixed result/error codes, public fingerprints, output hashes/counts and cleanup results. Private key contents, passphrases, signatures and raw GPG output are excluded. The temporary private key home is managed opaquely by GnuPG. Unconfirmed agent cleanup retains custody inside the disposable container; final container and builder removal are checked separately. Buffer clearing is best effort: immutable runtime and tool copies rely on the disposable environment lifecycle. Forced host termination relies on disposable-runner teardown.
+
+Acceptance requires successful exact-source three-host GUI qualification, source/tool authentication, both availability markers, actual protected-runtime throwaway signature verification, zero retained custody and confirmed removal of the phase-owned container and image. Passing standalone key preflight establishes existing key validity but does not substitute for this runtime check. Successful GPG probing does not qualify RPM, repository-index signing, package consumers or production publication.
+
+The bounded user-namespace/AppArmor guard and locked Python/process-control class/source preparation were already approved. This additional key-bearing test purpose, sanitized diagnostic storage and temporary state require their own operator decision and exact hosted invocation. Source preparation grants no campaign allowance.
+
+Rollback removes this workflow, probe/test and four promoted helper modules from the maintained current generation, then regenerates the public projection. Original key-free B3 source and production publication refusal remain in place.
