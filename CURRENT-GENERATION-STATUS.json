@@ -34,7 +34,7 @@
   "currentSignerGpgProbe": {
     "policy": "docs/current-signer-gpg-probe-policy.md",
     "class": "p-current-signer-c6-gpg-throwaway-probe-v1",
-    "status": "prepared_pending_operator_decision_and_exact_hosted_invocation",
+    "status": "prior_source_bounded_native_slice_passed_successor_requires_fresh_qualification",
     "campaignsAuthorizedByPreparation": 0,
     "productionAuthority": false,
     "priorGuardAndLockedPythonClassSourceApprovals": "already granted; not pending",
@@ -45,6 +45,20 @@
       "no live unsigned package admission",
       "no RPM/repo-add/APT signing qualification",
       "no production publication"
-    ]
+    ],
+    "priorQualifiedSource": "00db6cf797a96760c1a8390247631d7bd8a7acc2",
+    "priorNativeRun": 41385843035,
+    "bothSecretsAvailable": true,
+    "fullSignerQualified": false
+  },
+  "currentSignerAptProbe": {
+    "policy": "docs/current-signer-apt-probe-policy.md",
+    "class": "p-current-signer-c6-apt-synthetic-probe-v1",
+    "status": "prepared_pending_distinct_native_purpose_approval",
+    "campaignsAuthorizedByPreparation": 0,
+    "productionAuthority": false,
+    "existingEnvironment": "github-pages",
+    "priorKeyEnvironmentGuardPythonApprovals": "already granted; not pending",
+    "fullSignerQualified": false
   }
 }

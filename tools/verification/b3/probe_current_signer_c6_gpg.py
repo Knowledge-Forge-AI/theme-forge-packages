@@ -63,7 +63,7 @@ PROMOTED_INPUT_SHA256: Mapping[str, str] = {
         "abec0b730be0043ade1cdc9a022234941d467854e977f3f3727b25283899b325"
     ),
     "tools/verification/b3/inputs/protected_signing_runtime.py": (
-        "1f631952f882a86d04cc5d5d36969866a8b72ea15c26f92ad8fc87601413cf60"
+        "fbcbc1eaf3ffc0c7c35f23059c73aa830331c446c9717b05869121def46701f4"
     ),
     "keys/knowledge-forge-ai-packages.asc": PUBLIC_KEY_SHA256,
 }

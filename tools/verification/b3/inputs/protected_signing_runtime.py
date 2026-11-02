@@ -78,6 +78,9 @@ NATIVE_RPMSIGN = "/usr/bin/rpmsign"
 NATIVE_REPO_ADD = "/usr/bin/repo-add"
 MAX_PROCESS_OUTPUT = 256 * 1024
 MAX_PROCESS_STDIN = 2 * 1024 * 1024
+MAX_RELEASE_BYTES = 64 * 1024 * 1024
+MAX_APT_SIGNATURE_BYTES = 8 * 1024 * 1024
+MAX_APT_INRELEASE_BYTES = MAX_RELEASE_BYTES + MAX_APT_SIGNATURE_BYTES
 PROCESS_TIMEOUT_SECONDS = 60.0
 DESCRIPTOR_MAX_BYTES = 16 * 1024 * 1024
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
@@ -100,6 +103,18 @@ _RETAINED_RUNTIME_CUSTODIES: list[dict[str, object]] = []
 # ledger and its private error references strongly reachable; this registry has
 # no retry or numeric-close API.
 _RETAINED_READ_DESCRIPTORS: list[dict[str, object]] = []
+# Active runtime invocations whose private .protected-work home has not yet been
+# confirmed closed and removed.
+_ACTIVE_SIGNING_RUNTIMES: list[ProtectedSigningRuntime] = []
+
+
+@contextmanager
+def _private_umask():
+    previous = os.umask(0o077)
+    try:
+        yield
+    finally:
+        os.umask(previous)
 
 
 def _rpm_verification_status(result: ProcessResult, stage: Path) -> dict[str, object]:
@@ -235,6 +250,19 @@ class _OwnedDirectory:
     path: Path
     dev: int
     ino: int
+
+
+@dataclass(frozen=True)
+class _AptReleaseOperation:
+    release_bytes: bytes
+
+
+def _validate_apt_release_bytes(release_bytes: bytes) -> bytes:
+    if type(release_bytes) is not bytes or b"\x00" in release_bytes:
+        raise ProtectedSigningError("RELEASE_FORMAT", "APT Release input must be exact NUL-free bytes")
+    if not 0 < len(release_bytes) <= MAX_RELEASE_BYTES:
+        raise ProtectedSigningError("RELEASE_LIMIT", "APT Release bytes are empty or exceed their bound")
+    return release_bytes
 
 
 def _raw_absolute(path: str | Path, label: str) -> Path:
@@ -964,6 +992,114 @@ class ProtectedSigningRuntime:
             returncode=result.returncode,
         )
 
+    def _apt_clearsign(self, stage: Path, inrelease: Path, home: Path, cwd: Path, passphrase: bytes) -> None:
+        _require_status_proof_binding(self.binding)
+        argv = (
+            *self._gpg_base(home), "--pinentry-mode", "loopback", "--passphrase-fd", "0",
+            "--clearsign", "--output", str(inrelease),
+            "-u", f"{self.binding.signing_subkey_fingerprint}!", str(stage),
+        )
+        with _private_umask():
+            self._run(argv, cwd=cwd, env=self._env(home), stdin=passphrase, phase="apt-release-clearsign")
+
+    def _apt_detach_sign(self, stage: Path, signature: Path, home: Path, cwd: Path, passphrase: bytes) -> None:
+        _require_status_proof_binding(self.binding)
+        argv = (
+            *self._gpg_base(home), "--pinentry-mode", "loopback", "--passphrase-fd", "0",
+            "--armor", "--detach-sign", "--output", str(signature),
+            "-u", f"{self.binding.signing_subkey_fingerprint}!", str(stage),
+        )
+        with _private_umask():
+            self._run(argv, cwd=cwd, env=self._env(home), stdin=passphrase, phase="apt-release-detach-sign")
+
+    def _read_apt_staged_output(self, path: Path, label: str, max_bytes: int) -> tuple[tuple[int, ...], bytes]:
+        try:
+            before = os.lstat(path)
+        except OSError as error:
+            raise ProtectedSigningError("PATH_IO", f"Unable to inspect {label}") from error
+        if stat.S_ISLNK(before.st_mode) or not stat.S_ISREG(before.st_mode):
+            raise ProtectedSigningError("REGULAR_FILE_REQUIRED", f"{label} must be a regular file")
+        if (before.st_uid != os.getuid() or before.st_nlink != 1
+                or (stat.S_IMODE(before.st_mode) & 0o022) != 0):
+            raise ProtectedSigningError("OUTPUT_CUSTODY", f"{label} custody is invalid")
+        if not 0 < before.st_size <= max_bytes:
+            raise ProtectedSigningError("SIZE_LIMIT", f"{label} is empty or exceeds its bound")
+        data = _read_regular_unpinned(path, label)
+        try:
+            after = os.lstat(path)
+        except OSError as error:
+            raise ProtectedSigningError("PATH_IO", f"Unable to re-inspect {label}") from error
+        identity = self._output_identity(before)
+        if identity != self._output_identity(after) or not 0 < len(data) <= max_bytes:
+            raise ProtectedSigningError("PACKAGE_MUTATED", f"{label} changed during readback")
+        return identity, data
+
+    def _sign_apt_release(
+        self, release_bytes: bytes, home: Path, work: Path, staging: Path,
+        output: Path, passphrase: bytes,
+    ) -> list[dict[str, object]]:
+        stage = staging / "Release"
+        inrelease_stage = staging / "InRelease"
+        release_gpg_stage = staging / "Release.gpg"
+        _exclusive_write(stage, release_bytes, "staged APT Release")
+        stage_before = os.lstat(stage)
+        if (not stat.S_ISREG(stage_before.st_mode) or stage_before.st_nlink != 1
+                or stat.S_IMODE(stage_before.st_mode) != 0o600
+                or stage_before.st_uid != os.getuid()):
+            raise ProtectedSigningError("OUTPUT_CUSTODY", "Staged APT Release custody is invalid")
+        stage_identity = self._output_identity(stage_before)
+        if (_read_regular_unpinned(stage, "staged APT Release") != release_bytes
+                or self._output_identity(os.lstat(stage)) != stage_identity):
+            raise ProtectedSigningError("PACKAGE_MUTATED", "Staged APT Release changed before signing")
+        if inrelease_stage.exists() or inrelease_stage.is_symlink():
+            raise ProtectedSigningError("OUTPUT_EXISTS", "Staged APT InRelease already exists")
+        self._apt_clearsign(stage, inrelease_stage, home, work, passphrase)
+        if (_read_regular_unpinned(stage, "staged APT Release") != release_bytes
+                or self._output_identity(os.lstat(stage)) != stage_identity):
+            raise ProtectedSigningError("PACKAGE_MUTATED", "Staged APT Release changed during clearsigning")
+        inrelease_identity, inrelease_bytes = self._read_apt_staged_output(
+            inrelease_stage, "staged APT InRelease", MAX_APT_INRELEASE_BYTES,
+        )
+        if release_gpg_stage.exists() or release_gpg_stage.is_symlink():
+            raise ProtectedSigningError("OUTPUT_EXISTS", "Staged APT Release.gpg already exists")
+        self._apt_detach_sign(stage, release_gpg_stage, home, work, passphrase)
+        observed_release = _read_regular_unpinned(stage, "staged APT Release")
+        if (observed_release != release_bytes
+                or self._output_identity(os.lstat(stage)) != stage_identity):
+            raise ProtectedSigningError("PACKAGE_MUTATED", "Staged APT Release changed during detached signing")
+        if (_read_regular_unpinned(inrelease_stage, "staged APT InRelease") != inrelease_bytes
+                or self._output_identity(os.lstat(inrelease_stage)) != inrelease_identity):
+            raise ProtectedSigningError("PACKAGE_MUTATED", "Staged APT InRelease changed during detached signing")
+        _, release_gpg_bytes = self._read_apt_staged_output(
+            release_gpg_stage, "staged APT Release.gpg", MAX_APT_SIGNATURE_BYTES,
+        )
+        self._write_output("apt-release-output", output / "Release", observed_release, "APT Release output")
+        self._write_output("apt-inrelease-output", output / "InRelease", inrelease_bytes, "APT InRelease output")
+        self._write_output("apt-release-gpg-output", output / "Release.gpg", release_gpg_bytes, "APT Release.gpg output")
+        # release_sha256 records only the staged input Release digest; this
+        # mechanical signer makes no claim about InRelease cleartext content or
+        # cryptographic validity before later concrete APT4 verification.
+        release_sha256 = _sha256(observed_release)
+        return [
+            {
+                "channel": "apt",
+                "operation": "apt-release",
+                "name": name,
+                "sha256": _sha256(data),
+                "size": len(data),
+                "release_sha256": release_sha256,
+                "verified": False,
+                "apt4_verified": False,
+                "signed_store_retained": False,
+                "production_authority": False,
+            }
+            for name, data in (
+                ("Release", observed_release),
+                ("InRelease", inrelease_bytes),
+                ("Release.gpg", release_gpg_bytes),
+            )
+        ]
+
     def _write_output(self, phase: str, path: Path, data: bytes, label: str) -> None:
         lease = self._active_live_lease
         guard = lease.assembly_phase(phase) if lease is not None else nullcontext()
@@ -1062,6 +1198,24 @@ class ProtectedSigningRuntime:
             private_key_bytes=private_key_bytes, passphrase=passphrase,
         )
 
+    def execute_apt_release(
+        self,
+        release_bytes: bytes,
+        *,
+        output_root: str | Path,
+        public_key_bytes: bytes,
+        private_key_bytes: bytes | bytearray,
+        passphrase: bytes | bytearray,
+    ) -> ExecutionResult:
+        """Mechanical APT Release signing; cannot select a live lease or admit trust."""
+        self._require_idle()
+        checked_release = _validate_apt_release_bytes(release_bytes)
+        return self._execute_checked(
+            _AptReleaseOperation(checked_release), origin="", output_root=output_root,
+            public_key_bytes=public_key_bytes, private_key_bytes=private_key_bytes,
+            passphrase=passphrase,
+        )
+
     def _require_idle(self) -> None:
         if (self._retained_custody is not None or self._agent is not None
                 or self._active_live_lease is not None):
@@ -1136,137 +1290,155 @@ class ProtectedSigningRuntime:
         self._resource_failures = []
         self._output_files = {}
         self._output_root = None
+        if isinstance(checked, _AptReleaseOperation) and lease is not None:
+            raise ProtectedSigningError("LIFECYCLE_STATE", "APT release signing cannot use a live package lease")
+        _ACTIVE_SIGNING_RUNTIMES.append(self)
         try:
-            if lease is not None:
-                checked = _live_object_shapes(lease.unsigned_objects(), lease.origin)
-                origin = lease.origin
-                lease._check_output_location(output_root)
-            names = []
-            for obj in checked:
-                name = Path(obj.path).name
-                suffix = {"apt": ".deb", "rpm": ".rpm", "pacman": ".pkg.tar.zst"}[obj.channel]
-                if (not _NAME.fullmatch(name) or name.startswith(".")
-                        or len(name.encode("utf-8")) > (251 if obj.channel == "pacman" else 255)
-                        or not name.endswith(suffix) or name in names):
-                    raise ProtectedSigningError("OBJECT_NAME", "Original package basename is invalid or collides")
-                names.append(name)
-            verify_committed_public_key(public_key_bytes, self.binding)
-            if (type(private_key_bytes) not in (bytes, bytearray) or type(passphrase) not in (bytes, bytearray)
-                    or len(private_key_bytes) > MAX_PROCESS_STDIN or len(passphrase) > MAX_PROCESS_STDIN):
-                raise ProtectedSigningError("SECRET_FORMAT", "Bounded byte inputs are required for protected secrets")
-            private_secret.extend(private_key_bytes)
-            passphrase_secret.extend(passphrase)
-            if not private_secret or not passphrase_secret:
-                raise ProtectedSigningError("SECRET_REQUIRED", "Protected key and passphrase inputs are required")
-            output = _new_owned_directory(output_root, "signing output")
-            self._output_root = output
-            work = _new_owned_directory(output.path / ".protected-work", "private signing work")
-            home = _new_owned_directory(work.path / "gnupg", "private GnuPG home")
-            staging = _new_owned_directory(work.path / "staging", "private staging")
-            self._agent = OwnedGpgAgent(home.path, work.path)
-            self._agent.start()
-            self._import_key(home.path, work.path, public_key_bytes, bytes(private_secret))
-            rpm_db = self._import_rpm_key(home.path, work.path, public_key_bytes) if any(obj.channel == "rpm" for obj in checked) else None
-            for obj, name in zip(checked, names, strict=True):
-                original = (_read_stable(obj.path, obj.sha256, obj.size, "unsigned object")
-                            if lease is None else lease.read_unsigned(obj))
-                stage = staging.path / name
-                _exclusive_write(stage, original, "staged unsigned object")
-                if obj.channel == "apt":
-                    observed = _read_regular_unpinned(stage, "staged DEB")
-                    if observed != original:
-                        raise ProtectedSigningError("PACKAGE_MUTATED", "DEB package bytes changed during protected signing")
-                    self._write_output("apt-output", output.path / "apt" / obj.architecture / stage.name, observed, "DEB output")
-                    results.append({"channel": "apt", "product": obj.product, "architecture": obj.architecture,
-                                    "name": name, "package_sha256": _sha256(observed)})
-                elif obj.channel == "rpm":
-                    self._rpm_sign(stage, home.path, work.path, bytes(passphrase_secret))
-                    if rpm_db is None:
-                        raise ProtectedSigningError("RPM_KEY_DATABASE", "RPM verification database was not initialized")
-                    rpm_verification = self._rpm_verify(stage, rpm_db, home.path, work.path)
-                    signed = _read_regular_unpinned(stage, "signed RPM")
-                    preservation = inspect_rpm_preservation(original, signed)
-                    archive = "x86_64" if obj.architecture == "noarch" else obj.architecture
-                    self._write_output("rpm-output", output.path / "rpm" / archive / stage.name, signed, "signed RPM output")
-                    if obj.architecture == "noarch":
-                        self._write_output("noarch-output", output.path / "rpm" / "aarch64" / stage.name, signed, "reused signed noarch RPM")
-                    results.append({"channel": "rpm", "product": obj.product, "architecture": obj.architecture,
-                                    "name": name, "preservation": preservation, "rpm_verification": rpm_verification})
-                else:
-                    signature = staging.path / (stage.name + ".sig")
-                    self._pacman_sign(stage, signature, home.path, work.path, bytes(passphrase_secret))
-                    self._pacman_verify(stage, signature, home.path, work.path)
-                    observed = _read_regular_unpinned(stage, "signed Pacman input")
-                    if observed != original:
-                        raise ProtectedSigningError("PACKAGE_MUTATED", "Pacman package bytes changed during signing")
-                    archive = "x86_64" if obj.architecture == "any" else obj.architecture
-                    self._write_output("pacman-output", output.path / "pacman" / archive / stage.name, observed, "Pacman package output")
-                    signature_bytes = _read_regular_unpinned(signature, "Pacman signature")
-                    self._write_output("signature-output", output.path / "pacman" / archive / signature.name, signature_bytes, "Pacman signature output")
-                    results.append({"channel": "pacman", "product": obj.product, "architecture": obj.architecture,
-                                    "name": name, "package_sha256": _sha256(observed)})
-            self._final_output_inventory(output, work)
-            result = ExecutionResult(
-                schema="tf.current-protected-signing-execution.v1",
-                status="observed" if native_observation else "test-only",
-                production_authority=False, native_execution=native_observation,
-                output_root=str(output.path), objects=tuple(results),
-            )
-        except BaseException as error:
-            body_error = error
-            self._remember_resource_errors(error)
-            if lease is not None and (
-                    isinstance(error, OSError)
-                    or (isinstance(error, ProtectedSigningError) and error.code in {
-                        "PACKAGE_MUTATED", "OUTPUT_INVENTORY", "OUTPUT_CUSTODY", "FILE_CHANGED",
-                    })):
-                # A live output/custody mismatch is terminal even if native
-                # consumers subsequently stop successfully.
-                self._resource_failures.append(error)
-        finally:
-            for secret in (private_secret, passphrase_secret):
-                try:
-                    _clear_secret(secret)
-                except BaseException as error:
-                    cleanup_errors.append(error)
-            if self._agent is not None:
-                try:
-                    self._agent.close()
-                    if not self._agent.cleanup_confirmed:
-                        cleanup_errors.append(ProtectedSigningError("AGENT_CLEANUP", "Agent cleanup is unconfirmed"))
-                except BaseException as error:
-                    cleanup_errors.append(error)
-
-        known_uncertainty = bool(cleanup_errors or self._consumer_failures or self._resource_failures)
-        if lease is not None and getattr(lease, "_state", None) == "retained":
-            known_uncertainty = True
-            cleanup_errors.append(ProtectedSigningError("LIVE_CUSTODY_RETAINED", "Live custody has an unresolved failure"))
-        # Never close input holds while any consumer/agent/resource uncertainty
-        # is already known. The final source check precedes all descriptor close.
-        if lease is not None and not known_uncertainty:
             try:
-                lease.check()
-                lease._close_confirmed()
+                apt_release = isinstance(checked, _AptReleaseOperation)
+                names = []
+                if apt_release:
+                    if lease is not None:
+                        raise ProtectedSigningError("LIFECYCLE_STATE", "APT release signing cannot use a live package lease")
+                    release_bytes = _validate_apt_release_bytes(checked.release_bytes)
+                else:
+                    if lease is not None:
+                        checked = _live_object_shapes(lease.unsigned_objects(), lease.origin)
+                        origin = lease.origin
+                        lease._check_output_location(output_root)
+                    for obj in checked:
+                        name = Path(obj.path).name
+                        suffix = {"apt": ".deb", "rpm": ".rpm", "pacman": ".pkg.tar.zst"}[obj.channel]
+                        if (not _NAME.fullmatch(name) or name.startswith(".")
+                                or len(name.encode("utf-8")) > (251 if obj.channel == "pacman" else 255)
+                                or not name.endswith(suffix) or name in names):
+                            raise ProtectedSigningError("OBJECT_NAME", "Original package basename is invalid or collides")
+                        names.append(name)
+                verify_committed_public_key(public_key_bytes, self.binding)
+                if (type(private_key_bytes) not in (bytes, bytearray) or type(passphrase) not in (bytes, bytearray)
+                        or len(private_key_bytes) > MAX_PROCESS_STDIN or len(passphrase) > MAX_PROCESS_STDIN):
+                    raise ProtectedSigningError("SECRET_FORMAT", "Bounded byte inputs are required for protected secrets")
+                private_secret.extend(private_key_bytes)
+                passphrase_secret.extend(passphrase)
+                if not private_secret or not passphrase_secret:
+                    raise ProtectedSigningError("SECRET_REQUIRED", "Protected key and passphrase inputs are required")
+                output = _new_owned_directory(output_root, "signing output")
+                self._output_root = output
+                work = _new_owned_directory(output.path / ".protected-work", "private signing work")
+                home = _new_owned_directory(work.path / "gnupg", "private GnuPG home")
+                staging = _new_owned_directory(work.path / "staging", "private staging")
+                self._agent = OwnedGpgAgent(home.path, work.path)
+                self._agent.start()
+                self._import_key(home.path, work.path, public_key_bytes, bytes(private_secret))
+                if apt_release:
+                    results.extend(self._sign_apt_release(
+                        release_bytes, home.path, work.path, staging.path, output.path, bytes(passphrase_secret),
+                    ))
+                else:
+                    rpm_db = self._import_rpm_key(home.path, work.path, public_key_bytes) if any(obj.channel == "rpm" for obj in checked) else None
+                    for obj, name in zip(checked, names, strict=True):
+                        original = (_read_stable(obj.path, obj.sha256, obj.size, "unsigned object")
+                                    if lease is None else lease.read_unsigned(obj))
+                        stage = staging.path / name
+                        _exclusive_write(stage, original, "staged unsigned object")
+                        if obj.channel == "apt":
+                            observed = _read_regular_unpinned(stage, "staged DEB")
+                            if observed != original:
+                                raise ProtectedSigningError("PACKAGE_MUTATED", "DEB package bytes changed during protected signing")
+                            self._write_output("apt-output", output.path / "apt" / obj.architecture / stage.name, observed, "DEB output")
+                            results.append({"channel": "apt", "product": obj.product, "architecture": obj.architecture,
+                                            "name": name, "package_sha256": _sha256(observed)})
+                        elif obj.channel == "rpm":
+                            self._rpm_sign(stage, home.path, work.path, bytes(passphrase_secret))
+                            if rpm_db is None:
+                                raise ProtectedSigningError("RPM_KEY_DATABASE", "RPM verification database was not initialized")
+                            rpm_verification = self._rpm_verify(stage, rpm_db, home.path, work.path)
+                            signed = _read_regular_unpinned(stage, "signed RPM")
+                            preservation = inspect_rpm_preservation(original, signed)
+                            archive = "x86_64" if obj.architecture == "noarch" else obj.architecture
+                            self._write_output("rpm-output", output.path / "rpm" / archive / stage.name, signed, "signed RPM output")
+                            if obj.architecture == "noarch":
+                                self._write_output("noarch-output", output.path / "rpm" / "aarch64" / stage.name, signed, "reused signed noarch RPM")
+                            results.append({"channel": "rpm", "product": obj.product, "architecture": obj.architecture,
+                                            "name": name, "preservation": preservation, "rpm_verification": rpm_verification})
+                        else:
+                            signature = staging.path / (stage.name + ".sig")
+                            self._pacman_sign(stage, signature, home.path, work.path, bytes(passphrase_secret))
+                            self._pacman_verify(stage, signature, home.path, work.path)
+                            observed = _read_regular_unpinned(stage, "signed Pacman input")
+                            if observed != original:
+                                raise ProtectedSigningError("PACKAGE_MUTATED", "Pacman package bytes changed during signing")
+                            archive = "x86_64" if obj.architecture == "any" else obj.architecture
+                            self._write_output("pacman-output", output.path / "pacman" / archive / stage.name, observed, "Pacman package output")
+                            signature_bytes = _read_regular_unpinned(signature, "Pacman signature")
+                            self._write_output("signature-output", output.path / "pacman" / archive / signature.name, signature_bytes, "Pacman signature output")
+                            results.append({"channel": "pacman", "product": obj.product, "architecture": obj.architecture,
+                                            "name": name, "package_sha256": _sha256(observed)})
+                self._final_output_inventory(output, work)
+                result = ExecutionResult(
+                    schema="tf.current-protected-signing-execution.v1",
+                    status="observed" if native_observation else "test-only",
+                    production_authority=False, native_execution=native_observation,
+                    output_root=str(output.path), objects=tuple(results),
+                )
             except BaseException as error:
-                cleanup_errors.append(error)
+                body_error = error
+                self._remember_resource_errors(error)
+                if lease is not None and (
+                        isinstance(error, OSError)
+                        or (isinstance(error, ProtectedSigningError) and error.code in {
+                            "PACKAGE_MUTATED", "OUTPUT_INVENTORY", "OUTPUT_CUSTODY", "FILE_CHANGED",
+                        })):
+                    # A live output/custody mismatch is terminal even if native
+                    # consumers subsequently stop successfully.
+                    self._resource_failures.append(error)
+            finally:
+                for secret in (private_secret, passphrase_secret):
+                    try:
+                        _clear_secret(secret)
+                    except BaseException as error:
+                        cleanup_errors.append(error)
+                if self._agent is not None:
+                    try:
+                        self._agent.close()
+                        if not self._agent.cleanup_confirmed:
+                            cleanup_errors.append(ProtectedSigningError("AGENT_CLEANUP", "Agent cleanup is unconfirmed"))
+                    except BaseException as error:
+                        cleanup_errors.append(error)
+
+            known_uncertainty = bool(cleanup_errors or self._consumer_failures or self._resource_failures)
+            if lease is not None and getattr(lease, "_state", None) == "retained":
                 known_uncertainty = True
-        if known_uncertainty:
-            raise self._retain_runtime(body_error, cleanup_errors, work=work, output=output,
-                                       stage="before-directory-deletion") from None
-        self._agent = None
-        try:
-            if work is not None:
-                _remove_owned_directory(work)
-            if body_error is not None and output is not None:
-                _remove_owned_directory(output)
-        except BaseException as error:
-            # Lease teardown is already confirmed; do not revive its authority
-            # or imply that earlier completed deletion can be rolled back.
-            raise self._retain_runtime(body_error, (error,), work=work, output=output,
-                                       stage="partial-directory-cleanup") from None
-        if body_error is not None:
-            raise body_error
-        return result
+                cleanup_errors.append(ProtectedSigningError("LIVE_CUSTODY_RETAINED", "Live custody has an unresolved failure"))
+            # Never close input holds while any consumer/agent/resource uncertainty
+            # is already known. The final source check precedes all descriptor close.
+            if lease is not None and not known_uncertainty:
+                try:
+                    lease.check()
+                    lease._close_confirmed()
+                except BaseException as error:
+                    cleanup_errors.append(error)
+                    known_uncertainty = True
+            if known_uncertainty:
+                raise self._retain_runtime(body_error, cleanup_errors, work=work, output=output,
+                                           stage="before-directory-deletion") from None
+            self._agent = None
+            try:
+                if work is not None:
+                    _remove_owned_directory(work)
+                if body_error is not None and output is not None:
+                    _remove_owned_directory(output)
+            except BaseException as error:
+                # Lease teardown is already confirmed; do not revive its authority
+                # or imply that earlier completed deletion can be rolled back.
+                raise self._retain_runtime(body_error, (error,), work=work, output=output,
+                                           stage="partial-directory-cleanup") from None
+            if body_error is not None:
+                raise body_error
+            return result
+        finally:
+            if self in _ACTIVE_SIGNING_RUNTIMES:
+                _ACTIVE_SIGNING_RUNTIMES.remove(self)
 
     def execute_live_lease(
         self, lease: Any, *, output_root: str | Path, public_key_bytes: bytes,
@@ -1301,6 +1473,11 @@ class ProtectedSigningRuntime:
         issuer: str, evidence: Mapping[str, object], inrelease_adapter: Any, detached_adapter: Any,
     ) -> tuple[Any, Any]:
         """Call concrete AptSignatureAdapter and existing RS9 retention APIs."""
+        if _ACTIVE_SIGNING_RUNTIMES or _RETAINED_RUNTIME_CUSTODIES:
+            raise ProtectedSigningError(
+                "LIFECYCLE_STATE",
+                "APT signature retention requires private signing work to be closed and removed",
+            )
         try:
             from apt_signature_adapter import AptSignatureAdapter
             from rs9.repo_apt import AptRepositoryCandidate
