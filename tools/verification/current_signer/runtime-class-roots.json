@@ -1,0 +1,127 @@
+{
+  "baseImage": "registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd",
+  "purpose": "quarantine only; no installation or signing",
+  "roots": [
+    {
+      "arch": "x86_64",
+      "bytes": 66937,
+      "filename": "bsdtar-3.8.4-1.fc43.x86_64.rpm",
+      "license": "BSD-2-Clause AND FSFULLR AND GPL-2.0-or-later WITH Libtool-exception AND BSD-3-Clause AND FSFUL",
+      "name": "bsdtar",
+      "release": "1.fc43",
+      "sha256": "ede00592d76367c9f6698ff0e3702cf2d389d3ebd9f564ab7cb67acc6a49dedc",
+      "version": "3.8.4"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 78187,
+      "filename": "createrepo_c-1.2.1-3.fc43.x86_64.rpm",
+      "license": "GPL-2.0-or-later",
+      "name": "createrepo_c",
+      "release": "3.fc43",
+      "sha256": "b46d9b26bb67df14e7132cfddd1420ac17652e142cec3f291f9abd4c627c2876",
+      "version": "1.2.1"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 113640,
+      "filename": "createrepo_c-libs-1.2.1-3.fc43.x86_64.rpm",
+      "license": "GPL-2.0-or-later",
+      "name": "createrepo_c-libs",
+      "release": "3.fc43",
+      "sha256": "d1df01e1a1b4992d68bd26a7f85feb800ef053073a79af0c1c5ddfdc20670348",
+      "version": "1.2.1"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 11526853,
+      "filename": "gh-2.87.3-1.fc43.x86_64.rpm",
+      "license": "Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MIT AND MPL-2.0 AND Unlicense",
+      "name": "gh",
+      "release": "1.fc43",
+      "sha256": "a5d23ea024e4dfda6522693c3446c874961ddf2fb2c65b327d75f277435fa279",
+      "version": "2.87.3"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 5965667,
+      "filename": "git-core-2.56.0-1.fc43.x86_64.rpm",
+      "license": "BSD-3-Clause AND GPL-2.0-only AND GPL-2.0-or-later AND LGPL-2.1-or-later AND MIT",
+      "name": "git-core",
+      "release": "1.fc43",
+      "sha256": "6aa10d035b4cd3e431983fe2ee2d6438346e98751c08537571f6fa42fbc8b318",
+      "version": "2.56.0"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 1715869,
+      "filename": "gnupg2-2.4.9-5.fc43.x86_64.rpm",
+      "license": "CC0-1.0 AND GPL-2.0-or-later AND GPL-3.0-or-later AND LGPL-2.1-or-later AND LGPL-3.0-or-later AND (BSD-3-Clause OR LGPL-3.0-or-later OR GPL-2.0-or-later) AND CC-BY-4.0 AND MIT",
+      "name": "gnupg2",
+      "release": "5.fc43",
+      "sha256": "1a2890c505f5f9b7ba56d2401077626ca7bcecf3656e65ecf8d8213f0ac9ce55",
+      "version": "2.4.9"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 283126,
+      "filename": "libalpm-7.0.0-5.fc43.x86_64.rpm",
+      "license": "GPL-2.0-or-later",
+      "name": "libalpm",
+      "release": "5.fc43",
+      "sha256": "c89219442886ba27e39b239eec458531af9d7bf77e17a1e37477b11aee0e6bd3",
+      "version": "7.0.0"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 432792,
+      "filename": "libarchive-3.8.4-1.fc43.x86_64.rpm",
+      "license": "BSD-2-Clause AND FSFULLR AND GPL-2.0-or-later WITH Libtool-exception AND BSD-3-Clause AND FSFUL",
+      "name": "libarchive",
+      "release": "1.fc43",
+      "sha256": "3a4e745c98f0765c3b2ba4d5c9563defd23787cfad2d0065a7f1cd616e63beec",
+      "version": "3.8.4"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 789989,
+      "filename": "pacman-7.0.0-5.fc43.x86_64.rpm",
+      "license": "GPL-2.0-or-later",
+      "name": "pacman",
+      "release": "5.fc43",
+      "sha256": "20554352bb5397d1860d6df1a87e4ca972d4e708db13054cf1d3a2e7c0a243d6",
+      "version": "7.0.0"
+    },
+    {
+      "arch": "noarch",
+      "bytes": 8125,
+      "filename": "pacman-filesystem-7.0.0-5.fc43.noarch.rpm",
+      "license": "LicenseRef-Fedora-Public-Domain",
+      "name": "pacman-filesystem",
+      "release": "5.fc43",
+      "sha256": "175599f9f9b4813d0b246dd4f17ea67506d17f34f06652f7a3ee88db6c619d08",
+      "version": "7.0.0"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 30117,
+      "filename": "python3-3.14.8-1.fc43.x86_64.rpm",
+      "license": "Python-2.0.1",
+      "name": "python3",
+      "release": "1.fc43",
+      "sha256": "8b694a1cf2b705a6b1a8d2d23af65762eb37d066fd163fe6280fd4de0af7830a",
+      "version": "3.14.8"
+    },
+    {
+      "arch": "x86_64",
+      "bytes": 19948,
+      "filename": "rpm-sign-6.0.2-1.fc43.x86_64.rpm",
+      "license": "GPL-2.0-or-later",
+      "name": "rpm-sign",
+      "release": "1.fc43",
+      "sha256": "db398e82a2f788f8125cae2f713aca891f18c4a6858022ea6f166fc067272923",
+      "version": "6.0.2"
+    }
+  ],
+  "schema": "tf.current-signer-runtime-roots.v1"
+}

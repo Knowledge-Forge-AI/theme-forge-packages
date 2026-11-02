@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-02T15:19:11.951Z",
+  "generatedAt": "2026-11-02T23:20:57.249Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "f37e35ccc70baa99605197dc76ae09b1ac6d01c84bd3cd88ba186523c44220e0",
+  "generationOverlayManifestSha256": "5aa4b631d5c975a6f4b991435d10f912e404952a155271a847a9786f42735979",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "f37e35ccc70baa99605197dc76ae09b1ac6d01c84bd3cd88ba186523c44220e0",
+  "treeManifestSha256": "5aa4b631d5c975a6f4b991435d10f912e404952a155271a847a9786f42735979",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 144,
+  "totalFiles": 146,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -26,6 +26,11 @@
       "path": ".github/workflows/preflight-signing-key.yml",
       "bytes": 1809,
       "sha256": "648908db1ed997d23385bd2448b23beadeed24272ad622560df7c2807a8fa4eb"
+    },
+    {
+      "path": ".github/workflows/prepare-current-signing-inputs.yml",
+      "bytes": 7496,
+      "sha256": "947c3fe40228d768045540314c30d8b2062c0998d4a8f714b7816bd2a7142591"
     },
     {
       "path": ".github/workflows/probe-current-b3-lifecycle.yml",
@@ -601,6 +606,11 @@
       "path": "tools/verification/check-nebular-fhs-closure.sh",
       "bytes": 6416,
       "sha256": "9724f4ab257d217bb2a556d8abab25c1e3e01d955109b6256d9c1e784cc65947"
+    },
+    {
+      "path": "tools/verification/current_signer/runtime-class-roots.json",
+      "bytes": 4496,
+      "sha256": "05422a81ce3f2ac359b2673717436f46f4628cdbbaa187b78e76680962616be3"
     },
     {
       "path": "tools/verification/current-candidate-context.mjs",
