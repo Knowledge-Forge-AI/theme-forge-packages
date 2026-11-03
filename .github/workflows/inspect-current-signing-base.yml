@@ -1,0 +1,41 @@
+name: Inspect Current Signing Base (Key Free)
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  inspect-base:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Query only the pinned public base metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          /usr/bin/python3 -I -B tools/verification/signing_base_metadata.py \
+            --output "$RUNNER_TEMP/tf-base-metadata-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+      - name: Retain public metadata only after complete cleanup
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-signing-base-metadata-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/tf-base-metadata-${{ github.run_id }}-${{ github.run_attempt }}/*.tsv
+            ${{ runner.temp }}/tf-base-metadata-${{ github.run_id }}-${{ github.run_attempt }}/RESULT.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain fixed cleanup and failure facts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-signing-base-result-${{ github.run_id }}
+          path: ${{ runner.temp }}/tf-base-metadata-${{ github.run_id }}-${{ github.run_attempt }}/RESULT.json
+          if-no-files-found: error
+          retention-days: 7
