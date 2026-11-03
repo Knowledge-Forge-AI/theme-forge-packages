@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T01:33:55.212Z",
+  "generatedAt": "2026-11-03T02:13:22.069Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "ed2533f643c7b03060e27e7d2723c08c74b7f2a0d02b7db7516f69e7d0e557a5",
+  "generationOverlayManifestSha256": "9c1ad065081dd8149741a4c4fb82770f8a65fae8e06ffe42333a8c4668a3a2b7",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "ed2533f643c7b03060e27e7d2723c08c74b7f2a0d02b7db7516f69e7d0e557a5",
+  "treeManifestSha256": "9c1ad065081dd8149741a4c4fb82770f8a65fae8e06ffe42333a8c4668a3a2b7",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -724,13 +724,13 @@
     },
     {
       "path": "tools/verification/signing_base_metadata.py",
-      "bytes": 13847,
-      "sha256": "74e6fd1f987a1dfc1ab523aecede4acf641ecb64fed875a1364dd3f29c1e227d"
+      "bytes": 13995,
+      "sha256": "d1ccf58222d0867ba86d910b4fdb1e142173e5d8a3bd1089ed1439098f029977"
     },
     {
       "path": "tools/verification/test_signing_base_metadata.py",
-      "bytes": 11611,
-      "sha256": "ea53e5e6eade551cfa7e439fea3413943e27e58d75e08a9e951c8f63ed4f2804"
+      "bytes": 13689,
+      "sha256": "23470fd5de3b17100787fda5a62199708a2dca39dcc33e89cf68c10b1d20a95b"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",

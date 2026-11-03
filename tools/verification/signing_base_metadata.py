@@ -34,8 +34,8 @@ QUERY_FORMATS = {
     "requires": "%|REQUIRENAME?{[" + IDENTITY + "%{REQUIRENAME}\\t%{REQUIREFLAGS}\\t%{REQUIREVERSION}\\n]}:{}|",
     "conflicts": "%|CONFLICTNAME?{[" + IDENTITY + "%{CONFLICTNAME}\\t%{CONFLICTFLAGS}\\t%{CONFLICTVERSION}\\n]}:{}|",
     "obsoletes": "%|OBSOLETENAME?{[" + IDENTITY + "%{OBSOLETENAME}\\t%{OBSOLETEFLAGS}\\t%{OBSOLETEVERSION}\\n]}:{}|",
-    "scripts": "".join("%|" + tag + "?{" + IDENTITY + tag + "\\t%{" + tag + ":json}\\n}:{}|" for tag in SCRIPT_SCALARS)
-    + "".join("%|" + tag + "?{[" + IDENTITY + tag + "\\t%{" + tag + ":json}\\n]}:{}|" for tag in SCRIPT_ARRAYS),
+    "scripts": r"\n".join(["%|" + tag + "?{" + IDENTITY + tag + "\\t%{" + tag + ":json}\\n}:{}|" for tag in SCRIPT_SCALARS]
+    + ["%|" + tag + "?{[" + IDENTITY + tag + "\\t%{" + tag + ":json}\\n]}:{}|" for tag in SCRIPT_ARRAYS]),
 }
 NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9+_.-]{0,199}\Z")
 VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9+_.~^-]{0,299}\Z")
@@ -115,6 +115,9 @@ def parse_rows(kind: str, raw: bytes) -> list[list]:
     expected = {"packages": 7, "members": 15, "provides": 8, "requires": 8, "conflicts": 8, "obsoletes": 8, "scripts": 7}[kind]
     rows = []
     for line_number, line in enumerate(lines, 1):
+        # A literal separator resets RPM6 destructive parsing between conditionals.
+        if kind == "scripts" and line == "":
+            continue
         row = line.split("\t")
         if len(row) != expected:
             raise Refusal("QUERY_FIELD_COUNT", line_number)
