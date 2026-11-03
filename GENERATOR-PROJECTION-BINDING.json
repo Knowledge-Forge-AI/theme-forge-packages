@@ -1,26 +1,31 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-02T23:51:27.868Z",
+  "generatedAt": "2026-11-03T01:16:32.157Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "0176ad8011b68a9bc95221260b24560017830451f8a56600f92a3e06778d30fc",
+  "generationOverlayManifestSha256": "b228e588527efb9aeb8ad1cc291ef814982b4cde8cb60df6c749f47da91eb50d",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "0176ad8011b68a9bc95221260b24560017830451f8a56600f92a3e06778d30fc",
+  "treeManifestSha256": "b228e588527efb9aeb8ad1cc291ef814982b4cde8cb60df6c749f47da91eb50d",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 146,
+  "totalFiles": 149,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
       "bytes": 3009,
       "sha256": "78a7d8ce7a2b6d0de020f9f72e339d01faf732803949fc3d7ed1ab4c420c36fc"
+    },
+    {
+      "path": ".github/workflows/inspect-current-signing-base.yml",
+      "bytes": 1790,
+      "sha256": "81c60451d7492dfe26c88eb0e3d0c4488119abca20c659f233eaa57e83a7ef2e"
     },
     {
       "path": ".github/workflows/preflight-signing-key.yml",
@@ -716,6 +721,16 @@
       "path": "tools/verification/qualify-p-current-nix.mjs",
       "bytes": 27990,
       "sha256": "d0daa2c656271d5a16c5b716805fbe3d5d74cfcd16adecf34e6ad0d55028bdb7"
+    },
+    {
+      "path": "tools/verification/signing_base_metadata.py",
+      "bytes": 13779,
+      "sha256": "7cad18b5b209f5a3219e36b505c8044ba51d2672fdf268682f473406fd8bd921"
+    },
+    {
+      "path": "tools/verification/test_signing_base_metadata.py",
+      "bytes": 9824,
+      "sha256": "fb01dcae5740cca63ff0d3ac47c7728d50c6a300149203f28cbf45d9b9311fc7"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",
