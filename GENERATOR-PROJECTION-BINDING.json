@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T22:09:24.678Z",
+  "generatedAt": "2026-11-03T23:17:55.202Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "cb83cf6f6b61a190227035e3bc4d0c9b5cedd54a024805c54f5c4e1c27a307fc",
+  "generationOverlayManifestSha256": "b3a228bdb9d41a3df26c2a3b7fd378c6e319563f12b5a3363d4e2c5ae3db47c1",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "cb83cf6f6b61a190227035e3bc4d0c9b5cedd54a024805c54f5c4e1c27a307fc",
+  "treeManifestSha256": "b3a228bdb9d41a3df26c2a3b7fd378c6e319563f12b5a3363d4e2c5ae3db47c1",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 216,
+  "totalFiles": 219,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -56,6 +56,11 @@
       "path": ".github/workflows/probe-current-signer-c6-gpg.yml",
       "bytes": 11294,
       "sha256": "e630ca7ee41d4ed0841d59a74c1e31634505dcad08cda066a9fb6548d9cce997"
+    },
+    {
+      "path": ".github/workflows/probe-current-signer-isolation.yml",
+      "bytes": 2485,
+      "sha256": "f5ccd1fe4771376db9761042194c2e75ea2f4adc14b0ef2cded0665e5f8b4325"
     },
     {
       "path": ".github/workflows/publish.yml",
@@ -971,6 +976,16 @@
       "path": "tools/verification/generate-publication-provenance.mjs",
       "bytes": 7797,
       "sha256": "1fd13ff84ca4267fb2d2207f006fb966e910426d7555528d115a9afd9119b695"
+    },
+    {
+      "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
+      "bytes": 62767,
+      "sha256": "1c9d36cac558f54e2f4222313ed4a9e0b7c35616d48c50b567f1b80da9d01b63"
+    },
+    {
+      "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
+      "bytes": 38267,
+      "sha256": "99c9fe27994e20afe8bc870822755791edce9ef12a69d2468949f980077c4625"
     },
     {
       "path": "tools/verification/p-command-probes.mjs",
