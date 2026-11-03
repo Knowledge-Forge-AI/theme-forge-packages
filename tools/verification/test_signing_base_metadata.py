@@ -88,6 +88,44 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(m.parse_rows("scripts", DATA["scripts"])[0][6], "public script\nsecond line")
         self.assertEqual(m.parse_rows("scripts", b""), [])
 
+    def test_scripts_empty_framing_lines_preserve_records(self):
+        framed = b"\n\n" + DATA["scripts"] + b"\n" + DATA["scripts"] + b"\n"
+        expected = m.parse_rows("scripts", DATA["scripts"])
+        self.assertEqual(m.parse_rows("scripts", framed), expected + expected)
+        for whitespace in (b" \n", b"\t\n", b" \t \n"):
+            with self.subTest(whitespace=whitespace), self.assertRaises(m.Refusal):
+                m.parse_rows("scripts", whitespace)
+
+    def test_other_families_still_reject_empty_framing_lines(self):
+        for kind, raw in DATA.items():
+            if kind != "scripts":
+                with self.subTest(kind=kind), self.assertRaises(m.Refusal):
+                    m.parse_rows(kind, b"\n" + raw)
+
+    def test_scripts_empty_framing_obeys_physical_line_limit(self):
+        self.assertEqual(m.parse_rows("scripts", b"\n" * 49), [])
+        with self.assertRaisesRegex(m.Refusal, "QUERY_OUTPUT_SHAPE"):
+            m.parse_rows("scripts", b"\n" * 100001)
+
+    def test_scripts_empty_value_and_physical_failure_line(self):
+        rows = m.parse_rows("scripts", b"\n" + PREFIX + b'POSTIN\t""\n\n')
+        self.assertEqual(rows[0][6], "")
+        try:
+            m.parse_rows("scripts", b"\n" + DATA["scripts"] + b"\ninvalid\n")
+        except m.Refusal as error:
+            self.assertEqual(str(error), "QUERY_FIELD_COUNT")
+            self.assertEqual(error.line, 4)
+        else:
+            self.fail("malformed nonempty row accepted")
+
+    def test_literal_separators_preserve_all_optional_metadata_blocks(self):
+        scalar = ["%|" + tag + "?{" + m.IDENTITY + tag + "\\t%{" + tag + ":json}\\n}:{}|" for tag in m.SCRIPT_SCALARS]
+        arrays = ["%|" + tag + "?{[" + m.IDENTITY + tag + "\\t%{" + tag + ":json}\\n]}:{}|" for tag in m.SCRIPT_ARRAYS]
+        boundary = "}:{}|" + r"\n" + "%|"
+        self.assertEqual(m.QUERY_FORMATS["scripts"].count(boundary), 49)
+        self.assertEqual(m.QUERY_FORMATS["scripts"].replace(boundary, "}:{}|%|"), "".join(scalar + arrays))
+        self.assertEqual(len(scalar + arrays), 50)
+
     def test_bad_row_shapes(self):
         for kind in DATA:
             for raw in (b"wrong\n", DATA[kind][:-1], b"\x00\n", b"\xff\n"):
