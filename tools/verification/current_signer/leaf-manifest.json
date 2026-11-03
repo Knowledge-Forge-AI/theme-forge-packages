@@ -38,7 +38,7 @@
     "tools/verification/current_signer/rpm_byte_preservation.py": "193d0b14bcca41ddb89d091fb1f12e11f7bfce6b31bbdb15d42e33bc251bb9b6",
     "tools/verification/current_signer/rpm_public_signature_adapter.py": "4c4f2f6f364cd1a66e9c9fa7e59201af7b2356ad3cfd3eb3b719874f428d82fd",
     "tools/verification/current_signer/runtime_input_intake.py": "dcfd03ee3207bbce131d40b6180b00fd1e7208ccc29818f3dfae81705f7fa7ce",
-    "tools/verification/current_signer/runtime_workflow_bridge.py": "0a2e4bcc08afc7435e8e3e9a3c1783d59a5bad8b2b66559c0c01beb45253d8a4",
+    "tools/verification/current_signer/runtime_workflow_bridge.py": "6fed84beabc4864b758953f9f46142e1306de76bb318d28f418368d6fecb30ae",
     "tools/verification/current_signer/secret_frame_transport.py": "c031304a80a3e56fcd02133d7a776a3b1c40287a80778dd579b1e22633b57be4",
     "tools/verification/current_signer/signer_host_controller.py": "a01631d8a0e111bed2ccc9fbf84d8d5ffc212e65e85eef413575c905093fb19d",
     "tools/verification/current_signer/signer_protocol_io.py": "adcfb8477e9993547bcf6090f568affd3f94df50d99e9a1546043ded1cb75619",
