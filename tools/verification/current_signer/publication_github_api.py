@@ -205,8 +205,39 @@ class GhApiTransport:
         self._token = token
         self._dir = _new_private_dir(work_dir)
         self._config = _new_private_dir(os.path.join(self._dir, "gh-config"))
+        self._disable_telemetry()
         self._popen, self._killpg, self._clock, self._sleep = popen, killpg, clock, sleep
         self._sequence = 0
+
+    def _disable_telemetry(self) -> None:
+        # gh2.103+ otherwise creates nested device-ID state below this fresh HOME.
+        # Keep transport state flat and non-telemetric without broadening cleanup.
+        data = b"telemetry: disabled\n"
+        try:
+            fd = os.open(os.path.join(self._config, "config.yml"),
+                         os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+            try:
+                before = os.fstat(fd)
+                if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                        or before.st_uid != os.geteuid()):
+                    refuse("TRANSPORT_CONFIG_FILE")
+                os.fchmod(fd, 0o600)
+                remaining = memoryview(data)
+                while remaining:
+                    count = os.write(fd, remaining)
+                    if not 0 < count <= len(remaining):
+                        refuse("TRANSPORT_CONFIG_WRITE")
+                    remaining = remaining[count:]
+                after = os.fstat(fd)
+                if ((after.st_dev, after.st_ino, after.st_uid, after.st_nlink)
+                        != (before.st_dev, before.st_ino, before.st_uid, 1)
+                        or not stat.S_ISREG(after.st_mode) or stat.S_IMODE(after.st_mode) != 0o600
+                        or after.st_size != len(data)):
+                    refuse("TRANSPORT_CONFIG_FILE")
+            finally:
+                os.close(fd)
+        except OSError:
+            raise PublicationError("TRANSPORT_CONFIG_WRITE") from None
 
     def child_env(self) -> dict:
         # Allowlist only: never forwards signing secrets or ambient credentials.
