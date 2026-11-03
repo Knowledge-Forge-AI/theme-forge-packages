@@ -1,0 +1,55 @@
+name: Current Signer Key-Free Isolation Diagnostic Probe
+
+# PROPOSED ONLY. Owner approval of this diagnostic purpose, the actions:read
+# deviation and exactly one hosted run precedes landing or dispatch. Not a
+# signer run, not an R/Q/GUI cycle, not isolation acceptance. No environment,
+# no secrets mapping, no signing, no publication, no package clients.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  isolation-probe:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    name: isolation-probe
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      # Owner decision D1: required only because the production key-free
+      # runtime image intake downloads the pinned original-run Actions artifact.
+      actions: read
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout exact P source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: p
+          persist-credentials: false
+      - name: Check pure probe contracts without native effects
+        run: /usr/bin/python3 -I -B p/tools/verification/isolation_probe/test_current_signer_isolation_probe.py
+      - name: Key-free image lease, one observed network lifecycle, fail-closed teardown
+        env:
+          # Host-only read token for the existing pinned runtime input intake.
+          # Popped from the process environment before any container exists;
+          # the container argv/env never carries it.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          /usr/bin/python3 -I -B p/tools/verification/isolation_probe/current_signer_isolation_probe.py --host \
+            --p-root "$GITHUB_WORKSPACE/p" --p-commit "$GITHUB_SHA" \
+            --work-root "$RUNNER_TEMP/tf-isolation-probe-image-$GITHUB_RUN_ID" \
+            --result-out "$RUNNER_TEMP/tf-isolation-probe-$GITHUB_RUN_ID/RESULT.json"
+      - name: Retain the closed diagnostic result only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: current-signer-isolation-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/tf-isolation-probe-${{ github.run_id }}/RESULT.json
+          if-no-files-found: warn
+          retention-days: 7
