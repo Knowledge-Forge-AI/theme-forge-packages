@@ -1,17 +1,183 @@
-name: Current Production Publication Held
+name: Publish Qualified Current Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      qualification_run_id:
+        description: Original completed full-signer and native-client qualification run
+        required: true
+        type: string
+      gui_run_id:
+        description: Original completed three-host GUI qualification run at the same P commit
+        required: true
+        type: string
 
 permissions: {}
 
+concurrency:
+  group: current-package-publication
+  cancel-in-progress: false
+
+env:
+  LEAF_MANIFEST_SHA256: "c3b53509fbde486fb70cb6028bfa56e0e91cd2e8885c001d074117419411d9ba"
+  QUALIFY_WORKFLOW_SHA256: "71f3557c62e7552f7b24b12129df5d0f3ba261ea9a95eba206930fe75d521818"
+  GUI_WORKFLOW_SHA256: "8eab7c7d26b5b68facbcc8e064558adca9f246da099337f8af21dd26866cb458"
+
 jobs:
-  publication-held:
+  admit-retained-repository:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 1
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - name: Refuse current production publication
+      - name: Checkout the workflow's exact P source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          path: p
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Authenticate fixed source pins and immutable checkout
+        id: source
         shell: bash
+        working-directory: p
         run: |
-          printf '%s\n' 'Current production publication is held pending qualified RS9 inputs, P native-three qualification, and signing preflight. This interim workflow grants no publication authority.'
-          exit 1
+          set -euo pipefail
+          python3 -I -B - <<'PY'
+          import hashlib, os, re, stat, subprocess
+          from pathlib import Path
+
+          root = Path.cwd()
+          def held_source(relative, limit):
+              path = root / relative
+              if any(p.is_symlink() for p in (path, *path.parents)):
+                  raise SystemExit("PUBLICATION_SOURCE_PATH")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
+              try:
+                  before = os.fstat(fd)
+                  if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > limit:
+                      raise SystemExit("PUBLICATION_SOURCE_FILE")
+                  body = bytearray()
+                  while len(body) <= limit:
+                      part = os.read(fd, min(65536, limit + 1 - len(body)))
+                      if not part:
+                          break
+                      body.extend(part)
+                  after = os.fstat(fd)
+                  if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns):
+                      raise SystemExit("PUBLICATION_SOURCE_CHANGED")
+                  if len(body) != before.st_size or len(body) > limit:
+                      raise SystemExit("PUBLICATION_SOURCE_BOUND")
+                  return body
+              finally:
+                  os.close(fd)
+
+          sources = (
+              ("LEAF_MANIFEST_SHA256", "tools/verification/current_signer/leaf-manifest.json", 65536),
+              ("QUALIFY_WORKFLOW_SHA256", ".github/workflows/qualify-current-signer.yml", 262144),
+              ("GUI_WORKFLOW_SHA256", ".github/workflows/validate.yml", 262144),
+          )
+          for variable, relative, limit in sources:
+              expected = os.environ[variable]
+              if not re.fullmatch("[0-9a-f]{64}", expected):
+                  raise SystemExit("PUBLICATION_SOURCE_UNADMITTED")
+              if hashlib.sha256(held_source(relative, limit)).hexdigest() != expected:
+                  raise SystemExit("PUBLICATION_SOURCE_DIGEST")
+          env = {"PATH": "/usr/bin:/bin", "LC_ALL": "C", "LANG": "C",
+                 "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_OPTIONAL_LOCKS": "0"}
+          def git_identity(expression):
+              result = subprocess.run(["/usr/bin/git", "rev-parse", "--verify", expression],
+                                      env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                      stderr=subprocess.DEVNULL, timeout=10, check=False)
+              value = result.stdout.decode("ascii").strip()
+              if result.returncode or not re.fullmatch("[0-9a-f]{40}", value):
+                  raise SystemExit("PUBLICATION_GIT_IDENTITY")
+              return value
+          if git_identity("HEAD") != os.environ["GITHUB_SHA"]:
+              raise SystemExit("PUBLICATION_CHECKOUT_MISMATCH")
+          tree = git_identity("HEAD^{tree}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("p_tree=" + tree + "\n")
+          PY
+      - name: Admit the original qualified artifact and stage its exact bytes
+        id: admission
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          GUI_RUN_ID: ${{ inputs.gui_run_id }}
+          EXPECTED_P_TREE: ${{ steps.source.outputs.p_tree }}
+        shell: bash
+        working-directory: p
+        run: |
+          set -euo pipefail
+          python3 -I -B - <<'PY'
+          import os, re, subprocess, sys
+          from pathlib import Path
+
+          root = Path.cwd()
+          suffix = os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"]
+          if not re.fullmatch("[1-9][0-9]*-[1-9][0-9]*", suffix):
+              raise SystemExit("PUBLICATION_RUN_REFERENCE")
+          work = Path(os.environ["RUNNER_TEMP"]) / ("tf-retained-publication-" + suffix)
+          destination = work / "public"
+          command = [
+              sys.executable, "-I", "-B", str(root / "tools/verification/current_import_routing.py"),
+              "--current-signer-publish",
+              "--repository", "Knowledge-Forge-AI/theme-forge-packages",
+              "--p-root", str(root), "--p-commit", os.environ["GITHUB_SHA"],
+              "--p-tree", os.environ["EXPECTED_P_TREE"],
+              "--qualification-run-id", os.environ["QUALIFICATION_RUN_ID"],
+              "--gui-run-id", os.environ["GUI_RUN_ID"],
+              "--leaf-manifest-sha256", os.environ["LEAF_MANIFEST_SHA256"],
+              "--work-root", str(work), "--destination", str(destination),
+              "--audit-out", str(work / "admission-audit.json"),
+          ]
+          # The leaf CLI owns its bounded API children and retained cleanup state.
+          result = subprocess.run(command, stdin=subprocess.DEVNULL, check=False)
+          if result.returncode:
+              raise SystemExit(result.returncode)
+          import json
+          audit = json.loads((work / "admission-audit.json").read_bytes())
+          fields = ("artifact_id", "artifact_digest_sha256", "public_inventory_sha256",
+                    "public_file_count", "qualification_run_id", "gui_validation_run_id")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("Retained repository admission\n\n")
+              for field in fields:
+                  summary.write(field + ": " + str(audit[field]) + "\n")
+          archive = work / "artifact.tar"
+          # The admitted tree contains only regular files and physical directories.
+          # Create the Pages transport without a composite action's mutable nested tag.
+          result = subprocess.run([
+              "/usr/bin/tar", "--directory", str(destination), "-cf", str(archive), ".",
+          ], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+              stderr=subprocess.DEVNULL, timeout=120, check=False)
+          if result.returncode:
+              raise SystemExit("PAGES_TRANSPORT_ARCHIVE_FAILED")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("archive_path=" + str(archive) + "\n")
+          PY
+      - name: Upload the admitted repository for attended Pages deployment
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3; matches existing native workflow
+        with:
+          name: github-pages
+          path: ${{ steps.admission.outputs.archive_path }}
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy-retained-repository:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' && needs.admit-retained-repository.result == 'success' }}
+    needs: admit-retained-repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy the admitted Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

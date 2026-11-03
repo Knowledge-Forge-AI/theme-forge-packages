@@ -1,0 +1,173 @@
+name: Current Signer and Native Package Client Qualification
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  qualify-current-signer:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    name: qualify-current-signer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 210
+    environment: github-pages
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      p_tree: ${{ steps.plan.outputs.p_tree }}
+      r_commit: ${{ steps.plan.outputs.r_commit }}
+      r_tree: ${{ steps.plan.outputs.r_tree }}
+      rs9_run: ${{ steps.plan.outputs.rs9_run }}
+      leaf_manifest_sha256: ${{ steps.plan.outputs.leaf_manifest_sha256 }}
+      artifact_id: ${{ steps.repository.outputs.artifact-id }}
+      artifact_sha256: ${{ steps.repository.outputs.artifact-digest }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout exact P source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: p
+          persist-credentials: false
+      - name: Authenticate source and plan exact R coordinates
+        id: plan
+        env:
+          LEAF_MANIFEST_SHA256: "c3b53509fbde486fb70cb6028bfa56e0e91cd2e8885c001d074117419411d9ba"
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-runtime plan \
+            --p-root "$GITHUB_WORKSPACE/p" --p-commit "$GITHUB_SHA" \
+            --leaf-manifest-sha256 "$LEAF_MANIFEST_SHA256" \
+            --binding-out "$RUNNER_TEMP/current-signer-binding.json" --github-output "$GITHUB_OUTPUT"
+      - name: Checkout exact admitted R source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: Knowledge-Forge-AI/release-starport-9
+          ref: ${{ steps.plan.outputs.r_commit }}
+          path: r
+          persist-credentials: false
+      - name: Prepare and verify key-free runtime image
+        id: image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-runtime prepare-image \
+            --p-root "$GITHUB_WORKSPACE/p" --r-root "$GITHUB_WORKSPACE/r" \
+            --binding-file "$RUNNER_TEMP/current-signer-binding.json" \
+            --work-root "$RUNNER_TEMP/current-signer-image-$GITHUB_RUN_ID" \
+            --image-receipt "$RUNNER_TEMP/current-signer-image-receipt.json" --github-output "$GITHUB_OUTPUT"
+      - name: Qualify full signer without publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+          PACKAGE_SIGNING_PASSPHRASE: ${{ secrets.PACKAGE_SIGNING_PASSPHRASE }}
+          P_TREE: ${{ steps.plan.outputs.p_tree }}
+          R_COMMIT: ${{ steps.plan.outputs.r_commit }}
+          R_TREE: ${{ steps.plan.outputs.r_tree }}
+          RS9_RUN: ${{ steps.plan.outputs.rs9_run }}
+          LEAF_MANIFEST_SHA256: ${{ steps.plan.outputs.leaf_manifest_sha256 }}
+          CHALLENGE_NONCE: ${{ steps.plan.outputs.challenge_nonce }}
+          RELEASE_DATE: ${{ steps.plan.outputs.release_date }}
+          IMAGE_ID: ${{ steps.image.outputs.container_image }}
+          CONTAINER_PYTHON: ${{ steps.image.outputs.container_python }}
+          GPG_SHA256: ${{ steps.image.outputs.expected_gpg_sha256 }}
+          RPM_SHA256: ${{ steps.image.outputs.expected_rpm_sha256 }}
+        run: |
+          set -euo pipefail
+          mkdir -m 0700 "$RUNNER_TEMP/current-signer-export"
+          /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-host \
+            --p-root "$GITHUB_WORKSPACE/p" --r-root "$GITHUB_WORKSPACE/r" \
+            --export-root "$RUNNER_TEMP/current-signer-export" --p-commit "$GITHUB_SHA" --p-tree "$P_TREE" \
+            --r-commit "$R_COMMIT" --r-tree "$R_TREE" --rs9-run "$RS9_RUN" \
+            --source-closure-sha256 "$LEAF_MANIFEST_SHA256" --challenge-nonce "$CHALLENGE_NONCE" \
+            --run-id-suffix "$GITHUB_RUN_ID" --container-image "$IMAGE_ID" --container-python "$CONTAINER_PYTHON" \
+            --expected-gpg-sha256 "$GPG_SHA256" --expected-rpm-sha256 "$RPM_SHA256" \
+            --release-date "$RELEASE_DATE" --zip-transport public-release-relay
+      - name: Release the verified key-free image lease
+        if: always() && steps.image.outcome == 'success'
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-runtime release-image \
+            --p-root "$GITHUB_WORKSPACE/p" --r-root "$GITHUB_WORKSPACE/r" \
+            --binding-file "$RUNNER_TEMP/current-signer-binding.json" \
+            --image-receipt "$RUNNER_TEMP/current-signer-image-receipt.json"
+      - name: Retain exact signed public repository without deploying
+        id: repository
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: qualified-public-repository-${{ steps.plan.outputs.rs9_run }}
+          path: ${{ runner.temp }}/current-signer-export/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  native-client:
+    needs: qualify-current-signer
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    name: ${{ matrix.lane }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lane: apt-amd64
+            runner: ubuntu-24.04
+          - lane: apt-arm64
+            runner: ubuntu-24.04-arm
+          - lane: dnf-x86_64
+            runner: ubuntu-24.04
+          - lane: dnf-aarch64
+            runner: ubuntu-24.04-arm
+          - lane: pacman-x86_64
+            runner: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout exact P source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: p
+          persist-credentials: false
+      - name: Checkout exact admitted R source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: Knowledge-Forge-AI/release-starport-9
+          ref: ${{ needs.qualify-current-signer.outputs.r_commit }}
+          path: r
+          persist-credentials: false
+      - name: Qualify the signed repository with native package clients
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANE: ${{ matrix.lane }}
+          P_TREE: ${{ needs.qualify-current-signer.outputs.p_tree }}
+          ARTIFACT_ID: ${{ needs.qualify-current-signer.outputs.artifact_id }}
+          ARTIFACT_SHA256: ${{ needs.qualify-current-signer.outputs.artifact_sha256 }}
+          LEAF_MANIFEST_SHA256: ${{ needs.qualify-current-signer.outputs.leaf_manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-client \
+            --lane "$LANE" --repository "$GITHUB_REPOSITORY" \
+            --p-root "$GITHUB_WORKSPACE/p" --r-root "$GITHUB_WORKSPACE/r" \
+            --p-commit "$GITHUB_SHA" --p-tree "$P_TREE" --qualification-run-id "$GITHUB_RUN_ID" \
+            --expected-artifact-id "$ARTIFACT_ID" --expected-artifact-sha256 "$ARTIFACT_SHA256" \
+            --leaf-manifest-sha256 "$LEAF_MANIFEST_SHA256" \
+            --work-root "$RUNNER_TEMP/current-signer-client-$LANE" \
+            --destination "$RUNNER_TEMP/current-signer-public-$LANE" \
+            --audit-out "$RUNNER_TEMP/current-signer-audit-$LANE.json" \
+            --evidence-out "$RUNNER_TEMP/current-signer-evidence-$LANE.json"
+      - name: Retain fixed native client evidence
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: current-signer-client-${{ matrix.lane }}
+          path: ${{ runner.temp }}/current-signer-evidence-${{ matrix.lane }}.json
+          if-no-files-found: warn
+          retention-days: 7

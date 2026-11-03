@@ -1,0 +1,191 @@
+{
+  "repository": "pypa/pip",
+  "tag": "25.1.1",
+  "commit": "01857ef79f59a98db592bacb6e7b48f354528c80",
+  "files": [
+    {
+      "path": "src/pip/_vendor/cachecontrol/LICENSE.txt",
+      "gitBlob": "d8b3b56d361cfaa04de6304c96c328f27266f74e",
+      "size": 558,
+      "sha256": "86eeee87be2a43f3ff1f56496f451f69243926f025fedbb033666c304c4c161b",
+      "retainedFile": "upstream-notices/cachecontrol/LICENSE.txt",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/cachecontrol/LICENSE.txt"
+    },
+    {
+      "path": "src/pip/_vendor/certifi/LICENSE",
+      "gitBlob": "62b076cdee58ec8f34034141ba0befd9015b0c7e",
+      "size": 989,
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7",
+      "retainedFile": "upstream-notices/certifi/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/certifi/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/dependency_groups/LICENSE.txt",
+      "gitBlob": "b9723b85ed7adb32f8c2b4ee880c06ec3061da50",
+      "size": 1099,
+      "sha256": "1ab36e3e2a4ba8631625384f87e9e091db1faed034c5b23325b3239abf2cc525",
+      "retainedFile": "upstream-notices/dependency_groups/LICENSE.txt",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/dependency_groups/LICENSE.txt"
+    },
+    {
+      "path": "src/pip/_vendor/distlib/LICENSE.txt",
+      "gitBlob": "c31ac56d772f7061c8b42f0ee96063b7a94a4859",
+      "size": 14531,
+      "sha256": "808e10c8a6ab8deb149ff9b3fb19f447a808094606d712a9ca57fead3552599d",
+      "retainedFile": "upstream-notices/distlib/LICENSE.txt",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/distlib/LICENSE.txt"
+    },
+    {
+      "path": "src/pip/_vendor/distro/LICENSE",
+      "gitBlob": "e06d2081865a766a8668acc12878f98b27fc9ea0",
+      "size": 11325,
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14",
+      "retainedFile": "upstream-notices/distro/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/distro/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/idna/LICENSE.md",
+      "gitBlob": "19b6b45242c16a1025465309eec2ca5009319de3",
+      "size": 1541,
+      "sha256": "a59f0b0ef3635874109a4461ca44ff7a70d50696e814767bfaf721d4c9b0db0f",
+      "retainedFile": "upstream-notices/idna/LICENSE.md",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/idna/LICENSE.md"
+    },
+    {
+      "path": "src/pip/_vendor/msgpack/COPYING",
+      "gitBlob": "f067af3aae15a5b494f0eeb15a7064c176e30fd5",
+      "size": 614,
+      "sha256": "492dedba85da5872f78e6091bcd1fea474d660d35acb4dee964b8aab3f007427",
+      "retainedFile": "upstream-notices/msgpack/COPYING",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/msgpack/COPYING"
+    },
+    {
+      "path": "src/pip/_vendor/packaging/LICENSE",
+      "gitBlob": "6f62d44e4ef733c0e713afcd2371fed7f2b3de67",
+      "size": 197,
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+      "retainedFile": "upstream-notices/packaging/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/packaging/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/packaging/LICENSE.APACHE",
+      "gitBlob": "f433b1a53f5b830a205fd2df78e2b34974656c7b",
+      "size": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "retainedFile": "upstream-notices/packaging/LICENSE.APACHE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/packaging/LICENSE.APACHE"
+    },
+    {
+      "path": "src/pip/_vendor/packaging/LICENSE.BSD",
+      "gitBlob": "42ce7b75c92fb01a3f6ed17eea363f756b7da582",
+      "size": 1344,
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+      "retainedFile": "upstream-notices/packaging/LICENSE.BSD",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/packaging/LICENSE.BSD"
+    },
+    {
+      "path": "src/pip/_vendor/pkg_resources/LICENSE",
+      "gitBlob": "1bb5a44356f00884a71ceeefd24ded6caaba2418",
+      "size": 1023,
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+      "retainedFile": "upstream-notices/pkg_resources/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/pkg_resources/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/platformdirs/LICENSE",
+      "gitBlob": "f35fed9191b1142ddaada8a96de4a9461c5d796c",
+      "size": 1089,
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6",
+      "retainedFile": "upstream-notices/platformdirs/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/platformdirs/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/pygments/LICENSE",
+      "gitBlob": "446a1a805c8a949579fb8a9799f2bec7777349dc",
+      "size": 1331,
+      "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17",
+      "retainedFile": "upstream-notices/pygments/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/pygments/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/pyproject_hooks/LICENSE",
+      "gitBlob": "b0ae9dbc262b5f7ed4cb6f964cfb5eb5c0d0b0be",
+      "size": 1081,
+      "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154",
+      "retainedFile": "upstream-notices/pyproject_hooks/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/pyproject_hooks/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/requests/LICENSE",
+      "gitBlob": "67db8588217f266eb561f75fae738656325deac9",
+      "size": 10142,
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
+      "retainedFile": "upstream-notices/requests/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/requests/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/resolvelib/LICENSE",
+      "gitBlob": "b9077766e9b9bdcae49ea5c8fced750ed13ec8f7",
+      "size": 751,
+      "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d",
+      "retainedFile": "upstream-notices/resolvelib/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/resolvelib/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/rich/LICENSE",
+      "gitBlob": "4415505566f261c802b671426be529a31f914137",
+      "size": 1056,
+      "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15",
+      "retainedFile": "upstream-notices/rich/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/rich/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/tomli/LICENSE",
+      "gitBlob": "e859590f886cd78344206af1a8ccb3080d4385e0",
+      "size": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe",
+      "retainedFile": "upstream-notices/tomli/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/tomli/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/tomli/LICENSE-HEADER",
+      "gitBlob": "aba78dd2cfc42c15dc73d0e8841245bd4df89d31",
+      "size": 121,
+      "sha256": "97ce9330905a172dde870ee0361d89beb95ba3bd0f4545796aa91a8c01a43531",
+      "retainedFile": "upstream-notices/tomli/LICENSE-HEADER",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/tomli/LICENSE-HEADER"
+    },
+    {
+      "path": "src/pip/_vendor/tomli_w/LICENSE",
+      "gitBlob": "e859590f886cd78344206af1a8ccb3080d4385e0",
+      "size": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe",
+      "retainedFile": "upstream-notices/tomli_w/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/tomli_w/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/truststore/LICENSE",
+      "gitBlob": "7ec568c1136eb8ec86aa05cf7abacfb54c3e5ead",
+      "size": 1086,
+      "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca",
+      "retainedFile": "upstream-notices/truststore/LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/truststore/LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/typing_extensions.LICENSE",
+      "gitBlob": "f26bcf4d2de6eb136e31006ca3ab447d5e488adf",
+      "size": 13936,
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+      "retainedFile": "upstream-notices/typing_extensions.LICENSE",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/typing_extensions.LICENSE"
+    },
+    {
+      "path": "src/pip/_vendor/urllib3/LICENSE.txt",
+      "gitBlob": "429a1767e4476707d2e45ee499e3c834ca4b187f",
+      "size": 1115,
+      "sha256": "c37bf186e27cf9dbe9619e55edfe3cea7b30091ceb3da63c7dacbe0e6d77907b",
+      "retainedFile": "upstream-notices/urllib3/LICENSE.txt",
+      "sourceUrl": "https://github.com/pypa/pip/blob/01857ef79f59a98db592bacb6e7b48f354528c80/src/pip/_vendor/urllib3/LICENSE.txt"
+    }
+  ]
+}

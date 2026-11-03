@@ -1,0 +1,30 @@
+{
+  "schema": "tf.runtime-selected-upstream-public-certificate.v1",
+  "sourceUrl": "https://fedoraproject.org/fedora.gpg",
+  "sourceBytes": 4704,
+  "sourceSha256": "3b8a3660cca4851a67f67f56819e37e2f6b37ac8e905cb571b25d2127d1b7618",
+  "sourcePrimaryFingerprints": [
+    "C6E7F081CF80E13146676E88829B606631645531",
+    "36F612DCF27F7D1A48A835E4DBFCF71C6D9F90A6",
+    "4F50A6114CD5C6976A7F1179655A4B02F577861E",
+    "D924B10D3E810DABDD8B56B596E7E91491211FCE"
+  ],
+  "selectedPrimaryFingerprint": "C6E7F081CF80E13146676E88829B606631645531",
+  "selectedPacketTags": [
+    6,
+    13,
+    2
+  ],
+  "selectedBinaryBytes": 1176,
+  "selectedBinarySha256": "f2511c2a5ee5d7490b23db762403a5847e31a1920fa9d5362a2ddb62dd08c814",
+  "armorBytes": 1672,
+  "armorSha256": "2b1449a082d3264dda8e18369f04e9ac4163bf3f8cb530b0783dc2ab064a08ec",
+  "armorCrc24Verified": true,
+  "selectedPacketsPreservedByteForByte": true,
+  "onlyPublicCertificatePackets": true,
+  "privateMaterialRead": false,
+  "newKeysGenerated": false,
+  "nativeCommands": 0,
+  "rpmImportNativeGate": "required before private signing frame",
+  "rpmImportDocumentation": "https://rpm.org/docs/6.0.x/man/rpmkeys.8"
+}

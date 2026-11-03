@@ -1,0 +1,383 @@
+{
+  "schema": "task.public-base-root-byte-identity.v1",
+  "baseManifestSha256": "c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd",
+  "results": [
+    {
+      "root": "gnupg2",
+      "version": "2.4.9",
+      "release": "5.fc43",
+      "rpmSha256": "1a2890c505f5f9b7ba56d2401077626ca7bcecf3656e65ecf8d8213f0ac9ce55",
+      "upstreamHeaderSignature": "passed",
+      "compressedPayloadDigests": "passed",
+      "presentMembers": 66,
+      "missingMembers": [
+        {
+          "path": "/usr/share/doc/gnupg2",
+          "type": "directory",
+          "mode": 493,
+          "size": 0,
+          "sha256": "",
+          "target": "",
+          "flags": 0
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/AUTHORS",
+          "type": "file",
+          "mode": 420,
+          "size": 10498,
+          "sha256": "5d1f8271a87c92417cf85ad9ac77ff792649b3f1b00c5f06eff0ca2e8f71192e",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/DCO",
+          "type": "file",
+          "mode": 420,
+          "size": 1263,
+          "sha256": "51dfd51b4c955304ed6e2e7dc0c1973ef07ba2d38d6a3bd1308dbaefce249e36",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/DETAILS",
+          "type": "file",
+          "mode": 420,
+          "size": 75977,
+          "sha256": "83e51cf7dbe13dc4ad95c37785803de0c0d040b8e02151030f814182c826056c",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/FAQ",
+          "type": "file",
+          "mode": 420,
+          "size": 278,
+          "sha256": "3b5367b76118c5ca94a566f3dcbddf0672dc729251e7829f8e2f683f562f3e6b",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/HACKING",
+          "type": "file",
+          "mode": 420,
+          "size": 18053,
+          "sha256": "4fd642834c517d8335c4da74eb8ddb564ff4ecf4f70a83f4a1be2375ed8ef2cc",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/KEYSERVER",
+          "type": "file",
+          "mode": 420,
+          "size": 3097,
+          "sha256": "2a196c18e82ef9c6e5b36c9f2290dbdaf5499e7d01aca6ef111d7f5c333e5d33",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/NEWS",
+          "type": "file",
+          "mode": 420,
+          "size": 189166,
+          "sha256": "25832cc3dc1a0557c0a7becc3d09cd35a8907e3b20b19a325c8b54d7a80cd9c5",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/OpenPGP",
+          "type": "file",
+          "mode": 420,
+          "size": 5051,
+          "sha256": "e83d5a52e0dd8d1c9690751c88056f28fffbbc004f2fea7b28bf4cea8471cf04",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/README",
+          "type": "file",
+          "mode": 420,
+          "size": 11335,
+          "sha256": "f8e096054c453a5464a05981292d33465c0b3746fccc78ca26776ae32cdaa9a9",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/THANKS",
+          "type": "file",
+          "mode": 420,
+          "size": 13528,
+          "sha256": "ea4762bca1c48e8cf3ff515d27b81a61e9083dc78a96ae0d27febe071ed40e94",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/TODO",
+          "type": "file",
+          "mode": 420,
+          "size": 3798,
+          "sha256": "54385c2f6a5e8eefc5b89c42c85481f6faa27c975124ed315fcc522d614a945f",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/TRANSLATE",
+          "type": "file",
+          "mode": 420,
+          "size": 2230,
+          "sha256": "daa215a26149058730f3b4872176b993aaac3d4a3f3b71505de12cb048d1ca06",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples",
+          "type": "directory",
+          "mode": 493,
+          "size": 0,
+          "sha256": "",
+          "target": "",
+          "flags": 0
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/README",
+          "type": "file",
+          "mode": 420,
+          "size": 423,
+          "sha256": "c75d65256eef579bf7ddc288f1d89c5eec0d501984165d1d5fcf0bf7d1a7f585",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/common.conf",
+          "type": "file",
+          "mode": 420,
+          "size": 884,
+          "sha256": "792a5c0743863f439cf4488c152bc993cf8cb765cc4e52921fce57172da6e6d1",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/gpgconf.conf",
+          "type": "file",
+          "mode": 420,
+          "size": 3105,
+          "sha256": "1174fdebb2a29b29bf003ea03a6ef0dbc9916b770a47bbc699e549323cddcd9c",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/gpgconf.rnames",
+          "type": "file",
+          "mode": 420,
+          "size": 473,
+          "sha256": "ea4efd381baf78ebdd75fca90b1213718355a50bc7dc2a2edd4d5140ca50b648",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/pwpattern.list",
+          "type": "file",
+          "mode": 420,
+          "size": 1231,
+          "sha256": "7c1d7a1c780f015a46667cc06cd6355063c78c8fd5cfd57127d7937ab9c38765",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/qualified.txt",
+          "type": "file",
+          "mode": 420,
+          "size": 9600,
+          "sha256": "7b104d9675b3332ef035c8f9daefa948b0fd262a07f017ab269bf67338be753e",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/scd-event",
+          "type": "file",
+          "mode": 420,
+          "size": 1846,
+          "sha256": "20d82de3dbb976a1f2f3a42bfab5136874a32508f55a4a2ebf2f462197f564e1",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/gnupg2/examples/trustlist.txt",
+          "type": "file",
+          "mode": 420,
+          "size": 2707,
+          "sha256": "267092aca5a090b4f4b824f856b07be5f8fa96fc4d5c1d9e0e4f6f93bc780ab8",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/info/gnupg.info-1.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 90844,
+          "sha256": "b5e0fb62513c3277eb8f0feab0f46674e8c64d9711caa106822d7f8cba6fc2c5",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/info/gnupg.info-2.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 92567,
+          "sha256": "576b3d231de5f17f1a3c97e7c24f478c002e327a52aa54c3ac7a29ebfbb78b74",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/info/gnupg.info-3.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 1824,
+          "sha256": "fc3a9d7983fa90d65bea692c066064d9f17a730291abaf0187c76f91151d06d8",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/info/gnupg.info.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 2921,
+          "sha256": "da464b21024585113b345bb87b688ed32a03ce3a618392e023882539b5361a92",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man1/gpg.1.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 56589,
+          "sha256": "6dc2e0d098bf825f7a36c887055a52e993dbeff7f3bfd9e7e78ac7d272d9a130",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man1/gpg2.1.gz",
+          "type": "symlink",
+          "mode": 511,
+          "size": 8,
+          "sha256": "",
+          "target": "gpg.1.gz",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man7/gnupg.7.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 627,
+          "sha256": "9588476d7ce0ea4b1839c55b28f0c02d37be4eef5cfc25d3648fb8d29abd40d3",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man7/gnupg2.7.gz",
+          "type": "symlink",
+          "mode": 511,
+          "size": 10,
+          "sha256": "",
+          "target": "gnupg.7.gz",
+          "flags": 2
+        }
+      ],
+      "differingMembers": [],
+      "criticalBinaryMembers": [
+        {
+          "path": "/usr/bin/gpg",
+          "type": "file",
+          "mode": 493,
+          "size": 1174728,
+          "sha256": "ec13668738f91ce37f62402e39f70712ac068818eeaa7c442a6d366d63e7227b",
+          "target": "",
+          "flags": 0
+        }
+      ],
+      "installedPackageDatabaseQueried": false
+    },
+    {
+      "root": "libarchive",
+      "version": "3.8.4",
+      "release": "1.fc43",
+      "rpmSha256": "3a4e745c98f0765c3b2ba4d5c9563defd23787cfad2d0065a7f1cd616e63beec",
+      "upstreamHeaderSignature": "passed",
+      "compressedPayloadDigests": "passed",
+      "presentMembers": 7,
+      "missingMembers": [
+        {
+          "path": "/usr/share/doc/libarchive",
+          "type": "directory",
+          "mode": 493,
+          "size": 0,
+          "sha256": "",
+          "target": "",
+          "flags": 0
+        },
+        {
+          "path": "/usr/share/doc/libarchive/NEWS",
+          "type": "file",
+          "mode": 420,
+          "size": 33376,
+          "sha256": "47ac1b80b3c1addc257d3463dce60c85fb868ff91a163cf054a49b8cdacd5dec",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/doc/libarchive/README.md",
+          "type": "file",
+          "mode": 420,
+          "size": 11023,
+          "sha256": "eaf329e38a547ae71e401ac8293614f7a314aa2dc90ffa595477bba5113d19be",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man5/cpio.5.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 5146,
+          "sha256": "bb7c872a480f7c2368f427232e61c281828b8c0513adbd12ec9815225b506a2c",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man5/mtree.5.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 3260,
+          "sha256": "850522eda79900942fa66cdfda42a8e3860d6cced532593b0d260fead79fdc61",
+          "target": "",
+          "flags": 2
+        },
+        {
+          "path": "/usr/share/man/man5/tar.5.gz",
+          "type": "file",
+          "mode": 420,
+          "size": 11036,
+          "sha256": "92370f15440075e08ae420adb8afa793e02d43fefc62673c1e57b67c50c16fd8",
+          "target": "",
+          "flags": 2
+        }
+      ],
+      "differingMembers": [],
+      "criticalBinaryMembers": [
+        {
+          "path": "/usr/lib64/libarchive.so.13.8.4",
+          "type": "file",
+          "mode": 493,
+          "size": 911208,
+          "sha256": "167ad42f7156300350c170627724c2287727909d1bf3937d8475252025b06c40",
+          "target": "",
+          "flags": 0
+        }
+      ],
+      "installedPackageDatabaseQueried": false
+    }
+  ],
+  "privateMaterialUsed": false,
+  "candidateToolsExecuted": false,
+  "fullBaseFileInventory": 8827,
+  "basePackageDbQueried": false,
+  "imageRuntimeClassAdmitted": false
+}
