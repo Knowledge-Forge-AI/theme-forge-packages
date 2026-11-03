@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T06:06:03.407Z",
+  "generatedAt": "2026-11-03T13:33:10.606Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "b882774ead8067a267ed05bc1982f2a408f4df036c23b4ddcaf3f1d9ef86dd1b",
+  "generationOverlayManifestSha256": "054ca1e717b3575ba35d676720098231aa0e11315745c5406b4ad6c0b7a5cdfa",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "b882774ead8067a267ed05bc1982f2a408f4df036c23b4ddcaf3f1d9ef86dd1b",
+  "treeManifestSha256": "054ca1e717b3575ba35d676720098231aa0e11315745c5406b4ad6c0b7a5cdfa",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -939,8 +939,8 @@
     },
     {
       "path": "tools/verification/current-rs9-inputs.json",
-      "bytes": 240,
-      "sha256": "cafaf36d57497cd4f3e0bcc46af6bfb239e0793d7c03183baaf17ddded6eec6a"
+      "bytes": 1215,
+      "sha256": "78469e4635508e2b8816855edd34bc8451aca2447b9d69351c43b96a1a0bdc0c"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",

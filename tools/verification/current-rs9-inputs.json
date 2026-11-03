@@ -1,8 +1,25 @@
 {
   "schema": "theme-forge.current-rs9-input-source.v1",
   "generation": "theme-forge-current-202610",
-  "status": "unadmitted-no-qualified-original-rs9-run",
+  "status": "qualified-original-run-inputs",
   "production_enabled": false,
   "publication_authority": false,
-  "rs9": null
+  "rs9": {
+    "repository": "Knowledge-Forge-AI/release-starport-9",
+    "source_commit": "aa0d1262fce3fd50009f93350fac0ce230a5763d",
+    "source_tree": "7772b9798918dd859f83026a9ca6d3a0bdbc0aae",
+    "run_id": 41641996663,
+    "workflow_path": ".github/workflows/rs9-current-distribution-tests.yml",
+    "workflow_sha256": "376b13ccf8ac9ddee3210f60d622ebb65ad63087676f00fe4556a034703c695c",
+    "contract_sha256": "f606fd883e1592b8a627660b16620a71627be9cd094eb77f20dc2688166da033",
+    "builder_source_sha256": "cddd71c8830c0bf853fcf733c3cbfcde24c9622ad0343d4768408d90503bb80a",
+    "configuration_sha256": "71d12701441c866a8f6206462d22d2a086ff9f5de98298dc269ad5bded37233b",
+    "release_ingestion_sha256": "ce9ef0872da605d798cabe71eb89a61f213924421e7f66eeb4184b6945f31ae2",
+    "generation": "theme-forge-current-202610",
+    "qualification_scope": "current-distribution-only",
+    "event": "push",
+    "ref": "refs/heads/main",
+    "attempt": 1,
+    "not_before": "2026-11-03T13:10:31+00:00"
+  }
 }
