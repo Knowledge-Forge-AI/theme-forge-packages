@@ -15,10 +15,10 @@ import time
 from typing import Any, Callable, Mapping, Sequence
 
 from source_closure import (
-    MAX_FRAME_SECRET_BYTES, REQUIRED_B3_LEAVES, WORKER_RECEIPT_SCHEMA, apply_process_git_scope,
-    authenticate_leaf_closure, authenticate_rs9_descriptor, configure_worker_sys_path,
-    held_regular_bytes, parse_strict_json, physical_dir, scoped_git_env,
-    sha256_hex, verify_clean_git_checkout, zero_bytes,
+    ClosureError, MAX_FRAME_SECRET_BYTES, REQUIRED_B3_LEAVES, WORKER_RECEIPT_SCHEMA,
+    apply_process_git_scope, authenticate_leaf_closure, authenticate_rs9_descriptor,
+    configure_worker_sys_path, held_regular_bytes, parse_strict_json, physical_dir,
+    scoped_git_env, sha256_hex, verify_clean_git_checkout, zero_bytes,
 )
 
 DOCKER_BINARY = "/usr/bin/docker"
@@ -35,12 +35,661 @@ _UID_GID_RE = re.compile(r"^[0-9]+:[0-9]+$")
 _RETAINED_HOST_SESSIONS: list[dict[str, Any]] = []
 _RETAINED_FRAME_AVAILABILITY_DIRS: list[dict[str, Any]] = []
 
+_ALLOWED_BOOTSTRAP_WORKER_CODES = frozenset({
+    "CURRENT_SIGNER_MODE_REQUIRED",
+    "SIGNER_BOOTSTRAP_FLAGS",
+    "SIGNER_BOOTSTRAP_SYMLINK",
+    "SIGNER_BOOTSTRAP_FILE",
+    "SIGNER_BOOTSTRAP_CHANGED",
+    "SIGNER_BOOTSTRAP_MANIFEST_PIN",
+    "SIGNER_BOOTSTRAP_DUPLICATE",
+    "SIGNER_BOOTSTRAP_SCHEMA",
+    "SIGNER_BOOTSTRAP_INVENTORY",
+    "SIGNER_BOOTSTRAP_PATH",
+    "SIGNER_BOOTSTRAP_HASH",
+    "SIGNER_BOOTSTRAP_LEAF_PIN",
+    "SIGNER_BOOTSTRAP_MODULE_IDENTITY",
+})
+
+_PRE_FRAME_WORKER_CODE_ALLOWLIST = frozenset({
+    "ADAPTER_REUSED",
+    "ADOPTION_OUTPUT",
+    "ARCHIVE_LIMIT",
+    "ARCHIVE_ROOT",
+    "ARTIFACT_SET",
+    "BINARY_PIN_FORMAT",
+    "BURST_NATIVE_TARGET",
+    "CANDIDATE_PROJECT",
+    "CHALLENGE_FORMAT",
+    "CLIENT_CONFIGURE_FAILED",
+    "CLIENT_INSTALL_FAILED",
+    "CLIENT_REFRESH_FAILED",
+    "CLIENT_START_FAILED",
+    "COMMAND_PATH",
+    "CONTAINER_CLEANUP",
+    "CONTAINER_DIGEST_MISMATCH",
+    "CONTAINER_DIGEST_UNRESOLVED",
+    "CONTAINER_PULL_FAILED",
+    "CONTEXT_INVALID",
+    "CREDENTIAL_DETECTED",
+    "CREDENTIAL_ENV_FORBIDDEN",
+    "CURRENT_IMPORT_ROUTING",
+    "CURRENT_RPM_POLICY_HELD",
+    "CURRENT_SIGNING_LEASE",
+    "CUSTODY_ARCHITECTURE",
+    "CUSTODY_CONFLICT",
+    "CUSTODY_FILE",
+    "CUSTODY_HASH",
+    "CUSTODY_INVENTORY",
+    "CUSTODY_RECEIPT",
+    "CUSTODY_ROLE",
+    "CUSTODY_SCHEMA",
+    "CUSTODY_SOURCE",
+    "CUSTODY_SOURCE_EVIDENCE",
+    "DESCRIPTOR_ABSENT",
+    "DESCRIPTOR_BINDING_MISMATCH",
+    "DESCRIPTOR_IO",
+    "DESCRIPTOR_SCHEMA",
+    "DESCRIPTOR_UNADMITTED",
+    "DESTINATION_EXISTS",
+    "DIAGNOSTIC_LIMIT",
+    "DIAGNOSTIC_SCHEMA",
+    "DISTRIBUTION_AUTHORITY",
+    "DISTRIBUTION_BINARY_SCOPE",
+    "DISTRIBUTION_CONFIG",
+    "DISTRIBUTION_CUSTODY",
+    "DISTRIBUTION_INPUT",
+    "DISTRIBUTION_NOT_QUALIFIED",
+    "DISTRIBUTION_PROMOTION_HELD",
+    "DISTRIBUTION_SOURCE",
+    "DUPLICATE_IDENTIFIER",
+    "DUPLICATE_MEMBER",
+    "DUPLICATE_MODULE_IDENTITY",
+    "EXECUTING_BOOTSTRAP_MISMATCH",
+    "EXPERIMENT_BINDING",
+    "EXPERIMENT_POLICY",
+    "EXPERIMENT_RECEIPT",
+    "FETCH_FAILED",
+    "FETCH_LIMIT",
+    "FILE_CHANGED",
+    "FILE_CUSTODY",
+    "FILE_LIMIT",
+    "FILE_MODE",
+    "FINGERPRINT_FORMAT",
+    "GATE_REUSED",
+    "GENERATION_SELECTION",
+    "GITHUB_IDENTITY",
+    "GIT_CHECKOUT_DIRTY_OR_MISMATCH",
+    "GIT_CHECKOUT_REQUIRED",
+    "GIT_COMMAND_FAILED",
+    "GIT_COMMIT_FORMAT",
+    "GIT_SCOPE_INVALID",
+    "GIT_SCOPE_OVERLAP",
+    "GIT_TREE_FORMAT",
+    "GPG_BINARY_CHANGED",
+    "GPG_BINARY_CUSTODY",
+    "GPG_BINARY_PATH",
+    "GPG_CLEANUP_UNCONFIRMED",
+    "GPG_OUTPUT_LIMIT",
+    "GPG_TIMEOUT",
+    "HASH",
+    "HOME_IO",
+    "HOME_MODE",
+    "HOME_NOT_FRESH",
+    "HOME_OWNER",
+    "HOME_REQUIRED",
+    "HOSTED_API",
+    "HOSTED_API_LIMIT",
+    "HOSTED_ARGUMENT",
+    "HOSTED_ARTIFACTS",
+    "HOSTED_BINDING",
+    "HOSTED_COMMAND",
+    "HOSTED_COMPLETENESS",
+    "HOSTED_CUSTODY",
+    "HOSTED_GATES",
+    "HOSTED_JOBS",
+    "HOSTED_NOT_QUALIFIED",
+    "HOSTED_PACKET_LIMIT",
+    "HOSTED_POLICY",
+    "HOSTED_PROVENANCE",
+    "HOSTED_READ",
+    "HOSTED_RECEIPTS",
+    "HOSTED_RUN",
+    "HOSTED_RUN_CONTEXT",
+    "HOSTED_SOURCE_TREE",
+    "HOSTED_STEPS",
+    "HOSTED_SUMMARY",
+    "HOSTED_TIMEOUT",
+    "IDENTITY_MISMATCH",
+    "IMPORT_FAILED",
+    "INPUT_CHANGED",
+    "INPUT_UNREADABLE",
+    "INVALID_ARCHITECTURE",
+    "INVALID_ARCHIVE",
+    "INVALID_ARGUMENT",
+    "INVALID_CONFIG",
+    "INVALID_CONTENT",
+    "INVALID_DEB",
+    "INVALID_DIRECTORY",
+    "INVALID_DISTRIBUTION",
+    "INVALID_ECOSYSTEM_NAME",
+    "INVALID_ENCODING",
+    "INVALID_EVIDENCE",
+    "INVALID_FILE",
+    "INVALID_HASH",
+    "INVALID_HASHES",
+    "INVALID_INTEGER",
+    "INVALID_INTERPRETER",
+    "INVALID_JSON",
+    "INVALID_METADATA",
+    "INVALID_PLATFORM",
+    "INVALID_POLICY",
+    "INVALID_REPO",
+    "INVALID_REPOSITORY",
+    "INVALID_SELECTION",
+    "INVALID_SIGNATURE_FORMAT",
+    "INVALID_SLUG",
+    "INVALID_SPDX_EXPRESSION",
+    "INVALID_STRING",
+    "INVALID_STRING_TABLE",
+    "INVALID_TAMPER_MUTATION",
+    "INVALID_TIMESTAMP",
+    "INVALID_TOML",
+    "INVALID_TYPE",
+    "INVALID_URL",
+    "INVALID_VERSION",
+    "ISOLATION_EXTERNAL_ROUTE",
+    "ISOLATION_INTERFACE_OR_TABLES",
+    "ISOLATION_METADATA_BOUND",
+    "ISOLATION_METADATA_FORMAT",
+    "ISOLATION_METADATA_UNAVAILABLE",
+    "ISOLATION_REQUIRES_LINUX",
+    "ISOLATION_ROUTE_FORMAT",
+    "ISOLATION_SOCKET_FORMAT",
+    "ISOLATION_SOCKET_PRESENT",
+    "JSON_SCHEMA",
+    "KEYRING_SCOPE",
+    "KEY_DIGEST_MISMATCH",
+    "KEY_LISTING_CAPABILITY",
+    "KEY_LISTING_COUNT",
+    "KEY_LISTING_EXPIRED",
+    "KEY_LISTING_FAILED",
+    "KEY_LISTING_FORMAT",
+    "KEY_LISTING_IDENTITY",
+    "KEY_LISTING_LIMIT",
+    "KEY_LISTING_REVOKED",
+    "KEY_LISTING_TIME",
+    "KEY_LISTING_UNEXPECTED",
+    "KEY_PATH_NOT_NONPRODUCTION",
+    "LANES_MISSING",
+    "LANES_POLICY",
+    "LANES_SCHEMA",
+    "LEAF_FILE_DIGEST_MISMATCH",
+    "LEAF_IMPORTED_BEFORE_AUTH",
+    "LEAF_MANIFEST_DIGEST_MISMATCH",
+    "LEAF_MANIFEST_INVENTORY",
+    "LEAF_MANIFEST_PIN_FORMAT",
+    "LEAF_MANIFEST_SCHEMA",
+    "LEASE_PID_OR_STATE",
+    "LIVE1_RELEASE_MISMATCH",
+    "MALFORMED_ELF",
+    "MALFORMED_TEMPLATE",
+    "MESSAGE_BINDING",
+    "MESSAGE_BOUND",
+    "MESSAGE_DUPLICATE",
+    "MESSAGE_FORMAT",
+    "MESSAGE_FRAMING",
+    "MESSAGE_KIND",
+    "METADATA_BUILD_FAILED",
+    "MISSING",
+    "MISSING_BY_HASH",
+    "MISSING_INDEX",
+    "MISSING_PACKAGE",
+    "MISSING_RELEASE",
+    "MISSING_REQUIRED_FILE",
+    "MISSING_REQUIRED_KEY",
+    "MISSING_SIGNATURE",
+    "MODE_MISMATCH",
+    "NATIVE_GENERATION_BINDING",
+    "NATIVE_REQUIRED",
+    "NETWORK_ATTACHED",
+    "NETWORK_DENIAL",
+    "NETWORK_READBACK_BOUND",
+    "NETWORK_READBACK_FORMAT",
+    "NIX_CATALOG_BINDING",
+    "NON_NFC_LICENSE_EXPRESSION",
+    "NON_NFC_PATH",
+    "NON_NFC_STRING",
+    "OUTPUT_CONFINEMENT",
+    "OUTPUT_NOT_EMPTY",
+    "OWN_REPOSITORY_ADMISSION",
+    "OWN_REPOSITORY_SOURCE",
+    "OWN_REPOSITORY_UNADMITTED",
+    "PACKAGE",
+    "PATH_FORMAT",
+    "PATH_IO",
+    "PATH_MISSING",
+    "PERMISSION_ERROR",
+    "PHYSICAL_DIR_REQUIRED",
+    "PHYSICAL_PATH_MISSING",
+    "PHYSICAL_PATH_REQUIRED",
+    "PLAINTEXT_MISMATCH",
+    "PLAINTEXT_STATUS",
+    "POLICY_CHUNK_LIMIT",
+    "PRIVATE_KEY_REJECTED",
+    "PRIVATE_PATH",
+    "PRIVATE_WORK_PRESENT",
+    "PROCESS_OWNER_UNAVAILABLE",
+    "PRODUCT",
+    "PROTOCOL_CLOSE_FAILED",
+    "PROTOCOL_READ_BOUND",
+    "PROTOCOL_STDIN_CLOSED",
+    "PROTOCOL_STDIO_DETACH",
+    "PROTOCOL_STDOUT_CLOSED",
+    "PROTOCOL_WRITE_FAILED",
+    "PROVISION_FAILED",
+    "PUBLIC_DIRECTORY",
+    "PUBLIC_DIRECTORY_COUNT",
+    "PUBLIC_DIRECTORY_INVENTORY",
+    "PUBLIC_DIRECTORY_MUTATED",
+    "PUBLIC_FILE_COUNT",
+    "PUBLIC_FILE_CUSTODY",
+    "PUBLIC_RELAY_ARTIFACT",
+    "PUBLIC_RELAY_CONFIG",
+    "PUBLIC_RELAY_DIGEST",
+    "PUBLIC_RELAY_EXTRACT",
+    "PUBLIC_RELAY_HTTP",
+    "PUBLIC_RELAY_IDENTITY",
+    "PUBLIC_RELAY_LIMIT",
+    "PUBLIC_RELAY_MODE",
+    "PUBLIC_RELAY_REDIRECT",
+    "PUBLIC_RELAY_SCHEMA",
+    "PUBLIC_RELAY_SCOPE",
+    "PUBLIC_RELAY_SET",
+    "PUBLIC_RELAY_SIZE",
+    "PUBLIC_RELAY_TIMEOUT",
+    "PUBLIC_RELAY_URL",
+    "PUBLIC_ROOT",
+    "PUBLIC_ROOT_MUTATED",
+    "PUBLIC_ROOT_NOT_EMPTY",
+    "PUBLIC_SNAPSHOT_MUTATED",
+    "PUBLIC_TOTAL_BOUND",
+    "PYTHON_ISOLATION_FLAGS",
+    "QUALIFICATION_PENDING",
+    "RECORD_LIMIT",
+    "RECORD_SCHEMA",
+    "RECORD_TYPE",
+    "REDIRECT_REJECTED",
+    "REGULAR_FILE_REQUIRED",
+    "REGULAR_SOURCE_REQUIRED",
+    "RELEASE_LIMIT",
+    "REQUEST_CLASS",
+    "REQUEST_HEADER",
+    "RESOURCE_ID",
+    "RESULT_INVALID",
+    "ROOT_OVERLAP",
+    "RPMLINT_FAILED",
+    "RPM_EVIDENCE_MESSAGE",
+    "RPM_EVIDENCE_PROJECTION",
+    "RPM_EVIDENCE_SCHEMA",
+    "RPM_POLICY_CUSTODY",
+    "RPM_REPOSITORY_OPERATION",
+    "RPM_SIGNING",
+    "RUNNER_COMMAND",
+    "RUNNER_CONFIG",
+    "RUNNER_CUSTODY_RETAINED",
+    "RUNNER_ENV",
+    "RUNNER_IO",
+    "RUNNER_REQUIRED",
+    "SCHEMA",
+    "SCHEMA_MISMATCH",
+    "SIGCHLD_OR_THREAD_PRECONDITION",
+    "SIGNATURE_BODY_MISMATCH",
+    "SIGNATURE_COUNT",
+    "SIGNATURE_DATE_MISMATCH",
+    "SIGNATURE_EXPIRED",
+    "SIGNATURE_FORMAT",
+    "SIGNATURE_KIND",
+    "SIGNATURE_LIMIT",
+    "SIGNATURE_REJECTED",
+    "SIGNATURE_TIME",
+    "SIGNING_SECRET_ENV_FORBIDDEN",
+    "SIZE",
+    "SIZE_MISMATCH",
+    "SOURCE",
+    "SOURCE_BINDING",
+    "SOURCE_FILE_BOUND",
+    "SOURCE_FILE_CHANGED",
+    "SOURCE_FILE_MISSING",
+    "SOURCE_FILE_OPEN",
+    "STAGED_CLEANUP_UNCONFIRMED",
+    "STAGED_CLOSE_UNCONFIRMED",
+    "STAGED_FILE_CHANGED",
+    "STAGE_ROUTING_MISMATCH",
+    "STAGE_ROUTING_SCHEMA",
+    "STAGE_SOURCE_JOIN_MISMATCH",
+    "STAGING_CUSTODY",
+    "STAGING_IO",
+    "STATUS_FORMAT",
+    "STATUS_LIMIT",
+    "STATUS_UNEXPECTED",
+    "STDLIB_PATH_MISSING",
+    "SUMMARY_LANE",
+    "SUMMARY_LIMIT",
+    "SYMLINK_REJECTED",
+    "SYSTEM",
+    "TAMPER_DETECTED",
+    "TOOL_EXECUTION",
+    "TRUNCATED_ELF",
+    "UNEXPECTED_TOKEN_ENV",
+    "UNINDEXED_PACKAGE",
+    "UNKNOWN_ADAPTER",
+    "UNKNOWN_KEY",
+    "UNKNOWN_PRODUCT",
+    "UNPINNED_TRUST",
+    "UNSAFE_LINK",
+    "UNSAFE_MEMBER",
+    "UNSAFE_MODE",
+    "UNSAFE_PATH",
+    "UNSAFE_URL",
+    "UNSELECTED",
+    "UNSUPPORTED_ELF",
+    "UNSUPPORTED_PLATFORM",
+    "VERIFY_FAILED",
+    "WEAK_HASH",
+    "WITHHELD",
+    "WORKER_EXECUTION_FAILED",
+    "WORKER_PID",
+    "WORKER_PID_CHANGED",
+    "WORKSPACE_CUSTODY",
+    "WORKSPACE_NOT_EMPTY",
+    "WRITE_ERROR",
+})
+
+_PRE_FRAME_WORKER_DETAIL_ALLOWLIST = frozenset({
+    "LO_INTERFACE_MISSING",
+    "NON_LO_INTERFACE_PRESENT",
+    "PROC_TABLE_SET_MISMATCH",
+    "IPV4_NON_LO_ROUTE",
+    "IPV6_NON_LO_ROUTE",
+    "SOCKET_ROW_MALFORMED",
+    "UDP_V4_SOCKET",
+    "UDP_V6_SOCKET",
+    "TCP_V4_LISTEN",
+    "TCP_V6_LISTEN",
+    "TCP_V4_CLOSING_STATE",
+    "TCP_V6_CLOSING_STATE",
+    "TCP_V4_ACTIVE_STATE",
+    "TCP_V6_ACTIVE_STATE",
+    "TCP_OTHER_STATE",
+})
+
+_ALLOWED_HANDSHAKE_OBSERVATIONS: dict[str, frozenset[str]] = {
+    "gate_phase": frozenset({
+        "WAITING_READY",
+        "CHECKING_READY",
+        "DISCONNECTING_NETWORK",
+        "CHECKING_ISOLATION",
+        "EMITTING_FRAME",
+        "POST_FRAME",
+    }),
+    "framing_reason": frozenset({
+        "NONE",
+        "EMPTY_EOF",
+        "NON_BYTES",
+        "LINE_OVERFLOW",
+        "CR_PRESENT",
+        "TRUNCATED_NO_NEWLINE",
+        "MULTIPLE_NEWLINES",
+    }),
+    "worker_error_code": (
+        frozenset({
+            "NONE",
+            "STDERR_EMPTY",
+            "WITHHELD_POST_FRAME",
+            "UNRECOGNIZED_STDERR_FORMAT",
+            "UNLISTED_WORKER_CODE",
+        })
+        | _ALLOWED_BOOTSTRAP_WORKER_CODES
+        | _PRE_FRAME_WORKER_CODE_ALLOWLIST
+    ),
+    "worker_error_detail": (
+        frozenset({
+            "NONE",
+            "WITHHELD_POST_FRAME",
+            "UNLISTED_WORKER_DETAIL",
+        })
+        | _PRE_FRAME_WORKER_DETAIL_ALLOWLIST
+    ),
+}
+
+_ALLOWED_HOST_ERROR_CODES = frozenset({
+    "CONTAINER_IMAGE_PIN",
+    "CONTAINER_PYTHON_PATH",
+    "DOCKER_RUN_PREFIX",
+    "DOCKER_RUN_TOKEN",
+    "DOCKER_RUN_FORBIDDEN_FLAG",
+    "DOCKER_RUN_FORBIDDEN_CONTENT",
+    "DOCKER_RUN_HARDENING",
+    "FRAME_SOURCE_CHANGED",
+    "FRAME_EMITTER_FAILED",
+    "FRAME_AVAILABILITY_RETAINED",
+    "EXPORT_ROOT_POLLUTED",
+    "WORKER_RECEIPT_INVALID",
+    "EXPORT_INVENTORY_MISMATCH",
+    "RUN_SUFFIX_INVALID",
+    "EXPORT_ROOT_NOT_EMPTY",
+    "DOCKER_NETWORK_DISCONNECT",
+    "DOCKER_NETWORK_INSPECT",
+    "DOCKER_NETWORK_CREATE",
+    "WORKER_NONZERO_EXIT",
+    "HOST_TEARDOWN_UNCONFIRMED",
+    "HOST_CONTROLLER_TIMEOUT",
+    "PROTOCOL_STDOUT_OVERFLOW",
+    "PROTOCOL_EXTRA_STDOUT",
+    "PROTOCOL_STDIN_UNAVAILABLE",
+    "PROTOCOL_STDIN_WRITE",
+    "PROTOCOL_STDIN_CLOSE",
+    "FRAME_HEADER_INVALID",
+    "FRAME_PAYLOAD_INVALID",
+    "STDIN_FRAME_FORMAT",
+    "STDIN_FRAME_BOUNDS",
+    "HOST_EXECUTION_FAILED",
+    "PHYSICAL_PATH_REQUIRED",
+    "PHYSICAL_PATH_MISSING",
+    "PHYSICAL_DIR_REQUIRED",
+    "SOURCE_FILE_MISSING",
+    "REGULAR_SOURCE_REQUIRED",
+    "SOURCE_FILE_OPEN",
+    "SOURCE_FILE_BOUND",
+    "SOURCE_FILE_CHANGED",
+    "JSON_SCHEMA",
+    "AVAILABILITY_SCHEMA",
+    "RECEIPT_SCHEMA",
+    "GIT_SCOPE_OVERLAP",
+    "GIT_SCOPE_INVALID",
+    "GIT_COMMIT_FORMAT",
+    "GIT_TREE_FORMAT",
+    "GIT_CHECKOUT_REQUIRED",
+    "GIT_COMMAND_FAILED",
+    "GIT_CHECKOUT_DIRTY_OR_MISMATCH",
+    "DESCRIPTOR_ABSENT",
+    "DESCRIPTOR_IO",
+    "DESCRIPTOR_SCHEMA",
+    "DESCRIPTOR_UNADMITTED",
+    "DESCRIPTOR_BINDING_MISMATCH",
+    "LEAF_MANIFEST_PIN_FORMAT",
+    "LEAF_IMPORTED_BEFORE_AUTH",
+    "LEAF_MANIFEST_DIGEST_MISMATCH",
+    "LEAF_MANIFEST_SCHEMA",
+    "LEAF_MANIFEST_INVENTORY",
+    "LEAF_FILE_DIGEST_MISMATCH",
+    "EXECUTING_BOOTSTRAP_MISMATCH",
+    "PYTHON_ISOLATION_FLAGS",
+    "DUPLICATE_MODULE_IDENTITY",
+    "STDLIB_PATH_MISSING",
+    "SOURCE_BINDING",
+    "WORKER_PID",
+    "MESSAGE_KIND",
+    "CHALLENGE_FORMAT",
+    "MESSAGE_BOUND",
+    "MESSAGE_DUPLICATE",
+    "MESSAGE_FRAMING",
+    "MESSAGE_FORMAT",
+    "MESSAGE_BINDING",
+    "RESOURCE_ID",
+    "NETWORK_READBACK_BOUND",
+    "NETWORK_READBACK_FORMAT",
+    "NETWORK_ATTACHED",
+    "GATE_REUSED",
+    "FRAME_ARGUMENT_INVALID",
+    "FRAME_CUSTODY_RETAINED",
+    "FRAME_PRECONDITION_SIGCHLD",
+    "FRAME_PRECONDITION_THREADS",
+    "FRAME_SPAWN_FAILED",
+    "FRAME_CAPTURE_TIMEOUT",
+    "FRAME_STDOUT_OVERFLOW",
+    "FRAME_STDERR_OVERFLOW",
+    "FRAME_EMITTER_NONZERO",
+    "FRAME_GROUP_RETAINED",
+    "FRAME_CUSTODY_LOST",
+    "FRAME_STREAM_CLOSE_FAILED",
+})
+
 
 class HostControllerError(RuntimeError):
     """Fixed-code host controller refusal; never embeds secret payloads."""
     def __init__(self, code: str, message: str):
         self.code = code
         super().__init__(f"{code}: {message}")
+
+
+def sanitize_handshake_observation(
+    observation: Mapping[str, str] | None,
+) -> dict[str, str] | None:
+    if (
+        type(observation) is dict
+        and set(observation) == set(_ALLOWED_HANDSHAKE_OBSERVATIONS)
+        and all(
+            type(observation[key]) is str and observation[key] in allowed_values
+            for key, allowed_values in _ALLOWED_HANDSHAKE_OBSERVATIONS.items()
+        )
+    ):
+        return dict(observation)
+    return None
+
+
+def _drain_pre_frame_stderr(session: Any, *, grace_seconds: float = 1.0) -> bytes:
+    deadline = min(getattr(session, "deadline", 0.0), time.monotonic() + grace_seconds)
+    try:
+        while time.monotonic() < deadline:
+            sel_map = session.selector.get_map() if hasattr(session, "selector") else {}
+            if not any(key.data == "stderr" for key in sel_map.values()):
+                break
+            session._pump_once(max(0.0, min(0.05, deadline - time.monotonic())))
+    except Exception:
+        pass
+    return bytes(getattr(session, "stderr_buf", b""))
+
+
+def _parse_untrusted_pre_frame_worker_stderr(raw_stderr: bytes) -> tuple[str, str]:
+    """Extract only closed-set pre-frame error tokens from untrusted worker stderr."""
+    if not isinstance(raw_stderr, bytes) or not raw_stderr:
+        return "STDERR_EMPTY", "NONE"
+    if len(raw_stderr) > 4096 or b"\x00" in raw_stderr or b"\r" in raw_stderr:
+        return "UNRECOGNIZED_STDERR_FORMAT", "NONE"
+    try:
+        text = raw_stderr.decode("ascii")
+    except UnicodeDecodeError:
+        return "UNRECOGNIZED_STDERR_FORMAT", "NONE"
+    lines = [line for line in text.split("\n") if line]
+    if len(lines) != 1:
+        return "UNRECOGNIZED_STDERR_FORMAT", "NONE"
+    line = lines[0]
+    if line in _ALLOWED_BOOTSTRAP_WORKER_CODES:
+        return line, "NONE"
+    try:
+        doc = parse_strict_json(line.encode("ascii"), "WORKER_STDERR_JSON")
+    except ClosureError:
+        return "UNRECOGNIZED_STDERR_FORMAT", "NONE"
+    required_base = {
+        "schema", "status", "error_code", "custody_retained",
+        "publication_authority", "native_client_qualification",
+    }
+    keys = set(doc)
+    if (
+        not (keys == required_base or keys == (required_base | {"error_detail"}))
+        or doc.get("schema") != WORKER_RECEIPT_SCHEMA
+        or doc.get("status") != "failed-closed"
+        or type(doc.get("custody_retained")) is not bool
+        or doc.get("publication_authority") is not False
+        or doc.get("native_client_qualification") is not False
+        or type(doc.get("error_code")) is not str
+    ):
+        return "UNRECOGNIZED_STDERR_FORMAT", "NONE"
+    raw_code = doc["error_code"]
+    code = raw_code if raw_code in _PRE_FRAME_WORKER_CODE_ALLOWLIST else "UNLISTED_WORKER_CODE"
+    if "error_detail" not in doc:
+        return code, "NONE"
+    raw_detail = doc["error_detail"]
+    if type(raw_detail) is not str:
+        return "UNRECOGNIZED_STDERR_FORMAT", "NONE"
+    detail = raw_detail if raw_detail in _PRE_FRAME_WORKER_DETAIL_ALLOWLIST else "UNLISTED_WORKER_DETAIL"
+    return code, detail
+
+
+def _classify_gate_phase(gate: Any) -> str:
+    failed_phase = getattr(gate, "failed_phase", None)
+    frame_emitted = bool(getattr(gate, "frame_emitted", False))
+    if frame_emitted:
+        if failed_phase == "emitting-frame":
+            return "EMITTING_FRAME"
+        return "POST_FRAME"
+    phase_map = {
+        "waiting-ready": "WAITING_READY",
+        "checking-ready": "CHECKING_READY",
+        "disconnecting": "DISCONNECTING_NETWORK",
+        "checking-isolation": "CHECKING_ISOLATION",
+        "emitting-frame": "EMITTING_FRAME",
+        "frame-closed": "POST_FRAME",
+    }
+    if type(failed_phase) is str and failed_phase in phase_map:
+        return phase_map[failed_phase]
+    state = getattr(gate, "state", None)
+    if type(state) is str and state in phase_map:
+        return phase_map[state]
+    return "WAITING_READY"
+
+
+def _build_handshake_observation(
+    gate: Any, session: Any | None, error: BaseException,
+) -> dict[str, str] | None:
+    if not isinstance(error, Exception):
+        return None
+    try:
+        gate_phase = _classify_gate_phase(gate)
+        raw_reason = getattr(error, "framing_reason", None)
+        framing_reason = (
+            raw_reason
+            if type(raw_reason) is str and raw_reason in _ALLOWED_HANDSHAKE_OBSERVATIONS["framing_reason"]
+            else "NONE"
+        )
+        if bool(getattr(gate, "frame_emitted", False)) or gate_phase in {"EMITTING_FRAME", "POST_FRAME"}:
+            worker_code, worker_detail = "WITHHELD_POST_FRAME", "WITHHELD_POST_FRAME"
+        elif session is None:
+            worker_code, worker_detail = "NONE", "NONE"
+        else:
+            raw_stderr = _drain_pre_frame_stderr(session, grace_seconds=1.0)
+            worker_code, worker_detail = _parse_untrusted_pre_frame_worker_stderr(raw_stderr)
+        return sanitize_handshake_observation({
+            "gate_phase": gate_phase,
+            "framing_reason": framing_reason,
+            "worker_error_code": worker_code,
+            "worker_error_detail": worker_detail,
+        })
+    except Exception:
+        return None
+
 
 @dataclass(frozen=True)
 class HostControllerConfig:
@@ -306,7 +955,7 @@ def _run_gate_session(
             zero_bytes(frame_buf)
 
     gate.release_frame(
-        ready=session.read_protocol_line(), disconnect=_disconnect, inspect_networks=_inspect,
+        ready=session.read_protocol_line, disconnect=_disconnect, inspect_networks=_inspect,
         exchange_challenge=_exchange, emit_existing_frame_and_eof=_emit_frame,
     )
     return str(gate.state)
@@ -399,6 +1048,13 @@ def execute_host_controller(config: HostControllerConfig, *, hooks: HostControll
         run_succeeded = True
     except BaseException as error:
         caught_error = error
+        try:
+            error.handshake_observation = _build_handshake_observation(gate, session, error)  # type: ignore[attr-defined]
+        except Exception:
+            error.handshake_observation = None  # type: ignore[attr-defined]
+        except BaseException as interruption:
+            caught_error = interruption
+            raise
         raise
     finally:
         teardown, teardown_interrupt = _teardown_host_session(
@@ -463,16 +1119,20 @@ def main(argv: list[str] | None = None) -> int:
     try:
         execute_host_controller(cfg)
     except Exception as error:
-        code = getattr(error, "code", None) or (
-            error.args[0] if error.args and isinstance(error.args[0], str) and re.fullmatch(r"[A-Z0-9_]{3,64}", error.args[0])
-            else "HOST_EXECUTION_FAILED"
+        raw_code = getattr(error, "code", None) or (
+            error.args[0] if error.args and isinstance(error.args[0], str) else None
         )
-        print(json.dumps({
+        code = raw_code if type(raw_code) is str and raw_code in _ALLOWED_HOST_ERROR_CODES else "HOST_EXECUTION_FAILED"
+        payload: dict[str, Any] = {
             "schema": HOST_SUMMARY_SCHEMA, "status": "failed-closed", "error_code": code,
             "custody_retained": bool(_RETAINED_HOST_SESSIONS) or _frame_custody_retained(),
             "host_container_and_network_teardown": getattr(error, "host_teardown", None),
             "publication_authority": False, "native_client_qualification": False,
-        }, sort_keys=True), file=sys.stderr)
+        }
+        observation = sanitize_handshake_observation(getattr(error, "handshake_observation", None))
+        if observation is not None:
+            payload["handshake_observation"] = observation
+        print(json.dumps(payload, sort_keys=True), file=sys.stderr)
         return 2
     return 0
 

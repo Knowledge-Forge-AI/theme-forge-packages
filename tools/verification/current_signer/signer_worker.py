@@ -25,6 +25,23 @@ _SIGNING_SECRET_TOKENS = ("SECRET", "PASSWORD", "PASSPHRASE", "PRIVATE_KEY", "SI
 _ONLINE_INTAKE_TOKENS = ("GH_TOKEN", "GITHUB_TOKEN")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 _RETAINED_WORKER_CUSTODIES: list[dict[str, Any]] = []
+_ALLOWED_PRE_FRAME_ERROR_DETAILS = frozenset({
+    "LO_INTERFACE_MISSING",
+    "NON_LO_INTERFACE_PRESENT",
+    "PROC_TABLE_SET_MISMATCH",
+    "IPV4_NON_LO_ROUTE",
+    "IPV6_NON_LO_ROUTE",
+    "SOCKET_ROW_MALFORMED",
+    "UDP_V4_SOCKET",
+    "UDP_V6_SOCKET",
+    "TCP_V4_LISTEN",
+    "TCP_V6_LISTEN",
+    "TCP_V4_CLOSING_STATE",
+    "TCP_V6_CLOSING_STATE",
+    "TCP_V4_ACTIVE_STATE",
+    "TCP_V6_ACTIVE_STATE",
+    "TCP_OTHER_STATE",
+})
 
 
 class WorkerError(RuntimeError):
@@ -313,6 +330,7 @@ def execute_worker_flow(config: WorkerConfig, *, hooks: WorkerHooks | None = Non
     _require_serial_preconditions(worker_pid)
     online_token_present = _check_online_env(config.allow_online_intake_token)
     lease = active_runtime = active_streams = None
+    private_phase_entered = False
     saved_home = os.environ.get("HOME")
     try:
         desc_info = _authenticate_worker_sources(config, hk)
@@ -339,6 +357,7 @@ def execute_worker_flow(config: WorkerConfig, *, hooks: WorkerHooks | None = Non
         )
         active_streams.write_line(ack_line)
         active_streams.close_out()
+        private_phase_entered = True
         active_runtime, execution, pub_result, exported_snap = _sign_and_verify_public(
             config, dirs, (lease, before_sign_stage), active_streams, hk, worker_pid=worker_pid,
         )
@@ -347,6 +366,7 @@ def execute_worker_flow(config: WorkerConfig, *, hooks: WorkerHooks | None = Non
             (worker_pid, lease_pid, online_token_present), (execution, pub_result, exported_snap),
         )
     except BaseException as error:
+        error.private_phase_entered = private_phase_entered  # type: ignore[attr-defined]
         _retain_worker_failure(worker_pid, lease, active_runtime, active_streams, error)
         raise
     finally:
@@ -391,11 +411,19 @@ def main(argv: list[str] | None = None) -> int:
             error.args[0] if error.args and isinstance(error.args[0], str) and re.fullmatch(r"[A-Z0-9_]{3,64}", error.args[0])
             else "WORKER_EXECUTION_FAILED"
         )
-        print(json.dumps({
+        payload: dict[str, Any] = {
             "schema": WORKER_RECEIPT_SCHEMA, "status": "failed-closed", "error_code": code,
             "custody_retained": bool(_RETAINED_WORKER_CUSTODIES),
             "publication_authority": False, "native_client_qualification": False,
-        }, sort_keys=True), file=sys.stderr)
+        }
+        detail = getattr(error, "detail", None)
+        if (
+            not getattr(error, "private_phase_entered", False)
+            and type(detail) is str
+            and detail in _ALLOWED_PRE_FRAME_ERROR_DETAILS
+        ):
+            payload["error_detail"] = detail
+        print(json.dumps(payload, sort_keys=True), file=sys.stderr, flush=True)
         return 2
     return 0
 

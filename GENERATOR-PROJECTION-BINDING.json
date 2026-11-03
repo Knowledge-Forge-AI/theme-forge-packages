@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T16:35:37.454Z",
+  "generatedAt": "2026-11-03T19:20:54.156Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "6320584a184e5ba6c7860a0be2f57197cf3646e14d722be82298e15cbe598503",
+  "generationOverlayManifestSha256": "9985353f3222b7393e2b169953174a17aa753e655da50ba383a9baf15b6c44a0",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "6320584a184e5ba6c7860a0be2f57197cf3646e14d722be82298e15cbe598503",
+  "treeManifestSha256": "9985353f3222b7393e2b169953174a17aa753e655da50ba383a9baf15b6c44a0",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -65,7 +65,7 @@
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8426,
-      "sha256": "72fc00a54b4f4e5378c02bac01af4cffe204eb273296c5c71abf197402013371"
+      "sha256": "4a8690c65d04fc100405b33ca1798ef883f6a0d4e15b2774cf832e4d105e0efd"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -409,8 +409,8 @@
     },
     {
       "path": "tests/test_current_signer_cleanup_observations.py",
-      "bytes": 9247,
-      "sha256": "bf6c699c9a8abc998e8173fe169800a19c0c2b79f8c30fd796b864faa5b21627"
+      "bytes": 17729,
+      "sha256": "8b211de30b24be913ea9939a2b95a7fe403d1cd9e638c21d92c40271af62df13"
     },
     {
       "path": "tests/test_github_transport_telemetry.py",
@@ -640,7 +640,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 96804,
-      "sha256": "fa962e703d4e43c38ce049d655f460eafa87b1c412c2453c18d094c84c758465"
+      "sha256": "df51c5fededd6998116505bab0ec8548f132414c0706c2b7083833dea654437b"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -685,7 +685,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 5988,
-      "sha256": "e63129b8e6c85de5c9ffdb013a2715af3e4519ef307ed76302b5cc9dc7b53d2a"
+      "sha256": "246d7b51ff31d184756b4b2b4524534369f4b034d058fb85d46e152e90c89fae"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -784,8 +784,8 @@
     },
     {
       "path": "tools/verification/current_signer/signer_host_controller.py",
-      "bytes": 25855,
-      "sha256": "a01631d8a0e111bed2ccc9fbf84d8d5ffc212e65e85eef413575c905093fb19d"
+      "bytes": 44950,
+      "sha256": "6de2ca55223ac939a6a65ab57860a7d372d2efc55638803d420dff897c018176"
     },
     {
       "path": "tools/verification/current_signer/signer_protocol_io.py",
@@ -794,8 +794,8 @@
     },
     {
       "path": "tools/verification/current_signer/signer_worker.py",
-      "bytes": 21092,
-      "sha256": "09b95ffa4dc62dbc89920ed4adbab5d97f84a369c0e021d4f270ac1b32593f9b"
+      "bytes": 22018,
+      "sha256": "4dff51a083bf69f46614c3d880f30c6879ee4729b9170ddabc5bbcb660edc8f6"
     },
     {
       "path": "tools/verification/current_signer/signing_image_build.py",
@@ -804,13 +804,13 @@
     },
     {
       "path": "tools/verification/current_signer/signing_linux_isolation.py",
-      "bytes": 2681,
-      "sha256": "bdce8f851047552aa5822fe1480053d8644fa1a1e348c4fcb948fae3a2b1d727"
+      "bytes": 4246,
+      "sha256": "dfe402c62927fefe722da410cdf433f933a4829e246d70ed3312a19e159b0df7"
     },
     {
       "path": "tools/verification/current_signer/signing_network_gate.py",
-      "bytes": 6554,
-      "sha256": "be4c1da24106dfd9451e93d0d606081854da742ac4bbb597c4d345701c5df922"
+      "bytes": 7697,
+      "sha256": "8843077d15b2db2fc21f39b1b3ea86d4eec7898158e47e72857cac0fdb1ace8a"
     },
     {
       "path": "tools/verification/current_signer/signing_status_proof.py",

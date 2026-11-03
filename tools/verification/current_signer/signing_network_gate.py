@@ -16,10 +16,30 @@ DOCKER = "/usr/bin/docker"
 _HEX40 = re.compile(r"[0-9a-f]{40}")
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _RESOURCE = re.compile(r"tf-current-signer-[0-9]{1,20}-[0-9]{1,4}")
+FRAMING_REASONS = frozenset({
+    "EMPTY_EOF",
+    "NON_BYTES",
+    "LINE_OVERFLOW",
+    "CR_PRESENT",
+    "TRUNCATED_NO_NEWLINE",
+    "MULTIPLE_NEWLINES",
+})
 
 
 class GateError(ValueError):
     """Fixed codes only: no transport output, argv, or private input."""
+
+    def __init__(
+        self,
+        code: str,
+        *,
+        detail: str | None = None,
+        framing_reason: str | None = None,
+    ) -> None:
+        self.code = code
+        self.detail = detail
+        self.framing_reason = framing_reason if framing_reason in FRAMING_REASONS else None
+        super().__init__(code)
 
 
 @dataclass(frozen=True)
@@ -71,10 +91,26 @@ def _pairs(items):
     return value
 
 
+def classify_message_framing(line: object) -> str | None:
+    if type(line) is not bytes:
+        return "NON_BYTES"
+    if len(line) == 0:
+        return "EMPTY_EOF"
+    if len(line) > MAX_LINE_BYTES:
+        return "LINE_OVERFLOW"
+    if b"\r" in line:
+        return "CR_PRESENT"
+    if not line.endswith(b"\n"):
+        return "TRUNCATED_NO_NEWLINE"
+    if line.count(b"\n") != 1:
+        return "MULTIPLE_NEWLINES"
+    return None
+
+
 def require_message(line: bytes, kind: str, binding: SourceBinding, nonce: str, *, worker_pid: int | None = None) -> int:
-    if (type(line) is not bytes or not 0 < len(line) <= MAX_LINE_BYTES
-            or not line.endswith(b"\n") or line.count(b"\n") != 1 or b"\r" in line):
-        raise GateError("MESSAGE_FRAMING")
+    framing_reason = classify_message_framing(line)
+    if framing_reason is not None:
+        raise GateError("MESSAGE_FRAMING", framing_reason=framing_reason)
     try:
         actual = json.loads(line.decode("ascii"), object_pairs_hook=_pairs)
         observed_pid = _require_worker_pid(actual.get("worker_pid") if type(actual) is dict else None)
@@ -122,9 +158,11 @@ class HostGate:
         self.worker_pid: int | None = None
         self.binding, self.nonce = binding, nonce
         self.state = "waiting-ready"
+        self.failed_phase: str | None = None
+        self.frame_emitted = False
         self.retained_error: BaseException | None = None
 
-    def release_frame(self, *, ready: bytes, disconnect: Callable[[], None],
+    def release_frame(self, *, ready: bytes | Callable[[], bytes], disconnect: Callable[[], None],
                       inspect_networks: Callable[[], bytes],
                       exchange_challenge: Callable[[bytes], bytes],
                       emit_existing_frame_and_eof: Callable[[], None]) -> None:
@@ -132,7 +170,8 @@ class HostGate:
             raise GateError("GATE_REUSED")
         self.state = "checking-ready"
         try:
-            self.worker_pid = require_message(ready, "ready", self.binding, self.nonce)
+            ready_line = ready() if callable(ready) else ready
+            self.worker_pid = require_message(ready_line, "ready", self.binding, self.nonce)
             self.state = "disconnecting"
             disconnect()
             require_detached_networks(inspect_networks())
@@ -140,10 +179,12 @@ class HostGate:
             ack = exchange_challenge(encode_message("isolation-challenge", self.binding, self.nonce, worker_pid=self.worker_pid))
             require_message(ack, "isolated", self.binding, self.nonce, worker_pid=self.worker_pid)
             self.state = "emitting-frame"
+            self.frame_emitted = True
             emit_existing_frame_and_eof()
             self.state = "frame-closed"
         except BaseException as error:
             # The caller owns real child/stream retention and finalization.
+            self.failed_phase = self.state
             self.retained_error = error
             self.state = "failed"
             raise
