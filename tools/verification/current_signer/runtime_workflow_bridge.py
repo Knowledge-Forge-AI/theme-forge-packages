@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import email.utils
+import errno
 import hashlib
 import json
 import os
@@ -90,10 +91,32 @@ _RETAINED_BRIDGE_CUSTODY: list[dict[str, Any]] = []
 class RuntimeBridgeError(RuntimeError):
     """Fixed-code runtime workflow bridge refusal; never embeds raw paths, logs, or secrets."""
 
-    def __init__(self, code: str, message: str = "", *, custody_retained: bool = False) -> None:
+    def __init__(
+        self, code: str, message: str = "", *, custody_retained: bool = False,
+        cleanup_observation: Mapping[str, str] | None = None,
+    ) -> None:
         self.code = code
         self.reason = message or code
         self.custody_retained = custody_retained
+        allowed = {
+            "category": {
+                "ROOT_SYMLINK", "ROOT_NOT_DIRECTORY", "ROOT_FOREIGN_OWNER", "ROOT_ENTRIES",
+                "SUBDIR_SYMLINK", "SUBDIR_NOT_DIRECTORY", "SUBDIR_FOREIGN_OWNER",
+                "CHILD_SYMLINK", "CHILD_FOREIGN_OWNER", "NESTED_DIRECTORY",
+                "GH_CONFIG_NOT_REGULAR", "GH_CONFIG_LINK_COUNT", "GH_CONFIG_FOREIGN_OWNER",
+                "CHILD_LINK_COUNT", "CHILD_SPECIAL_FILE", "FILESYSTEM",
+            },
+            "scope": {"ROOT", "BUILD", "QUARANTINE", "TRANSPORT", "GH_CONFIG", "OTHER"},
+            "operation": {"EXISTS", "LSTAT", "LISTDIR", "UNLINK", "RMDIR"},
+            "errno": {"NONE", "EACCES", "EPERM", "ENOENT", "ENOTEMPTY", "EBUSY", "EIO", "OTHER"},
+        }
+        self.cleanup_observation = (
+            dict(cleanup_observation)
+            if type(cleanup_observation) is dict and set(cleanup_observation) == set(allowed)
+            and all(type(cleanup_observation[key]) is str and cleanup_observation[key] in values
+                    for key, values in allowed.items())
+            else None
+        )
         super().__init__(f"{code}: {self.reason}")
 
 
@@ -733,45 +756,85 @@ def _create_owned_0700_dir(path: Path, code: str = "WORK_ROOT_CREATE_FAILED") ->
     return (info.st_dev, info.st_ino, info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode))
 
 
-def _cleanup_owned_tree(root: Path, allowed_subdirs: set[str]) -> bool:
+def _cleanup_owned_tree(
+    root: Path, allowed_subdirs: set[str], *, failure_sink: list[dict[str, str]] | None = None,
+) -> bool:
+    """Keep existing cleanup decisions; optionally retain closed refusal labels."""
+    scope, operation = "ROOT", "EXISTS"
+
+    def refused(category: str, error: OSError | None = None) -> bool:
+        bucket = "NONE" if error is None else {
+            errno.EACCES: "EACCES", errno.EPERM: "EPERM", errno.ENOENT: "ENOENT",
+            errno.ENOTEMPTY: "ENOTEMPTY", errno.EBUSY: "EBUSY", errno.EIO: "EIO",
+        }.get(error.errno, "OTHER")
+        if failure_sink is not None:
+            failure_sink.append({
+                "category": category, "scope": scope, "operation": operation, "errno": bucket,
+            })
+        return False
+
     if not root.exists():
         return True
     try:
+        operation = "LSTAT"
         info = os.lstat(root)
         if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid():
-            return False
+            return refused("ROOT_SYMLINK" if stat.S_ISLNK(info.st_mode) else
+                           "ROOT_NOT_DIRECTORY" if not stat.S_ISDIR(info.st_mode) else
+                           "ROOT_FOREIGN_OWNER")
+        operation = "LISTDIR"
         entries = set(os.listdir(root))
         if not entries <= allowed_subdirs:
-            return False
+            return refused("ROOT_ENTRIES")
         for sub_name in sorted(entries):
+            scope = {"build": "BUILD", "quarantine": "QUARANTINE", "transport": "TRANSPORT"}.get(sub_name, "OTHER")
             sub_path = root / sub_name
+            operation = "LSTAT"
             sub_info = os.lstat(sub_path)
             if stat.S_ISLNK(sub_info.st_mode) or not stat.S_ISDIR(sub_info.st_mode) or sub_info.st_uid != os.geteuid():
-                return False
-            for child_name in sorted(os.listdir(sub_path)):
+                return refused("SUBDIR_SYMLINK" if stat.S_ISLNK(sub_info.st_mode) else
+                               "SUBDIR_NOT_DIRECTORY" if not stat.S_ISDIR(sub_info.st_mode) else
+                               "SUBDIR_FOREIGN_OWNER")
+            operation = "LISTDIR"
+            child_names = sorted(os.listdir(sub_path))
+            for child_name in child_names:
+                scope = {"build": "BUILD", "quarantine": "QUARANTINE", "transport": "TRANSPORT"}.get(sub_name, "OTHER")
                 child_path = sub_path / child_name
+                operation = "LSTAT"
                 cinfo = os.lstat(child_path)
                 if stat.S_ISLNK(cinfo.st_mode) or cinfo.st_uid != os.geteuid():
-                    return False
+                    return refused("CHILD_SYMLINK" if stat.S_ISLNK(cinfo.st_mode) else
+                                   "CHILD_FOREIGN_OWNER")
                 if stat.S_ISDIR(cinfo.st_mode):
                     if sub_name != "transport" or child_name != "gh-config":
-                        return False
+                        return refused("NESTED_DIRECTORY")
+                    scope, operation = "GH_CONFIG", "LISTDIR"
                     for gname in sorted(os.listdir(child_path)):
                         gpath = child_path / gname
+                        operation = "LSTAT"
                         ginfo = os.lstat(gpath)
                         if not stat.S_ISREG(ginfo.st_mode) or ginfo.st_nlink != 1 or ginfo.st_uid != os.geteuid():
-                            return False
+                            return refused("GH_CONFIG_NOT_REGULAR" if not stat.S_ISREG(ginfo.st_mode) else
+                                           "GH_CONFIG_LINK_COUNT" if ginfo.st_nlink != 1 else
+                                           "GH_CONFIG_FOREIGN_OWNER")
+                        operation = "UNLINK"
                         os.unlink(gpath)
+                    operation = "RMDIR"
                     os.rmdir(child_path)
                 elif stat.S_ISREG(cinfo.st_mode) and cinfo.st_nlink == 1:
+                    operation = "UNLINK"
                     os.unlink(child_path)
                 else:
-                    return False
+                    return refused("CHILD_LINK_COUNT" if stat.S_ISREG(cinfo.st_mode) else
+                                   "CHILD_SPECIAL_FILE")
+            scope = {"build": "BUILD", "quarantine": "QUARANTINE", "transport": "TRANSPORT"}.get(sub_name, "OTHER")
+            operation = "RMDIR"
             os.rmdir(sub_path)
+        scope, operation = "ROOT", "RMDIR"
         os.rmdir(root)
         return True
-    except OSError:
-        return False
+    except OSError as error:
+        return refused("FILESYSTEM", error)
 
 
 def execute_prepare_image(
@@ -858,6 +921,7 @@ def execute_prepare_image(
         build_work_dir = work_dir / "build"
         custody_retained = False
         work_root_cleanup_attempted = False
+        cleanup_observations: list[dict[str, str]] = []
         try:
             _create_owned_0700_dir(build_work_dir, "WORK_ROOT_CREATE_FAILED")
             try:
@@ -979,12 +1043,13 @@ def execute_prepare_image(
                     ),
                 )
                 work_root_cleanup_attempted = True
-                if not _cleanup_owned_tree(work_dir, {"transport", "quarantine", "build"}):
+                if not _cleanup_owned_tree(work_dir, {"transport", "quarantine", "build"}, failure_sink=cleanup_observations):
                     _RETAINED_BRIDGE_CUSTODY.append({"kind": "work_root", "path": str(work_dir)})
                     raise RuntimeBridgeError(
                         "WORK_ROOT_CLEANUP_FAILED",
                         "Failed to clean transient runtime image work root",
                         custody_retained=True,
+                        cleanup_observation=cleanup_observations[-1] if cleanup_observations else None,
                     )
             except BaseException as post_err:
                 if receipt_written:
@@ -1014,22 +1079,28 @@ def execute_prepare_image(
                         post_err.code,
                         post_err.reason,
                         custody_retained=custody_retained or post_err.custody_retained,
+                        cleanup_observation=post_err.cleanup_observation,
                     ) from None
                 raise
             return lease_doc
         finally:
             if not work_root_cleanup_attempted:
-                cleaned = _cleanup_owned_tree(work_dir, {"transport", "quarantine", "build"})
+                cleaned = _cleanup_owned_tree(work_dir, {"transport", "quarantine", "build"}, failure_sink=cleanup_observations)
                 if not cleaned:
                     _RETAINED_BRIDGE_CUSTODY.append({"kind": "work_root", "path": str(work_dir)})
                     active_exc = sys.exc_info()[1]
                     if isinstance(active_exc, RuntimeBridgeError):
                         active_exc.custody_retained = True
+                        observation = cleanup_observations[-1] if cleanup_observations else None
+                        active_exc.cleanup_observation = RuntimeBridgeError(
+                            active_exc.code, cleanup_observation=observation,
+                        ).cleanup_observation
                     elif active_exc is None:
                         raise RuntimeBridgeError(
                             "WORK_ROOT_CLEANUP_FAILED",
                             "Failed to clean transient runtime image work root",
                             custody_retained=True,
+                            cleanup_observation=cleanup_observations[-1] if cleanup_observations else None,
                         )
     finally:
         token = ""
@@ -1304,6 +1375,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise RuntimeBridgeError("UNKNOWN_SUBCOMMAND", "Unsupported runtime bridge subcommand")
     except RuntimeBridgeError as error:
         print(f"REFUSED {error.code}", file=sys.stderr)
+        if error.cleanup_observation is not None:
+            observation = RuntimeBridgeError(
+                error.code, cleanup_observation=error.cleanup_observation,
+            ).cleanup_observation
+            if observation is not None:
+                print("WORK_ROOT_CLEANUP " + " ".join(
+                    key.upper() + "=" + observation[key]
+                    for key in ("category", "scope", "operation", "errno")
+                ), file=sys.stderr)
         if error.custody_retained or _RETAINED_BRIDGE_CUSTODY:
             print("BRIDGE_CUSTODY_RETAINED", file=sys.stderr)
         return 2

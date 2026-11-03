@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T13:33:10.606Z",
+  "generatedAt": "2026-11-03T14:28:06.786Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "054ca1e717b3575ba35d676720098231aa0e11315745c5406b4ad6c0b7a5cdfa",
+  "generationOverlayManifestSha256": "7dda40843fc7fa57c72c3d0da899854a32a8d2fd81497c54c2c9eb5a049d93ee",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "054ca1e717b3575ba35d676720098231aa0e11315745c5406b4ad6c0b7a5cdfa",
+  "treeManifestSha256": "7dda40843fc7fa57c72c3d0da899854a32a8d2fd81497c54c2c9eb5a049d93ee",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 212,
+  "totalFiles": 214,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -60,12 +60,12 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "dfc48be696b619051dfca1c70c618abb4debe6f4866b157de296a9af5e102a09"
+      "sha256": "accb37523dd93a636b092439b8932e174bb87c643b319ce88d15124a8165edbf"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8426,
-      "sha256": "71f3557c62e7552f7b24b12129df5d0f3ba261ea9a95eba206930fe75d521818"
+      "sha256": "ca1ccd84ab20f99d1906f6de1c729dbf0106af5864bb1c3a0e17c3fc16a9437c"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -159,8 +159,8 @@
     },
     {
       "path": "docs/current-full-signer-policy.md",
-      "bytes": 4803,
-      "sha256": "a2f7b9d1ce867ea6473031af98bdfdd17faafe9f6269e1a5541eb47ff1622857"
+      "bytes": 5553,
+      "sha256": "7342a7a360fd0c4235f99426b132fe8b5c7eb3d1f98dab489acf86491e878b94"
     },
     {
       "path": "docs/current-signer-apt-probe-policy.md",
@@ -378,6 +378,11 @@
       "sha256": "98375c2ce2cd9e29e0e2308d07cd3c658ee8de03cbca9036e83947f4890d123d"
     },
     {
+      "path": "tests/fixtures/current_signer_cleanup_baseline.py",
+      "bytes": 1868,
+      "sha256": "57d702067476e7b803c3337a6f206102ba3a3bdf2077aa8687fb525f4558bd1d"
+    },
+    {
       "path": "tests/fixtures/NIXPKGS-COPYING.md",
       "bytes": 1694,
       "sha256": "04e1eedf91c9eb1c22075980a2f0f67ce1ab5661bc740fb322ffabad344a23b0"
@@ -401,6 +406,11 @@
       "path": "tests/p-native-gui-fixtures.mjs",
       "bytes": 3141,
       "sha256": "db7a6a5c25e9ce0eefaa59b81dd7e34afd18b34d176dd46cd750c9937d0d0715"
+    },
+    {
+      "path": "tests/test_current_signer_cleanup_observations.py",
+      "bytes": 9247,
+      "sha256": "bf6c699c9a8abc998e8173fe169800a19c0c2b79f8c30fd796b864faa5b21627"
     },
     {
       "path": "tests/test-p-native-gui-adapter.mjs",
@@ -625,7 +635,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 96804,
-      "sha256": "85672c85ff90ce3d855f98f76e5deb1034f7cbc5a86764cae8befd0f72e9a554"
+      "sha256": "30996ed9ccdf57a1dabb4eefb2ab56f821e75ad360302596e749526f7007bffe"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -670,7 +680,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 5988,
-      "sha256": "c3b53509fbde486fb70cb6028bfa56e0e91cd2e8885c001d074117419411d9ba"
+      "sha256": "176c5c7d9357d8b13444b2edd2b69fe5eb04450524fa974c75bfc4adec654999"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -744,8 +754,8 @@
     },
     {
       "path": "tools/verification/current_signer/runtime_workflow_bridge.py",
-      "bytes": 57697,
-      "sha256": "0a2e4bcc08afc7435e8e3e9a3c1783d59a5bad8b2b66559c0c01beb45253d8a4"
+      "bytes": 62556,
+      "sha256": "6fed84beabc4864b758953f9f46142e1306de76bb318d28f418368d6fecb30ae"
     },
     {
       "path": "tools/verification/current_signer/runtime-class-roots.json",
