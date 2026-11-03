@@ -31,3 +31,14 @@ The campaign budget is one original full qualification and same-source three-hos
 Publication requires the original six-job qualification and original three-host GUI workflow to have succeeded at the exact final P commit. It admits a single unexpired original repository artifact by API identity and full byte digest, then deploys those exact public bytes through the existing attended Pages route. It does not rebuild or re-sign packages.
 
 A failed required gate stops publication. Rollback reverts only the reviewed source adoption and releases exact newly owned resources. Existing released product bytes, production signing identity and environment protection remain unchanged. AUR publication remains deferred.
+
+## Fresh GitHub CLI telemetry opt-out
+
+Every new private transport config contains only telemetry: disabled in an
+exclusively created, owned regular config.yml with mode0600 and one link.
+This prevents GitHub CLI2.103.3 startup from creating device-ID state under the
+transport home. Token handling, fixed GET paths, child environment, process
+limits and cleanup predicates remain unchanged. Occupied or aliased config
+paths and incomplete writes refuse through fixed diagnostic codes. The change
+does not admit nested state or broaden deletion. Source tests are preparation;
+fresh native signing and client qualification remain required.

@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T15:26:11.866Z",
+  "generatedAt": "2026-11-03T15:54:13.426Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "275d7992fd418562221629594dd623b098963c4c11d3d5b25bd2e866a26b6672",
+  "generationOverlayManifestSha256": "601f985ea08e2e959e457739ca7947b306e33387d6dd0e7d04bf14b5aa2a41f3",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "275d7992fd418562221629594dd623b098963c4c11d3d5b25bd2e866a26b6672",
+  "treeManifestSha256": "601f985ea08e2e959e457739ca7947b306e33387d6dd0e7d04bf14b5aa2a41f3",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 214,
+  "totalFiles": 215,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -60,12 +60,12 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "accb37523dd93a636b092439b8932e174bb87c643b319ce88d15124a8165edbf"
+      "sha256": "be62912145eddd99c69e80c505abc0743808f5685077c3a83a36861aeae02a0c"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8426,
-      "sha256": "ca1ccd84ab20f99d1906f6de1c729dbf0106af5864bb1c3a0e17c3fc16a9437c"
+      "sha256": "72fc00a54b4f4e5378c02bac01af4cffe204eb273296c5c71abf197402013371"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -159,8 +159,8 @@
     },
     {
       "path": "docs/current-full-signer-policy.md",
-      "bytes": 5553,
-      "sha256": "7342a7a360fd0c4235f99426b132fe8b5c7eb3d1f98dab489acf86491e878b94"
+      "bytes": 6193,
+      "sha256": "a800c55659761b20d939e74927578440a4d87a9219fcd7711b420381e7f96473"
     },
     {
       "path": "docs/current-signer-apt-probe-policy.md",
@@ -413,6 +413,11 @@
       "sha256": "bf6c699c9a8abc998e8173fe169800a19c0c2b79f8c30fd796b864faa5b21627"
     },
     {
+      "path": "tests/test_github_transport_telemetry.py",
+      "bytes": 5782,
+      "sha256": "94f93551ada47514bd10300fec7d4d87a8b8a3e119184edbe7756f50caabfe93"
+    },
+    {
       "path": "tests/test-p-native-gui-adapter.mjs",
       "bytes": 11409,
       "sha256": "6627e1538beaba106a174890fa3870dd4ea800c6934db7dce743d327ebf23c41"
@@ -635,7 +640,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 96804,
-      "sha256": "30996ed9ccdf57a1dabb4eefb2ab56f821e75ad360302596e749526f7007bffe"
+      "sha256": "fa962e703d4e43c38ce049d655f460eafa87b1c412c2453c18d094c84c758465"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -680,7 +685,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 5988,
-      "sha256": "176c5c7d9357d8b13444b2edd2b69fe5eb04450524fa974c75bfc4adec654999"
+      "sha256": "e63129b8e6c85de5c9ffdb013a2715af3e4519ef307ed76302b5cc9dc7b53d2a"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -719,8 +724,8 @@
     },
     {
       "path": "tools/verification/current_signer/publication_github_api.py",
-      "bytes": 20250,
-      "sha256": "a4bf6bd39b6824b1a22151ac1a60170f4328f798cd30aceeec791b887eca224b"
+      "bytes": 21831,
+      "sha256": "a6f6ae9781da5c51a62f3cc9afb69939b87509fac729e5f69a0ac1aecf412b95"
     },
     {
       "path": "tools/verification/current_signer/repository_metadata_assembly.py",
