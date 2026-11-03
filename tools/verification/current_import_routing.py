@@ -378,13 +378,18 @@ def _plan_inputs(inventory, collection):
             fail("Same basename differs")
         if any(item[0]["family"] == family and item[0]["name"] == name for item in plan):
             fail("Duplicate binary row")
-        bodies = []
+        bodies, seen_origins = [], set()
         for origin in row["origins"]:
-            if origin["system"] not in SYSTEMS[family]:
+            if (not isinstance(origin, dict) or set(origin) != {"artifact", "system", "path"}
+                    or origin["system"] not in SYSTEMS[family]):
                 fail("Unsupported native system")
             from rs9.security import validate_safe_relative_posix_path
             for field in ("artifact", "path"):
                 validate_safe_relative_posix_path(origin[field])
+            origin_key = (origin["artifact"], origin["system"], origin["path"])
+            if origin_key in seen_origins:
+                fail("Duplicate origin identity")
+            seen_origins.add(origin_key)
             body = held_bytes(collection / origin["artifact"] / origin["path"])
             if len(body) != row["size"] or sha(body) != row["sha256"]:
                 fail("Original unsigned package changed")
@@ -401,7 +406,7 @@ def _plan_inputs(inventory, collection):
         origins = [origin["system"] for origin in row["origins"]]
         is_independent = arch in {"all", "any", "noarch"}
         expected_systems = SYSTEMS[family] if is_independent else {ARCH_SYSTEM[family][arch]}
-        if set(origins) != expected_systems or len(origins) != len(expected_systems):
+        if set(origins) != expected_systems:
             fail("Package architecture disagrees with exact origin systems")
         product_architectures = {a for f, p, a in architectures if (f, p) == (family, product)}
         if product_architectures & {"all", "any", "noarch"} and product_architectures - {"all", "any", "noarch"}:

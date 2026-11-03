@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T20:15:27.834Z",
+  "generatedAt": "2026-11-03T21:33:45.665Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "3f056f433e235c9e9dc1fddcf2ffc1fcb4d936fadacc08f1a3452631d0cd5f06",
+  "generationOverlayManifestSha256": "682d7f1626f531e7a05791817742c5f36139fbd8f0b67af0e44f347c1863d42e",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "3f056f433e235c9e9dc1fddcf2ffc1fcb4d936fadacc08f1a3452631d0cd5f06",
+  "treeManifestSha256": "682d7f1626f531e7a05791817742c5f36139fbd8f0b67af0e44f347c1863d42e",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 215,
+  "totalFiles": 216,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -408,6 +408,11 @@
       "sha256": "db7a6a5c25e9ce0eefaa59b81dd7e34afd18b34d176dd46cd750c9937d0d0715"
     },
     {
+      "path": "tests/test_current_import_routing_origins.py",
+      "bytes": 8055,
+      "sha256": "c85c2ff9f482c8b12f8ee246665efd916150337910f7c3b7f4ce6f3c3c4d559d"
+    },
+    {
       "path": "tests/test_current_signer_cleanup_observations.py",
       "bytes": 17729,
       "sha256": "8b211de30b24be913ea9939a2b95a7fe403d1cd9e638c21d92c40271af62df13"
@@ -639,8 +644,8 @@
     },
     {
       "path": "tools/verification/current_import_routing.py",
-      "bytes": 96804,
-      "sha256": "df51c5fededd6998116505bab0ec8548f132414c0706c2b7083833dea654437b"
+      "bytes": 97101,
+      "sha256": "7eec36b61e74f607562d36462ca039ede45c3053dd4f21fc52e49e6686f5e3da"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
