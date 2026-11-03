@@ -1,0 +1,104 @@
+{
+  "base_image": "registry.fedoraproject.org/fedora@sha256:c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd",
+  "candidate_packages_installed": false,
+  "cleanup_scope": "point-in-time; disposable-host teardown required after uncertain create",
+  "container_cleanup_confirmed": true,
+  "error_code": null,
+  "failure_phase": null,
+  "outputs": {
+    "conflicts": {
+      "bytes": 2222,
+      "rows": 40,
+      "sha256": "cd00d86e8ce441e6e813dc869e9bd9733ee0155c4bf23406a08bf0645b1c5710"
+    },
+    "members": {
+      "bytes": 2795974,
+      "rows": 26297,
+      "sha256": "3e30f9f420c8338b6a13387156bbff0715fa3984e4662df0888a860742093855"
+    },
+    "obsoletes": {
+      "bytes": 2567,
+      "rows": 47,
+      "sha256": "45fe78907acd8e34b902c0333b8ef3691faf5e9367ca1dca0f84611da1d080ab"
+    },
+    "packages": {
+      "bytes": 18306,
+      "rows": 142,
+      "sha256": "bfd0730c71bc3809aa170ee71d560a611cc1ae184fc7dbce2ec78aa6a437417a"
+    },
+    "provides": {
+      "bytes": 86773,
+      "rows": 1289,
+      "sha256": "a8f7a5a7119ce5ba5a2897a4b12170b186283e1377a18da0c5bb7474d76eaafb"
+    },
+    "requires": {
+      "bytes": 221764,
+      "rows": 3216,
+      "sha256": "9c3fd5a03965d7abc358683ca10361963c3d810219f5641678ee297dc134658d"
+    },
+    "scripts": {
+      "bytes": 332445,
+      "rows": 176,
+      "sha256": "89234d5775ac23c350d073c8320c4ab3d5b4d0151a19b6db1c8507a05ef0fcff"
+    }
+  },
+  "production_acceptance": false,
+  "query_facts": {
+    "conflicts": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2222,
+      "stdout_sha256": "cd00d86e8ce441e6e813dc869e9bd9733ee0155c4bf23406a08bf0645b1c5710"
+    },
+    "members": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2795974,
+      "stdout_sha256": "3e30f9f420c8338b6a13387156bbff0715fa3984e4662df0888a860742093855"
+    },
+    "obsoletes": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2567,
+      "stdout_sha256": "45fe78907acd8e34b902c0333b8ef3691faf5e9367ca1dca0f84611da1d080ab"
+    },
+    "packages": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 18306,
+      "stdout_sha256": "bfd0730c71bc3809aa170ee71d560a611cc1ae184fc7dbce2ec78aa6a437417a"
+    },
+    "provides": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 86773,
+      "stdout_sha256": "a8f7a5a7119ce5ba5a2897a4b12170b186283e1377a18da0c5bb7474d76eaafb"
+    },
+    "requires": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 221764,
+      "stdout_sha256": "9c3fd5a03965d7abc358683ca10361963c3d810219f5641678ee297dc134658d"
+    },
+    "scripts": {
+      "exit_code": 0,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 332445,
+      "stdout_sha256": "89234d5775ac23c350d073c8320c4ab3d5b4d0151a19b6db1c8507a05ef0fcff"
+    }
+  },
+  "retained_container_count": 0,
+  "schema": "tf.current-signing-base-metadata.v1",
+  "signing_credentials_accessed": false,
+  "source_commit": "1d83ba1841391870aba9783508a4d66ce06d777a",
+  "source_run": 41565171218,
+  "status": "pass",
+  "uncertain_creation_count": 0
+}

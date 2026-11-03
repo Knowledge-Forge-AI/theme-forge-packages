@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T02:13:22.069Z",
+  "generatedAt": "2026-11-03T06:06:03.407Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "9c1ad065081dd8149741a4c4fb82770f8a65fae8e06ffe42333a8c4668a3a2b7",
+  "generationOverlayManifestSha256": "b882774ead8067a267ed05bc1982f2a408f4df036c23b4ddcaf3f1d9ef86dd1b",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "9c1ad065081dd8149741a4c4fb82770f8a65fae8e06ffe42333a8c4668a3a2b7",
+  "treeManifestSha256": "b882774ead8067a267ed05bc1982f2a408f4df036c23b4ddcaf3f1d9ef86dd1b",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 149,
+  "totalFiles": 212,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -59,8 +59,13 @@
     },
     {
       "path": ".github/workflows/publish.yml",
-      "bytes": 479,
-      "sha256": "3fef1507c55fefb30d07c5cef8aef110974b12d102e08768f4958561431db590"
+      "bytes": 8812,
+      "sha256": "dfc48be696b619051dfca1c70c618abb4debe6f4866b157de296a9af5e102a09"
+    },
+    {
+      "path": ".github/workflows/qualify-current-signer.yml",
+      "bytes": 8426,
+      "sha256": "71f3557c62e7552f7b24b12129df5d0f3ba261ea9a95eba206930fe75d521818"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -151,6 +156,11 @@
       "path": "CURRENT-GENERATION-STATUS.json",
       "bytes": 6099,
       "sha256": "5b9aec059717bff041cb67a8b47978aa9bc13c0e1431d7b8409f111c2375784b"
+    },
+    {
+      "path": "docs/current-full-signer-policy.md",
+      "bytes": 4803,
+      "sha256": "a2f7b9d1ce867ea6473031af98bdfdd17faafe9f6269e1a5541eb47ff1622857"
     },
     {
       "path": "docs/current-signer-apt-probe-policy.md",
@@ -613,9 +623,309 @@
       "sha256": "9724f4ab257d217bb2a556d8abab25c1e3e01d955109b6256d9c1e784cc65947"
     },
     {
+      "path": "tools/verification/current_import_routing.py",
+      "bytes": 96804,
+      "sha256": "85672c85ff90ce3d855f98f76e5deb1034f7cbc5a86764cae8befd0f72e9a554"
+    },
+    {
+      "path": "tools/verification/current_signer/apt_signature_adapter.py",
+      "bytes": 50533,
+      "sha256": "710e2858e98f42f7a61b2629a641fe5d6738a12a6e3ee608ce047d868691e8f8"
+    },
+    {
+      "path": "tools/verification/current_signer/BASE-ROOT-BYTE-IDENTITIES.json",
+      "bytes": 11597,
+      "sha256": "4b7b901c5af119da873ca3a33d13c0dd5872b4b594fa8b97cf6435c318e0ee70"
+    },
+    {
+      "path": "tools/verification/current_signer/client_artifact_input.py",
+      "bytes": 20984,
+      "sha256": "9a19ddd688f2c9f5a5cfaa1368179e47a1f6435d910b8e8464f3d6b0bace5ef9"
+    },
+    {
+      "path": "tools/verification/current_signer/current_protected_signing.py",
+      "bytes": 19715,
+      "sha256": "c04d30b55ea9632c93512e4bb1271101cc7aff0f62dba6dfdb0222b4e7c5b041"
+    },
+    {
+      "path": "tools/verification/current_signer/current_release_command_binding.py",
+      "bytes": 15261,
+      "sha256": "54d1a4dc70382e910724324ccf532e9f71a98cd8a70b5b1f72422b0ffdb81efd"
+    },
+    {
+      "path": "tools/verification/current_signer/CURRENT-BASE-NATIVE-QUALIFIED.json",
+      "bytes": 3718,
+      "sha256": "83615df4edc9191371604bea60c3da8f43cb6855569b15278db8c5754802a1e5"
+    },
+    {
+      "path": "tools/verification/current_signer/detached_signature_adapter.py",
+      "bytes": 16034,
+      "sha256": "40eb428aff103459a22cc386b09f81b3e0ca6896c4c4fb4a0a1fe7403531f088"
+    },
+    {
+      "path": "tools/verification/current_signer/FEDORA43-PUBLIC-SELECTION-PROOF.json",
+      "bytes": 1161,
+      "sha256": "8bf7784776008403db0849b90029b82d0b6455ac1217f37bbe20a8de4cb20d2a"
+    },
+    {
+      "path": "tools/verification/current_signer/leaf-manifest.json",
+      "bytes": 5988,
+      "sha256": "c3b53509fbde486fb70cb6028bfa56e0e91cd2e8885c001d074117419411d9ba"
+    },
+    {
+      "path": "tools/verification/current_signer/owned_gpg_agent.py",
+      "bytes": 50589,
+      "sha256": "305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf"
+    },
+    {
+      "path": "tools/verification/current_signer/package_client_qualification.py",
+      "bytes": 32464,
+      "sha256": "b12802d89d4097d4d14de344f3cc6248e5e644407904f0b6da976df0f15c7555"
+    },
+    {
+      "path": "tools/verification/current_signer/protected_passphrase_fd.py",
+      "bytes": 9737,
+      "sha256": "abec0b730be0043ade1cdc9a022234941d467854e977f3f3727b25283899b325"
+    },
+    {
+      "path": "tools/verification/current_signer/protected_signing_runtime.py",
+      "bytes": 84707,
+      "sha256": "1952147ea9af0c34772016d470d6976360a15e8cd541ac8d393e2053edf2b937"
+    },
+    {
+      "path": "tools/verification/current_signer/public_repository_files.py",
+      "bytes": 5361,
+      "sha256": "d02836b046a6310f95e7fea29e7876f22fbbc80339f5c55caa93c44cf38bc03f"
+    },
+    {
+      "path": "tools/verification/current_signer/public_repository_linkage.py",
+      "bytes": 22907,
+      "sha256": "fb3b4aa8c9d2d130dc3d07dda66485f61d75b72634013344f6e3550e74ecb455"
+    },
+    {
+      "path": "tools/verification/current_signer/public_repository_verifier.py",
+      "bytes": 8293,
+      "sha256": "ee368a36b7f04ff5b689bc4945a89fd3d18dbe14a51fc779dbc67c1ffee4a1e6"
+    },
+    {
+      "path": "tools/verification/current_signer/publication_github_api.py",
+      "bytes": 20250,
+      "sha256": "a4bf6bd39b6824b1a22151ac1a60170f4328f798cd30aceeec791b887eca224b"
+    },
+    {
+      "path": "tools/verification/current_signer/repository_metadata_assembly.py",
+      "bytes": 26921,
+      "sha256": "df1fa7575e8095898c4327085b4474e0b20d0a910c31108be23723d99cbd7758"
+    },
+    {
+      "path": "tools/verification/current_signer/retained_publication.py",
+      "bytes": 20808,
+      "sha256": "24c7a5dfadf2e96ff31460a99ad4e61eb2a828f555519ec8387555ced639d33f"
+    },
+    {
+      "path": "tools/verification/current_signer/rpm_byte_preservation.py",
+      "bytes": 3997,
+      "sha256": "193d0b14bcca41ddb89d091fb1f12e11f7bfce6b31bbdb15d42e33bc251bb9b6"
+    },
+    {
+      "path": "tools/verification/current_signer/rpm_public_signature_adapter.py",
+      "bytes": 21684,
+      "sha256": "4c4f2f6f364cd1a66e9c9fa7e59201af7b2356ad3cfd3eb3b719874f428d82fd"
+    },
+    {
+      "path": "tools/verification/current_signer/RPM-GPG-KEY-fedora-43-primary.asc",
+      "bytes": 1672,
+      "sha256": "2b1449a082d3264dda8e18369f04e9ac4163bf3f8cb530b0783dc2ab064a08ec"
+    },
+    {
+      "path": "tools/verification/current_signer/runtime_input_intake.py",
+      "bytes": 16517,
+      "sha256": "dcfd03ee3207bbce131d40b6180b00fd1e7208ccc29818f3dfae81705f7fa7ce"
+    },
+    {
+      "path": "tools/verification/current_signer/runtime_workflow_bridge.py",
+      "bytes": 57697,
+      "sha256": "0a2e4bcc08afc7435e8e3e9a3c1783d59a5bad8b2b66559c0c01beb45253d8a4"
+    },
+    {
       "path": "tools/verification/current_signer/runtime-class-roots.json",
       "bytes": 4496,
       "sha256": "05422a81ce3f2ac359b2673717436f46f4628cdbbaa187b78e76680962616be3"
+    },
+    {
+      "path": "tools/verification/current_signer/runtime-image-admission.json",
+      "bytes": 26262,
+      "sha256": "ba93088c618c9f9aa27f4bbae41309c72efe325f5e56389dd83878c8b51c67d6"
+    },
+    {
+      "path": "tools/verification/current_signer/secret_frame_transport.py",
+      "bytes": 15510,
+      "sha256": "c031304a80a3e56fcd02133d7a776a3b1c40287a80778dd579b1e22633b57be4"
+    },
+    {
+      "path": "tools/verification/current_signer/SELECTED-FEDORA43-PUBLIC-CERTIFICATE-METADATA.json",
+      "bytes": 905,
+      "sha256": "a23807b970d73ecd99674119f0802fac1f3c2aa57306fdf8fc102e3b2261d28d"
+    },
+    {
+      "path": "tools/verification/current_signer/signer_host_controller.py",
+      "bytes": 25855,
+      "sha256": "a01631d8a0e111bed2ccc9fbf84d8d5ffc212e65e85eef413575c905093fb19d"
+    },
+    {
+      "path": "tools/verification/current_signer/signer_protocol_io.py",
+      "bytes": 12573,
+      "sha256": "adcfb8477e9993547bcf6090f568affd3f94df50d99e9a1546043ded1cb75619"
+    },
+    {
+      "path": "tools/verification/current_signer/signer_worker.py",
+      "bytes": 21092,
+      "sha256": "09b95ffa4dc62dbc89920ed4adbab5d97f84a369c0e021d4f270ac1b32593f9b"
+    },
+    {
+      "path": "tools/verification/current_signer/signing_image_build.py",
+      "bytes": 118098,
+      "sha256": "a3965f4464070dc3d7998a3b929ec8d37654b82e8006697256f63efacd172fc8"
+    },
+    {
+      "path": "tools/verification/current_signer/signing_linux_isolation.py",
+      "bytes": 2681,
+      "sha256": "bdce8f851047552aa5822fe1480053d8644fa1a1e348c4fcb948fae3a2b1d727"
+    },
+    {
+      "path": "tools/verification/current_signer/signing_network_gate.py",
+      "bytes": 6554,
+      "sha256": "be4c1da24106dfd9451e93d0d606081854da742ac4bbb597c4d345701c5df922"
+    },
+    {
+      "path": "tools/verification/current_signer/signing_status_proof.py",
+      "bytes": 8648,
+      "sha256": "1f7cef1c8c73d9979c3bb48d5b241dcf51aebc660a5a4fbc555ec7f3a463d5e9"
+    },
+    {
+      "path": "tools/verification/current_signer/source_closure.py",
+      "bytes": 20898,
+      "sha256": "69c4b91311f224c9eb8c4d52df79d8264c57bf1e1bf0618669663eda2e00d58f"
+    },
+    {
+      "path": "tools/verification/current_signer/UPSTREAM-NOTICE-PINS.json",
+      "bytes": 9850,
+      "sha256": "da205b4305b5aaacce4ff900dc33badf4397c19cd66dc6e6095d4993ba879942"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/cachecontrol/LICENSE.txt",
+      "bytes": 558,
+      "sha256": "86eeee87be2a43f3ff1f56496f451f69243926f025fedbb033666c304c4c161b"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/certifi/LICENSE",
+      "bytes": 989,
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/dependency_groups/LICENSE.txt",
+      "bytes": 1099,
+      "sha256": "1ab36e3e2a4ba8631625384f87e9e091db1faed034c5b23325b3239abf2cc525"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/distlib/LICENSE.txt",
+      "bytes": 14531,
+      "sha256": "808e10c8a6ab8deb149ff9b3fb19f447a808094606d712a9ca57fead3552599d"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/distro/LICENSE",
+      "bytes": 11325,
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/idna/LICENSE.md",
+      "bytes": 1541,
+      "sha256": "a59f0b0ef3635874109a4461ca44ff7a70d50696e814767bfaf721d4c9b0db0f"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/msgpack/COPYING",
+      "bytes": 614,
+      "sha256": "492dedba85da5872f78e6091bcd1fea474d660d35acb4dee964b8aab3f007427"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/packaging/LICENSE",
+      "bytes": 197,
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/packaging/LICENSE.APACHE",
+      "bytes": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/packaging/LICENSE.BSD",
+      "bytes": 1344,
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/pkg_resources/LICENSE",
+      "bytes": 1023,
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/platformdirs/LICENSE",
+      "bytes": 1089,
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/pygments/LICENSE",
+      "bytes": 1331,
+      "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/pyproject_hooks/LICENSE",
+      "bytes": 1081,
+      "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/requests/LICENSE",
+      "bytes": 10142,
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/resolvelib/LICENSE",
+      "bytes": 751,
+      "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/rich/LICENSE",
+      "bytes": 1056,
+      "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/tomli_w/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/tomli/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/tomli/LICENSE-HEADER",
+      "bytes": 121,
+      "sha256": "97ce9330905a172dde870ee0361d89beb95ba3bd0f4545796aa91a8c01a43531"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/truststore/LICENSE",
+      "bytes": 1086,
+      "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/typing_extensions.LICENSE",
+      "bytes": 13936,
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+    },
+    {
+      "path": "tools/verification/current_signer/upstream-notices/urllib3/LICENSE.txt",
+      "bytes": 1115,
+      "sha256": "c37bf186e27cf9dbe9619e55edfe3cea7b30091ceb3da63c7dacbe0e6d77907b"
     },
     {
       "path": "tools/verification/current-candidate-context.mjs",
@@ -626,6 +936,11 @@
       "path": "tools/verification/current-command-contracts.json",
       "bytes": 6910,
       "sha256": "d3e150ea37d6e4d28bf9ee2d10167d74bc6c20ea9856340a05cb2a087b97beb7"
+    },
+    {
+      "path": "tools/verification/current-rs9-inputs.json",
+      "bytes": 240,
+      "sha256": "cafaf36d57497cd4f3e0bcc46af6bfb239e0793d7c03183baaf17ddded6eec6a"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",

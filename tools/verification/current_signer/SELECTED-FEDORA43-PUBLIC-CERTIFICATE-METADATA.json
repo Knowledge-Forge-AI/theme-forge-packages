@@ -1,0 +1,23 @@
+{
+  "schema": "tf.runtime-upstream-public-certificate.v1",
+  "primaryFingerprint": "C6E7F081CF80E13146676E88829B606631645531",
+  "bytes": 1672,
+  "sha256": "2b1449a082d3264dda8e18369f04e9ac4163bf3f8cb530b0783dc2ab064a08ec",
+  "purpose": "Selected Fedora43 public certificate for upstream RPM verification only",
+  "format": "ASCII-armored public OpenPGP certificate; no secret material",
+  "derivedFrom": {
+    "sourceUrl": "https://fedoraproject.org/fedora.gpg",
+    "bundleBytes": 4704,
+    "bundleSha256": "3b8a3660cca4851a67f67f56819e37e2f6b37ac8e905cb571b25d2127d1b7618",
+    "selectedBinaryBytes": 1176,
+    "selectedBinarySha256": "f2511c2a5ee5d7490b23db762403a5847e31a1920fa9d5362a2ddb62dd08c814",
+    "packetTags": [
+      6,
+      13,
+      2
+    ],
+    "byteIdenticalSelection": true,
+    "armorCrc24Verified": true
+  },
+  "rpmImportDocumentation": "https://rpm.org/docs/6.0.x/man/rpmkeys.8"
+}
