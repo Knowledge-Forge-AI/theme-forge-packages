@@ -176,6 +176,40 @@ class ContractTests(unittest.TestCase):
         else:
             self.fail("invalid row accepted")
 
+    def test_parser_failure_categories_are_fixed_and_content_free(self):
+        cases = [
+            (b"bad\n", "QUERY_FIELD_COUNT"),
+            (DATA["scripts"].replace(b"sample", b"bad/name", 1), "QUERY_IDENTITY_SHAPE"),
+            (PREFIX + b'UNKNOWN\t"text"\n', "SCRIPT_TAG_SHAPE"),
+            (PREFIX + b'POSTIN\t(not-json)\n', "SCRIPT_JSON_SHAPE"),
+            (PREFIX + b'POSTIN\tfalse\n', "SCRIPT_VALUE_SHAPE"),
+        ]
+        for raw, expected in cases:
+            with self.subTest(expected=expected):
+                try:
+                    m.parse_rows("scripts", raw)
+                except m.Refusal as error:
+                    self.assertEqual(str(error), expected)
+                    self.assertEqual(error.line, 1)
+                    self.assertNotIn("not-json", str(error))
+                else:
+                    self.fail("invalid row accepted")
+
+    def test_script_failure_records_label_and_line_through_full_controller(self):
+        class MalformedScriptDocker(FakeDocker):
+            def __call__(self, argv, **kwargs):
+                code, raw, err = super().__call__(argv, **kwargs)
+                if argv[:2] == ["docker", "run"] and argv[-1] == m.QUERY_FORMATS["scripts"]:
+                    raw = DATA["scripts"] * 84 + PREFIX + b"POSTIN\t(not-json)\n"
+                return code, raw, err
+        result = self.run_fake(MalformedScriptDocker())
+        self.assertEqual(result["status"], "fail")
+        self.assertEqual(result["error_code"], "SCRIPT_JSON_SHAPE")
+        self.assertEqual(result["query_facts"]["scripts"]["first_rejected_line"], 85)
+        self.assertTrue(result["container_cleanup_confirmed"])
+        self.assertEqual(result["retained_container_count"], 0)
+        self.assertNotIn("not-json", json.dumps(result))
+
     def test_existing_output_preserved(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(FileExistsError):

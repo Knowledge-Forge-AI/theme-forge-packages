@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T01:16:32.157Z",
+  "generatedAt": "2026-11-03T01:33:55.212Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "b228e588527efb9aeb8ad1cc291ef814982b4cde8cb60df6c749f47da91eb50d",
+  "generationOverlayManifestSha256": "ed2533f643c7b03060e27e7d2723c08c74b7f2a0d02b7db7516f69e7d0e557a5",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "b228e588527efb9aeb8ad1cc291ef814982b4cde8cb60df6c749f47da91eb50d",
+  "treeManifestSha256": "ed2533f643c7b03060e27e7d2723c08c74b7f2a0d02b7db7516f69e7d0e557a5",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -724,13 +724,13 @@
     },
     {
       "path": "tools/verification/signing_base_metadata.py",
-      "bytes": 13779,
-      "sha256": "7cad18b5b209f5a3219e36b505c8044ba51d2672fdf268682f473406fd8bd921"
+      "bytes": 13847,
+      "sha256": "74e6fd1f987a1dfc1ab523aecede4acf641ecb64fed875a1364dd3f29c1e227d"
     },
     {
       "path": "tools/verification/test_signing_base_metadata.py",
-      "bytes": 9824,
-      "sha256": "fb01dcae5740cca63ff0d3ac47c7728d50c6a300149203f28cbf45d9b9311fc7"
+      "bytes": 11611,
+      "sha256": "ea53e5e6eade551cfa7e439fea3413943e27e58d75e08a9e951c8f63ed4f2804"
     },
     {
       "path": "tools/verification/verify-hosted-validation-gate.mjs",

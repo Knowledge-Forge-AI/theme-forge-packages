@@ -116,19 +116,21 @@ def parse_rows(kind: str, raw: bytes) -> list[list]:
     rows = []
     for line_number, line in enumerate(lines, 1):
         row = line.split("\t")
-        if (len(row) != expected or not NAME.fullmatch(row[0]) or not NUMBER.fullmatch(row[1])
+        if len(row) != expected:
+            raise Refusal("QUERY_FIELD_COUNT", line_number)
+        if (not NAME.fullmatch(row[0]) or not NUMBER.fullmatch(row[1])
                 or not VERSION.fullmatch(row[2]) or not VERSION.fullmatch(row[3])
                 or not (NAME.fullmatch(row[4]) or row[0] == "gpg-pubkey" and row[4] == "(none)")):
-            raise Refusal("QUERY_OUTPUT_SHAPE", line_number)
+            raise Refusal("QUERY_IDENTITY_SHAPE", line_number)
         if kind == "scripts":
             if row[5] not in (*SCRIPT_SCALARS, *SCRIPT_ARRAYS):
-                raise Refusal("QUERY_OUTPUT_SHAPE", line_number)
+                raise Refusal("SCRIPT_TAG_SHAPE", line_number)
             try:
                 value = json.loads(row[6])
             except (ValueError, TypeError) as error:
-                raise Refusal("QUERY_OUTPUT_SHAPE", line_number) from error
+                raise Refusal("SCRIPT_JSON_SHAPE", line_number) from error
             if not isinstance(value, (str, int)) or isinstance(value, bool):
-                raise Refusal("QUERY_OUTPUT_SHAPE", line_number)
+                raise Refusal("SCRIPT_VALUE_SHAPE", line_number)
             row[6] = value
         elif kind == "packages":
             if not (VERSION.fullmatch(row[5]) or row[0] == "gpg-pubkey" and row[5] == "(none)") or not row[6]:
