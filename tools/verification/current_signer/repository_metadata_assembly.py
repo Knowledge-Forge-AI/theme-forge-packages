@@ -344,9 +344,9 @@ def _registered(runtime, base: Path, relatives) -> dict[str, bytes]:
     return result
 
 
-def _metadata_tool_env(runtime, home: Path, work: Path, name: str) -> dict[str, str]:
+def _metadata_tool_env(runtime, home: Path, staging: Path, name: str) -> dict[str, str]:
     """Keep non-GPG tool scratch in this invocation's owned private work."""
-    temporary = _rt._new_owned_directory(work / ("metadata-tmp-" + name), "metadata tool scratch")
+    temporary = _rt._new_owned_directory(staging / ("metadata-tmp-" + name), "metadata tool scratch")
     return {**runtime._env(home), "TMPDIR": str(temporary.path)}
 
 
@@ -360,7 +360,7 @@ def _rpm_repository(runtime, arch, packages, home, work, staging, root, passphra
         _fail("PACKAGE_MUTATED", "Private repository RPM differs from its signed output")
     with _rt._private_umask():
         runtime._run((_rt.NATIVE_CREATEREPO, *CREATEREPO_FLAGS, str(repo)), cwd=work,
-                     env=_metadata_tool_env(runtime, home, work, "rpm-" + arch),
+                     env=_metadata_tool_env(runtime, home, staging, "rpm-" + arch),
                      stdin=b"", phase="rpm-metadata-create")
     created = _snapshot(repo, ("", "Packages", "repodata"))
     repodata = {key for key in created if key.startswith("repodata/")}
@@ -391,7 +391,7 @@ def _pacman_repository(runtime, inputs, home, work, staging, root, passphrase) -
     with _rt._private_umask():
         runtime._run((_rt.NATIVE_REPO_ADD, *REPO_ADD_FLAGS, str(repo / PACMAN_DATABASE),
                       *(str(repo / name) for name in packages)),
-                     cwd=work, env=_metadata_tool_env(runtime, home, work, "pacman"),
+                     cwd=work, env=_metadata_tool_env(runtime, home, staging, "pacman"),
                      stdin=b"", phase="pacman-database-create")
     outputs = {PACMAN_DATABASE, PACMAN_FILES, *PACMAN_ALIASES}
 

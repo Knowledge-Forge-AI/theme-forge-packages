@@ -35,7 +35,7 @@
     "tools/verification/current_signer/public_repository_linkage.py": "fb3b4aa8c9d2d130dc3d07dda66485f61d75b72634013344f6e3550e74ecb455",
     "tools/verification/current_signer/public_repository_verifier.py": "ee368a36b7f04ff5b689bc4945a89fd3d18dbe14a51fc779dbc67c1ffee4a1e6",
     "tools/verification/current_signer/publication_github_api.py": "a6f6ae9781da5c51a62f3cc9afb69939b87509fac729e5f69a0ac1aecf412b95",
-    "tools/verification/current_signer/repository_metadata_assembly.py": "df1fa7575e8095898c4327085b4474e0b20d0a910c31108be23723d99cbd7758",
+    "tools/verification/current_signer/repository_metadata_assembly.py": "8990fbc95180e2c6e9e4e9d57145ef4fe5ebf6210b9b3e18b18ce112f9086846",
     "tools/verification/current_signer/retained_publication.py": "24c7a5dfadf2e96ff31460a99ad4e61eb2a828f555519ec8387555ced639d33f",
     "tools/verification/current_signer/rpm_byte_preservation.py": "193d0b14bcca41ddb89d091fb1f12e11f7bfce6b31bbdb15d42e33bc251bb9b6",
     "tools/verification/current_signer/rpm_public_signature_adapter.py": "4c4f2f6f364cd1a66e9c9fa7e59201af7b2356ad3cfd3eb3b719874f428d82fd",
