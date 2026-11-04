@@ -412,7 +412,7 @@ class ArgvTests(unittest.TestCase):
         with mock.patch.object(host, "physical_dir", side_effect=lambda path, label: Path(path)):
             return function(config(), *args)
 
-    def test_generic_custom_network_argv_unchanged(self):
+    def test_generic_custom_network_argv_uses_noninit_entry(self):
         uid, gid = os.getuid(), os.getgid()
         expected = (
             DOCKER, "run", "--rm", "-i", "--pull", "never", "--name", NAME, "--network", CUSTOM_NETWORK,
@@ -422,8 +422,8 @@ class ArgvTests(unittest.TestCase):
             "--mount", "type=bind,src=/fixture/export,dst=/work/export",
             "--tmpfs", f"/work/workspace:rw,exec,nosuid,nodev,mode=0700,uid={uid},gid={gid}",
             "-e", "GH_TOKEN", "sha256:" + "7" * 64,
-            "/usr/bin/python3", "-I", "-B", "/work/p/tools/verification/current_import_routing.py",
-            "--current-signer-worker",
+            "/usr/bin/python3", "-I", "-B", "/usr/local/libexec/tf-runtime-entry/container_process_entry.py",
+            "--", "/usr/bin/python3", "-I", "-B", "/work/p/tools/verification/current_import_routing.py", "--current-signer-worker",
             "--p-root", "/work/p", "--r-root", "/work/r", "--workspace-root", "/work/workspace",
             "--export-root", "/work/export",
             "--p-commit", "1" * 40, "--p-tree", "2" * 40, "--r-commit", "3" * 40, "--r-tree", "4" * 40,
