@@ -138,6 +138,15 @@ _POST_FRAME_REFUSAL_CODES = frozenset({
     "PUBLIC_ROOT_MUTATED",
     "MISSING_SIGNATURE",
     "SIGNATURE_COUNT",
+    "COMMAND_FAILED",
+    "COMMAND_TIMEOUT",
+    "COMMAND_OUTPUT_LIMIT",
+    "OUTPUT_INVENTORY",
+    "REPOSITORY_METADATA",
+    "PACKAGE_MUTATED",
+    "AGENT_CONSUMER_LIFECYCLE",
+    "COMMAND_CLEANUP",
+    "AGENT_REQUIRED",
 })
 # Ordered most-specific first; isinstance also matches subclasses of these builtin families.
 _POST_FRAME_EXCEPTION_LABELS: tuple[tuple[type[BaseException], str], ...] = (
