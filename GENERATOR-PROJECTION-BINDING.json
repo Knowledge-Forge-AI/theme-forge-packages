@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-04T16:34:46.996Z",
+  "generatedAt": "2026-11-04T20:33:45.169Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "2ce2303d0729ceabfc6a3d624c6087fedb1956dd138af5200fabf244b95d258a",
+  "generationOverlayManifestSha256": "830f93c9c6938133691063cd9a166b58114a9ab883830942125aebdac4c99293",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "2ce2303d0729ceabfc6a3d624c6087fedb1956dd138af5200fabf244b95d258a",
+  "treeManifestSha256": "830f93c9c6938133691063cd9a166b58114a9ab883830942125aebdac4c99293",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -50,7 +50,7 @@
     {
       "path": ".github/workflows/probe-current-rpm-metadata.yml",
       "bytes": 2750,
-      "sha256": "dd9327f40caf1dad5fb071ffdcbc661856ffd2447f52c3283469bebb2c18c4df"
+      "sha256": "a933be87e6cd35e33ffd41154e9d72683e22cdd59f53e07aed9c868877549b85"
     },
     {
       "path": ".github/workflows/probe-current-signer-c6-apt.yml",
@@ -1010,7 +1010,7 @@
     {
       "path": "tools/verification/current-rs9-inputs.json",
       "bytes": 1215,
-      "sha256": "1870d44f3df5447be273be348fcb94f9a6ea3ed1e4b93a0533ccd9196335ca31"
+      "sha256": "c6d50954903d5e5da55fb97e1291f3acad996ad055a516ff6c336f97a9737ce9"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
@@ -1025,12 +1025,12 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "91044bc61a8077e87887510e61a6ea0872248c5ba2f4b621a07f87a0bfeb8e02"
+      "sha256": "7d6e2c02e7d744a0cdad637f9af1e3d0474d06c016d76f7c64033ff5d7a6baa8"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
       "bytes": 59556,
-      "sha256": "39c4b6fd45b336485291de4431504db70333e7f3afebb3124ef79a4fe6410870"
+      "sha256": "7e09d6641de20c01e1c03b0841906ce7c5a92423d89eb29d61c041ba442994fa"
     },
     {
       "path": "tools/verification/p-command-probes.mjs",
@@ -1120,7 +1120,7 @@
     {
       "path": "tools/verification/rpm_metadata_probe/entry.py",
       "bytes": 8990,
-      "sha256": "b97eda8fa7a39280589a411360a7fd29210f6a50a2dbee2ec1594521fb74d18e"
+      "sha256": "a363771cdb9c49ebb5d1ec828a99a003338bac1c1dd79e1697be81c031225ffc"
     },
     {
       "path": "tools/verification/rpm_metadata_probe/inputs.json",
@@ -1130,7 +1130,7 @@
     {
       "path": "tools/verification/rpm_metadata_probe/manifest.json",
       "bytes": 609,
-      "sha256": "39f4d7f0cf91bcdb4c3f3c5f3de1ee7d88dc612b38da90dd5cbe69a2603262be"
+      "sha256": "8d133f5614251cb224dd48ba0401addfcab4a5f76fb430f818e06f53aea1ac72"
     },
     {
       "path": "tools/verification/rpm_metadata_probe/metadata_core.py",
@@ -1140,7 +1140,7 @@
     {
       "path": "tools/verification/rpm_metadata_probe/probe_host.py",
       "bytes": 14622,
-      "sha256": "0a41e20e545a70c4c42772a10828524c9e88f6fceca901aca248f796dee60c09"
+      "sha256": "0589f938771bd63c73531652033a08cf0c602a2051d632ab5e71b36db6317531"
     },
     {
       "path": "tools/verification/rpm_metadata_probe/probe_inputs.py",
