@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-03T23:17:55.202Z",
+  "generatedAt": "2026-11-04T00:30:43.221Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "b3a228bdb9d41a3df26c2a3b7fd378c6e319563f12b5a3363d4e2c5ae3db47c1",
+  "generationOverlayManifestSha256": "c9ace8859b1f10b28b5d22cb4d33a7826efafc3e17e3ae102705ff6abd27c9dd",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "b3a228bdb9d41a3df26c2a3b7fd378c6e319563f12b5a3363d4e2c5ae3db47c1",
+  "treeManifestSha256": "c9ace8859b1f10b28b5d22cb4d33a7826efafc3e17e3ae102705ff6abd27c9dd",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 219,
+  "totalFiles": 220,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -59,18 +59,18 @@
     },
     {
       "path": ".github/workflows/probe-current-signer-isolation.yml",
-      "bytes": 2485,
-      "sha256": "f5ccd1fe4771376db9761042194c2e75ea2f4adc14b0ef2cded0665e5f8b4325"
+      "bytes": 2596,
+      "sha256": "124cf3494a6b93a28eef3403ae62f68278390119b7073cba8a18ebdeeedbdfbb"
     },
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "be62912145eddd99c69e80c505abc0743808f5685077c3a83a36861aeae02a0c"
+      "sha256": "746b4e5cd9acb7d4a4e9e43732ff7dc440e10a47abc5934035e7f0b127a83647"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8426,
-      "sha256": "4a8690c65d04fc100405b33ca1798ef883f6a0d4e15b2774cf832e4d105e0efd"
+      "sha256": "b39b0717f4cc6f1eefe63c05c09f152ed70f91dca38763b39b4a6f7e2c2d08f6"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -159,13 +159,13 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 6099,
-      "sha256": "5b9aec059717bff041cb67a8b47978aa9bc13c0e1431d7b8409f111c2375784b"
+      "bytes": 6904,
+      "sha256": "b99f62c6659a60cf89ea4961db5dee40b55e7249089b2b3dd7d5fe830bcac8ba"
     },
     {
       "path": "docs/current-full-signer-policy.md",
-      "bytes": 6193,
-      "sha256": "a800c55659761b20d939e74927578440a4d87a9219fcd7711b420381e7f96473"
+      "bytes": 8899,
+      "sha256": "b51b8d0bb2a3575b74f37035b021673b05155d2363956952deb7c838f5b9db57"
     },
     {
       "path": "docs/current-signer-apt-probe-policy.md",
@@ -249,8 +249,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 6869,
-      "sha256": "b9f93699c647cc0b0edee5f545570f33a32791f1b6b083f7dd649a782c1d3637"
+      "bytes": 7519,
+      "sha256": "31e127b39ea78533468b61490444eeb631db7140a57e291b54b20b78bb017fe1"
     },
     {
       "path": "release-lock.json",
@@ -419,8 +419,13 @@
     },
     {
       "path": "tests/test_current_signer_cleanup_observations.py",
-      "bytes": 17729,
-      "sha256": "8b211de30b24be913ea9939a2b95a7fe403d1cd9e638c21d92c40271af62df13"
+      "bytes": 18137,
+      "sha256": "36cda4414d1489256424bf602499e3d4a692f5f0ce12d55966d1e455735c002b"
+    },
+    {
+      "path": "tests/test_current_signer_default_bridge.py",
+      "bytes": 51024,
+      "sha256": "2f9de27cb581254fc718f3721edab61985b7ca37c06ca382b848281a31d4aa76"
     },
     {
       "path": "tests/test_github_transport_telemetry.py",
@@ -650,7 +655,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 97101,
-      "sha256": "7eec36b61e74f607562d36462ca039ede45c3053dd4f21fc52e49e6686f5e3da"
+      "sha256": "b7f820ca3d49e8caf96eda4da733da00b7365b105c64903ac1168647729aad12"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -695,7 +700,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 5988,
-      "sha256": "246d7b51ff31d184756b4b2b4524534369f4b034d058fb85d46e152e90c89fae"
+      "sha256": "9d2e61148393041fd4fcdd60d4ebcaab775091ac0d12095a2e7d71ff9419b2ab"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -794,8 +799,8 @@
     },
     {
       "path": "tools/verification/current_signer/signer_host_controller.py",
-      "bytes": 44950,
-      "sha256": "6de2ca55223ac939a6a65ab57860a7d372d2efc55638803d420dff897c018176"
+      "bytes": 57373,
+      "sha256": "ff3ee33a786efe3d297e00e931b0f84f06c91ad3a11f63c19baafd3913864983"
     },
     {
       "path": "tools/verification/current_signer/signer_protocol_io.py",
@@ -819,8 +824,8 @@
     },
     {
       "path": "tools/verification/current_signer/signing_network_gate.py",
-      "bytes": 7697,
-      "sha256": "8843077d15b2db2fc21f39b1b3ea86d4eec7898158e47e72857cac0fdb1ace8a"
+      "bytes": 17211,
+      "sha256": "d0775d30fb50ad15e099fe65e161e5524003d910c7d2945a2744beb2f3747f3a"
     },
     {
       "path": "tools/verification/current_signer/signing_status_proof.py",
@@ -979,13 +984,13 @@
     },
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
-      "bytes": 62767,
-      "sha256": "1c9d36cac558f54e2f4222313ed4a9e0b7c35616d48c50b567f1b80da9d01b63"
+      "bytes": 83965,
+      "sha256": "4c722d82bee836788df7fc61a385c206341ba1107b8f06053d0e98619abee9d8"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
-      "bytes": 38267,
-      "sha256": "99c9fe27994e20afe8bc870822755791edce9ef12a69d2468949f980077c4625"
+      "bytes": 59556,
+      "sha256": "077c17206fa5538308b1738307513e83d52383e020f691d97a68eec31b0032e4"
     },
     {
       "path": "tools/verification/p-command-probes.mjs",
