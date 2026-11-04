@@ -70,7 +70,7 @@ PRODUCTION_PINS = {
     "tools/verification/current_signer/leaf-manifest.json": PINNED_LEAF_MANIFEST_SHA256,
     "tools/verification/current_import_routing.py": "b6fc42f4e37d3b41aad9da0e0b52aa43f6139447cce73c8be1cac407091df159",
     ".github/workflows/qualify-current-signer.yml": "288d33e112706fcc60cf1ada4a4847e92a76eb092071a05c864169a3b7d81b7b",
-    "tools/verification/current-rs9-inputs.json": "0f0c565fee3666d6835a5918e2256782537c5f3106f2061c36585273b3bc82fd",
+    "tools/verification/current-rs9-inputs.json": "1870d44f3df5447be273be348fcb94f9a6ea3ed1e4b93a0533ccd9196335ca31",
 }
 OBSERVER_LEAVES = ("signing_network_gate", "signing_linux_isolation")
 # Only key-free leaves. No signing, frame, agent, passphrase or worker leaf.
