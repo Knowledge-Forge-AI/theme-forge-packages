@@ -88,5 +88,20 @@
     "exactOwnerDispositionAndOriginalNativeQualificationRequired": true,
     "nativeQualified": false,
     "productionEnabled": false
+  },
+  "preparedRuntimeOperationDiagnostic": {
+    "status": "prepared_pending_owner_disposition",
+    "observedRun": 41767909403,
+    "observedSource": "decbce12395599671a54b4c65bd6b4901ed3fa9b",
+    "observedStep": "SIGNING_RUNTIME",
+    "observedCode": "UNCLASSIFIED",
+    "stepLabels": 25,
+    "additionalStepLabels": 16,
+    "codeLabels": 61,
+    "recordStates": 4,
+    "meaning": "last requested operation, not proof of command execution, failure cause or private cleanup",
+    "secretOrRawOutputRetention": false,
+    "signingAcceptance": false,
+    "publicationAuthority": false
   }
 }

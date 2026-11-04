@@ -965,7 +965,7 @@ class SourceLevelTests(unittest.TestCase):
         self.assertLess(flow.index("private_phase_entered = True"), flow.index("phase = _PostFramePhase()"))
         self.assertLess(flow.index('_mark_post_frame_step(phase, "RECEIPT")'), flow.index("_write_worker_receipt("))
         self.assertLess(flow.index("_retain_worker_failure("), flow.index("_post_frame_diagnostic(phase, error)"))
-        self.assertEqual(len(re.findall(r"_mark_post_frame_step\(", flow + source)), 7)
+        self.assertEqual(len(re.findall(r"_mark_post_frame_step\(", flow + source)), 8)
 
 
 class ParentMalformedJSONBoundTests(unittest.TestCase):

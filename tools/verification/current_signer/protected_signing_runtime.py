@@ -72,6 +72,26 @@ from current_protected_signing import (
 )
 
 
+# Fixed metadata only: the last requested operation, not proof of a spawn,
+# the failing command, private cleanup or a cryptographic result.
+_NATIVE_OPERATION_LABELS = {
+    "public-key-import": "RUNTIME_IMPORT_PUBLIC",
+    "private-key-import": "RUNTIME_IMPORT_CI",
+    "rpm-public-key-import": "RUNTIME_RPM_IMPORT_PUBLIC",
+    "rpm-package-sign": "RUNTIME_RPM_PACKAGE_SIGN",
+    "rpm-package-verify": "RUNTIME_RPM_PACKAGE_VERIFY",
+    "pacman-package-sign": "RUNTIME_PACMAN_PACKAGE_SIGN",
+    "pacman-package-verify": "RUNTIME_PACMAN_PACKAGE_VERIFY",
+    "apt-release-clearsign": "RUNTIME_APT_CLEARSIGN",
+    "apt-release-detach-sign": "RUNTIME_APT_DETACH_SIGN",
+    "rpm-metadata-create": "RUNTIME_RPM_METADATA_CREATE",
+    "rpm-metadata-sign": "RUNTIME_RPM_METADATA_SIGN",
+    "rpm-metadata-verify": "RUNTIME_RPM_METADATA_VERIFY",
+    "pacman-database-create": "RUNTIME_PACMAN_DATABASE_CREATE",
+    "pacman-database-sign": "RUNTIME_PACMAN_DATABASE_SIGN",
+    "pacman-database-verify": "RUNTIME_PACMAN_DATABASE_VERIFY",
+}
+
 NATIVE_GPG = "/usr/bin/gpg"
 NATIVE_RPM = "/usr/bin/rpm"
 NATIVE_RPMSIGN = "/usr/bin/rpmsign"
@@ -864,6 +884,7 @@ class ProtectedSigningRuntime:
         self._output_files = {}
         self._resource_failures = []
         self._output_root = None
+        self._last_native_operation = None
 
     @property
     def retained_custody(self):
@@ -875,6 +896,9 @@ class ProtectedSigningRuntime:
 
     def _run(self, argv: Sequence[str], *, cwd: Path, env: Mapping[str, str], stdin: bytes, phase: str,
              passphrase_input: _PassphrasePipe | None = None) -> ProcessResult:
+        self._last_native_operation = (
+            _NATIVE_OPERATION_LABELS.get(phase) if type(phase) is str else None
+        )
         if self._agent is None:
             raise ProtectedSigningError("AGENT_REQUIRED", "Owned agent lifetime is required")
         guard = (self._active_live_lease.native_phase(phase)
@@ -1307,6 +1331,7 @@ class ProtectedSigningRuntime:
         if (self._retained_custody is not None or self._agent is not None
                 or self._active_live_lease is not None):
             raise ProtectedSigningError("LIFECYCLE_STATE", "Runtime custody is already occupied")
+        self._last_native_operation = None
 
     def _retain_runtime(self, body_error, cleanup_errors, *, work, output, stage):
         lease = self._active_live_lease
@@ -1415,6 +1440,7 @@ class ProtectedSigningRuntime:
                 home = _new_owned_directory(work.path / "gnupg", "private GnuPG home")
                 staging = _new_owned_directory(work.path / "staging", "private staging")
                 self._agent = OwnedGpgAgent(home.path, work.path)
+                self._last_native_operation = "RUNTIME_AGENT_START"
                 self._agent.start()
                 self._import_key(home.path, work.path, public_key_bytes, bytes(private_secret))
                 if apt_release:
