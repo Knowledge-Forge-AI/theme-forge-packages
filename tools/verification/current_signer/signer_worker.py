@@ -48,7 +48,42 @@ _ALLOWED_PRE_FRAME_ERROR_DETAILS = frozenset({
 # are forwarded. Labels and collapsed categories may still correlate with input validity.
 POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v1"
 _WITHHELD_POST_FRAME_CODE = "WITHHELD_POST_FRAME"
+_RUNTIME_OPERATION_STEPS = frozenset({
+    "RUNTIME_IMPORT_PUBLIC",
+    "RUNTIME_IMPORT_CI",
+    "RUNTIME_RPM_IMPORT_PUBLIC",
+    "RUNTIME_RPM_PACKAGE_SIGN",
+    "RUNTIME_RPM_PACKAGE_VERIFY",
+    "RUNTIME_PACMAN_PACKAGE_SIGN",
+    "RUNTIME_PACMAN_PACKAGE_VERIFY",
+    "RUNTIME_APT_CLEARSIGN",
+    "RUNTIME_APT_DETACH_SIGN",
+    "RUNTIME_RPM_METADATA_CREATE",
+    "RUNTIME_RPM_METADATA_SIGN",
+    "RUNTIME_RPM_METADATA_VERIFY",
+    "RUNTIME_PACMAN_DATABASE_CREATE",
+    "RUNTIME_PACMAN_DATABASE_SIGN",
+    "RUNTIME_PACMAN_DATABASE_VERIFY",
+    "RUNTIME_AGENT_START",
+})
 _POST_FRAME_STEPS = frozenset({
+    "RUNTIME_IMPORT_PUBLIC",
+    "RUNTIME_IMPORT_CI",
+    "RUNTIME_RPM_IMPORT_PUBLIC",
+    "RUNTIME_RPM_PACKAGE_SIGN",
+    "RUNTIME_RPM_PACKAGE_VERIFY",
+    "RUNTIME_PACMAN_PACKAGE_SIGN",
+    "RUNTIME_PACMAN_PACKAGE_VERIFY",
+    "RUNTIME_APT_CLEARSIGN",
+    "RUNTIME_APT_DETACH_SIGN",
+    "RUNTIME_RPM_METADATA_CREATE",
+    "RUNTIME_RPM_METADATA_SIGN",
+    "RUNTIME_RPM_METADATA_VERIFY",
+    "RUNTIME_PACMAN_DATABASE_CREATE",
+    "RUNTIME_PACMAN_DATABASE_SIGN",
+    "RUNTIME_PACMAN_DATABASE_VERIFY",
+    "RUNTIME_AGENT_START",
+
     "PRIVATE_PHASE_ENTERED",
     "PRIVATE_MODULE_IMPORT",
     "FRAME_READ",
@@ -365,7 +400,19 @@ def _sign_and_verify_public(
                 private_key_bytes=key_buf, passphrase=phrase_buf,
             )
         except BaseException as error:
+            # Attach ownership before making diagnostic calls. An interruption
+            # in that optional metadata path must retain the same runtime too.
             error.runtime = active_runtime
+            try:
+                # Last requested is untrusted; it does not prove a spawn, cause
+                # or cleanup. Objects of a foreign class supply no metadata.
+                if type(active_runtime) is runtime_mod.ProtectedSigningRuntime:
+                    operation = getattr(active_runtime, "_last_native_operation", None)
+                    if type(operation) is str and operation in _RUNTIME_OPERATION_STEPS:
+                        _mark_post_frame_step(phase, operation)
+            except BaseException as diagnostic_error:
+                diagnostic_error.runtime = active_runtime
+                raise
             raise
     finally:
         zero_bytes(key_buf)
