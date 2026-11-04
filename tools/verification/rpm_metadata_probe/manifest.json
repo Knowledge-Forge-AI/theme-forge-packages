@@ -1,0 +1,21 @@
+{
+  "files": {
+    "inputs.json": {
+      "bytes": 16662,
+      "sha256": "f6eec3e8f340e7b1c0721e2a7d3bc12e6efaeba548926492fa4e967536d377a4"
+    },
+    "metadata_core.py": {
+      "bytes": 10206,
+      "sha256": "5a251642691913414978b13b5c0457c4b78fe04bf49dc2134da41570c355d2a0"
+    },
+    "probe_host.py": {
+      "bytes": 14622,
+      "sha256": "e5b3f34d01784162f29470ebd23060a0671383001f93f09a36cc5687e01eb193"
+    },
+    "probe_inputs.py": {
+      "bytes": 5384,
+      "sha256": "accd30216ff9aa2ea3911acfbc7627888d3aa24f0962e6b4637b71ef859a9f20"
+    }
+  },
+  "schema": "tf.keyfree-rpm-source-bundle.v1"
+}

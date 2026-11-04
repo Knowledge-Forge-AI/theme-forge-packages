@@ -1,0 +1,374 @@
+{
+  "RCommit": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+  "RRun": 41838474598,
+  "RTree": "d15be370bf5705a86352d8cded72c06416acb2f4",
+  "artifacts": [
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13329825224/zip",
+      "created_at": "2026-11-04T13:43:53Z",
+      "digest": "sha256:d1edb55cb7963fdb901a2e253caab31ee8aed9b201c084ddbdfb733a0e386a80",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13329825224,
+      "name": "hosted-summary",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyOTgyNTIyNA==",
+      "size_in_bytes": 255095,
+      "updated_at": "2026-11-04T13:43:53Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13329825224",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328616826/zip",
+      "created_at": "2026-11-04T13:43:34Z",
+      "digest": "sha256:0d45f3e4a4af77d334a2d493918001366bfafa9429aee3018a4fae676bb5aeed",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13328616826,
+      "name": "candidate-pages-generation",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyODYxNjgyNg==",
+      "size_in_bytes": 202648982,
+      "updated_at": "2026-11-04T13:43:34Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328616826",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328550395/zip",
+      "created_at": "2026-11-04T13:34:47Z",
+      "digest": "sha256:1e71208f8d1d1960b991b80e393c170a6c2d306e1fe0d47ac30be42d4a805ee4",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13328550395,
+      "name": "candidate-deb-amd64",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyODU1MDM5NQ==",
+      "size_in_bytes": 36565481,
+      "updated_at": "2026-11-04T13:34:47Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328550395",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328148626/zip",
+      "created_at": "2026-11-04T13:35:12Z",
+      "digest": "sha256:b76dd007a85b6804d1799431d180a5c6b38098706276c6a261b593e581ec4e8b",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13328148626,
+      "name": "candidate-nix-aarch64-darwin",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyODE0ODYyNg==",
+      "size_in_bytes": 28198,
+      "updated_at": "2026-11-04T13:35:12Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328148626",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328053718/zip",
+      "created_at": "2026-11-04T13:36:55Z",
+      "digest": "sha256:6ca277e1d902abbca9e2c649c1a04ba7b74f9e684bc8f7b53115d8da81bbe858",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13328053718,
+      "name": "candidate-rpm-aarch64-linux",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyODA1MzcxOA==",
+      "size_in_bytes": 120028714,
+      "updated_at": "2026-11-04T13:36:55Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13328053718",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327943744/zip",
+      "created_at": "2026-11-04T13:33:33Z",
+      "digest": "sha256:17520eac474e259fb1c6e5c97ebefe1737df12490f0f7eef20870c18db171b1d",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13327943744,
+      "name": "candidate-nix-x86_64-linux",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNzk0Mzc0NA==",
+      "size_in_bytes": 34661,
+      "updated_at": "2026-11-04T13:33:33Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327943744",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327759154/zip",
+      "created_at": "2026-11-04T13:36:53Z",
+      "digest": "sha256:2365c8c5a11e0d3ed57f0715f97866be119f736d00e4c04b6c6978cdf5acd8ec",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13327759154,
+      "name": "candidate-rpm-x86_64-linux",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNzc1OTE1NA==",
+      "size_in_bytes": 120197330,
+      "updated_at": "2026-11-04T13:36:53Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327759154",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327668694/zip",
+      "created_at": "2026-11-04T13:34:54Z",
+      "digest": "sha256:90e7ddc9d283ebd4e70a2a3c801d444cda821bd73faaf881f16f44913f2ebc41",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13327668694,
+      "name": "candidate-pacman-x86_64-linux",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNzY2ODY5NA==",
+      "size_in_bytes": 153158403,
+      "updated_at": "2026-11-04T13:34:54Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327668694",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327383417/zip",
+      "created_at": "2026-11-04T13:33:04Z",
+      "digest": "sha256:2d78128c36ba78b1a45441b2e51a2cfed253a5f8c4c7797080c69a75d287c6f4",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13327383417,
+      "name": "candidate-nix-aarch64-linux",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNzM4MzQxNw==",
+      "size_in_bytes": 34426,
+      "updated_at": "2026-11-04T13:33:04Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327383417",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327274054/zip",
+      "created_at": "2026-11-04T13:34:26Z",
+      "digest": "sha256:20f61ee90b6fd5a2832b8a46f93379f93bb492e1b9152f5b41626a9ff94b39e4",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13327274054,
+      "name": "candidate-deb-arm64",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNzI3NDA1NA==",
+      "size_in_bytes": 35463621,
+      "updated_at": "2026-11-04T13:34:26Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13327274054",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13326014026/zip",
+      "created_at": "2026-11-04T13:30:39Z",
+      "digest": "sha256:832b950874c78fe9e1620a4fbc6b7c4f82ce8ae4b599ccd9204ad8238bebacdf",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13326014026,
+      "name": "candidate-pins-generation",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNjAxNDAyNg==",
+      "size_in_bytes": 23200,
+      "updated_at": "2026-11-04T13:30:39Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13326014026",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    },
+    {
+      "archive_download_url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13325988962/zip",
+      "created_at": "2026-11-04T13:29:53Z",
+      "digest": "sha256:39ce9499455270dd6148474d1c11bdb924061d35f848767dcdfbbea18c4f46b7",
+      "expired": false,
+      "expires_at": "2027-02-02T13:28:55Z",
+      "id": 13325988962,
+      "name": "candidate-authenticate-generation",
+      "node_id": "MDg6QXJ0aWZhY3QxMzMyNTk4ODk2Mg==",
+      "size_in_bytes": 20869,
+      "updated_at": "2026-11-04T13:29:53Z",
+      "url": "https://api.github.com/repos/Knowledge-Forge-AI/release-starport-9/actions/artifacts/13325988962",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1402549560,
+        "head_sha": "99e70054256a1411ff0ce4cdbf026f9e75618a84",
+        "id": 41838474598,
+        "repository_id": 1402549560
+      }
+    }
+  ],
+  "cases": [
+    {
+      "architecture": "x86_64",
+      "artifactId": 13327759154,
+      "inputClass": "unsigned",
+      "packages": [
+        {
+          "bytes": 39246796,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-nebular-fusion-0.7.1-1.fc43.x86_64.rpm",
+          "name": "theme-forge-nebular-fusion-0.7.1-1.fc43.x86_64.rpm",
+          "sha256": "0ce3eb7e813354b3177d5adc4734cffbd63265e5278c522cba33cf38ed71636b"
+        },
+        {
+          "bytes": 90852,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "sha256": "9a12ae47a139f42acd2364de9ddd390c57dfe9d903476198a20b8f43c038c6a8"
+        },
+        {
+          "bytes": 679443,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-stellar-burst-0.7.0-1.fc43.x86_64.rpm",
+          "name": "theme-forge-stellar-burst-0.7.0-1.fc43.x86_64.rpm",
+          "sha256": "6a0a5b465555b0d8336b7a6e4570af47683f1eeb90ea2e74f91460f703ab3714"
+        },
+        {
+          "bytes": 237859,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "sha256": "c8b47a27b66615064cf0ec418a3b5134b59393fe2835e5d55321a81ad085f946"
+        }
+      ]
+    },
+    {
+      "architecture": "x86_64",
+      "artifactId": 13327759154,
+      "inputClass": "public-fixture-signed",
+      "packages": [
+        {
+          "bytes": 39246796,
+          "member": "objects/lane-work/rpm/fedora/43/x86_64/Packages/theme-forge-nebular-fusion-0.7.1-1.fc43.x86_64.rpm",
+          "name": "theme-forge-nebular-fusion-0.7.1-1.fc43.x86_64.rpm",
+          "sha256": "2ee856a45edacca5c2c9a9983e601208be95c50e08aca121f112809bd4e7eabf"
+        },
+        {
+          "bytes": 90852,
+          "member": "objects/lane-work/rpm/fedora/43/x86_64/Packages/theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "sha256": "dde6a782832cddd743cdac47991428c3b1fb0ccd7b1ed1cbff57ba5cca72d9a0"
+        },
+        {
+          "bytes": 679443,
+          "member": "objects/lane-work/rpm/fedora/43/x86_64/Packages/theme-forge-stellar-burst-0.7.0-1.fc43.x86_64.rpm",
+          "name": "theme-forge-stellar-burst-0.7.0-1.fc43.x86_64.rpm",
+          "sha256": "0a7896ee518fbf61055876f4949d189e9aa40630463451560de652b772a55cad"
+        },
+        {
+          "bytes": 237859,
+          "member": "objects/lane-work/rpm/fedora/43/x86_64/Packages/theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "sha256": "034eafd734b1dc5e765fc985921c904f06cb4064910e0764de5bea64b47781dc"
+        }
+      ]
+    },
+    {
+      "architecture": "aarch64",
+      "artifactId": 13328053718,
+      "inputClass": "unsigned",
+      "packages": [
+        {
+          "bytes": 39188523,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-nebular-fusion-0.7.1-1.fc43.aarch64.rpm",
+          "name": "theme-forge-nebular-fusion-0.7.1-1.fc43.aarch64.rpm",
+          "sha256": "670131459e77dcc6b524ce8fb8fde1ece31b5804930ea3e30e63b43cf0d67ed8"
+        },
+        {
+          "bytes": 90852,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "sha256": "9a12ae47a139f42acd2364de9ddd390c57dfe9d903476198a20b8f43c038c6a8"
+        },
+        {
+          "bytes": 679375,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-stellar-burst-0.7.0-1.fc43.aarch64.rpm",
+          "name": "theme-forge-stellar-burst-0.7.0-1.fc43.aarch64.rpm",
+          "sha256": "bab211853b0a46830e80708e491c4b21c351e946e319c2c9a95cc39c3b99bcf6"
+        },
+        {
+          "bytes": 237859,
+          "member": "objects/lane-work/unsigned-custody/files/theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "sha256": "c8b47a27b66615064cf0ec418a3b5134b59393fe2835e5d55321a81ad085f946"
+        }
+      ]
+    },
+    {
+      "architecture": "aarch64",
+      "artifactId": 13328053718,
+      "inputClass": "public-fixture-signed",
+      "packages": [
+        {
+          "bytes": 39188523,
+          "member": "objects/lane-work/rpm/fedora/43/aarch64/Packages/theme-forge-nebular-fusion-0.7.1-1.fc43.aarch64.rpm",
+          "name": "theme-forge-nebular-fusion-0.7.1-1.fc43.aarch64.rpm",
+          "sha256": "2378de513a214ef944fc223191a06236361f8cbb180060cb34e06983dc4484bd"
+        },
+        {
+          "bytes": 90852,
+          "member": "objects/lane-work/rpm/fedora/43/aarch64/Packages/theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm",
+          "sha256": "73406ef501ef0ff71f1911512633b6d6a5267507e8dae0c1fe6f7f72bbe7c7ee"
+        },
+        {
+          "bytes": 679375,
+          "member": "objects/lane-work/rpm/fedora/43/aarch64/Packages/theme-forge-stellar-burst-0.7.0-1.fc43.aarch64.rpm",
+          "name": "theme-forge-stellar-burst-0.7.0-1.fc43.aarch64.rpm",
+          "sha256": "130fc54427bd3e36ec54f177f80f508ab510e0c85fa40075fdaf391f75fa5c3d"
+        },
+        {
+          "bytes": 237859,
+          "member": "objects/lane-work/rpm/fedora/43/aarch64/Packages/theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "name": "theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm",
+          "sha256": "0f65f87a639f6f3c360af2e83fcd5584d6f6befe82ee25d3ba59f81ca8d6c244"
+        }
+      ]
+    }
+  ],
+  "schema": "tf.keyfree-rpm-inputs.v1"
+}

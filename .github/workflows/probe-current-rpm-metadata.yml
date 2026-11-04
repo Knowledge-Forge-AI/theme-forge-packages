@@ -1,0 +1,63 @@
+name: Key-Free Current RPM Metadata Reproduction
+
+# Prepared diagnostic only. Owner policy adoption and a finite hosted grant precede use.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rpm-metadata:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read
+    env:
+      EXPECTED_ENTRY_SHA256: "574460c3c5107c1f27356859d238948f13111bc5868877faa657465dc8cbdfe5"
+    steps:
+      - name: Checkout exact public P source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: p
+          persist-credentials: false
+      - name: Checkout exact public R input transport source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: Knowledge-Forge-AI/release-starport-9
+          ref: 99e70054256a1411ff0ce4cdbf026f9e75618a84
+          path: r
+          persist-credentials: false
+      - name: Verify diagnostic source and its pure contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' "$EXPECTED_ENTRY_SHA256" 'p/tools/verification/rpm_metadata_probe/entry.py' | sha256sum --check -
+          install -d -m 0700 "$RUNNER_TEMP/tf-rpm-unit-$GITHUB_RUN_ID"
+          export TMPDIR="$RUNNER_TEMP/tf-rpm-unit-$GITHUB_RUN_ID"
+          /usr/bin/python3 -I -B p/tests/test_keyfree_rpm_metadata.py
+          /usr/bin/python3 -I -B p/tests/test_keyfree_rpm_metadata_host.py
+      - name: Observe the existing metadata tool and validators with public inputs
+        shell: bash
+        env:
+          # Host-only, read-only input-intake token. Popped before Docker exists.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          /usr/bin/python3 -I -B p/tools/verification/rpm_metadata_probe/entry.py --host \
+            --expected-entry-sha256 "$EXPECTED_ENTRY_SHA256" \
+            --p-root "$GITHUB_WORKSPACE/p" --r-root "$GITHUB_WORKSPACE/r" --p-commit "$GITHUB_SHA" \
+            --work-root "$RUNNER_TEMP/tf-rpm-metadata-$GITHUB_RUN_ID" \
+            --result-out "$RUNNER_TEMP/tf-rpm-result-$GITHUB_RUN_ID/RESULT.json"
+      - name: Retain closed diagnostic JSON only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keyfree-rpm-metadata-${{ github.run_id }}
+          path: ${{ runner.temp }}/tf-rpm-result-${{ github.run_id }}/RESULT.json
+          if-no-files-found: warn
+          retention-days: 7
+
