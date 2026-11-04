@@ -43,6 +43,145 @@ _ALLOWED_PRE_FRAME_ERROR_DETAILS = frozenset({
     "TCP_OTHER_STATE",
 })
 
+# Closed post-frame diagnostics require the owner policy disposition. Only fixed labels may
+# be serialized; no exception text, args, paths, payload bytes, exact lengths or private values
+# are forwarded. Labels and collapsed categories may still correlate with input validity.
+POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v1"
+_WITHHELD_POST_FRAME_CODE = "WITHHELD_POST_FRAME"
+_POST_FRAME_STEPS = frozenset({
+    "PRIVATE_PHASE_ENTERED",
+    "PRIVATE_MODULE_IMPORT",
+    "FRAME_READ",
+    "SIGNING_RUNTIME",
+    "CUSTODY_CHECK",
+    "PUBLIC_VERIFICATION",
+    "PUBLIC_EXPORT",
+    "RECEIPT",
+    "UNAVAILABLE",
+})
+_POST_FRAME_REFUSAL_CODES = frozenset({
+    "STDIN_FRAME_FORMAT",
+    "PROTOCOL_STDIN_CLOSED",
+    "PROTOCOL_READ_BOUND",
+    "PROTOCOL_CLOSE_FAILED",
+    "WORKER_PID_CHANGED",
+    "LEASE_PID_OR_STATE",
+    "SIGCHLD_OR_THREAD_PRECONDITION",
+    "PRIVATE_CLEANUP_UNCONFIRMED",
+    "SIGNING_NATIVE_EXECUTION_REQUIRED",
+    "SIGNING_FIXTURE_STATE_INVALID",
+    "PUBLIC_VERIFICATION_FAILED",
+    "EXPORT_INVENTORY_MISMATCH",
+    "SOURCE_FILE_MISSING",
+    "SOURCE_FILE_OPEN",
+    "SOURCE_FILE_BOUND",
+    "SOURCE_FILE_CHANGED",
+    "REGULAR_SOURCE_REQUIRED",
+    "PHYSICAL_DIR_REQUIRED",
+    "GPG_TIMEOUT",
+    "GPG_CLEANUP_UNCONFIRMED",
+    "GPG_OUTPUT_LIMIT",
+    "GPG_BINARY_CHANGED",
+    "GPG_BINARY_CUSTODY",
+    "HOME_NOT_FRESH",
+    "PRIVATE_WORK_PRESENT",
+    "RPM_SIGNING",
+    "SIGNATURE_REJECTED",
+    "PLAINTEXT_MISMATCH",
+    "VERIFY_FAILED",
+    "TOOL_EXECUTION",
+    "CURRENT_SIGNING_LEASE",
+    "STAGED_FILE_CHANGED",
+    "STAGED_CLEANUP_UNCONFIRMED",
+    "PUBLIC_SNAPSHOT_MUTATED",
+    "PUBLIC_ROOT_NOT_EMPTY",
+    "PUBLIC_FILE_CUSTODY",
+    "DESTINATION_EXISTS",
+    "NATIVE_REQUIRED",
+    "CUSTODY_INVENTORY",
+    "PUBLIC_DIRECTORY_MUTATED",
+    "PUBLIC_ROOT_MUTATED",
+    "MISSING_SIGNATURE",
+    "SIGNATURE_COUNT",
+})
+# Ordered most-specific first; isinstance also matches subclasses of these builtin families.
+_POST_FRAME_EXCEPTION_LABELS: tuple[tuple[type[BaseException], str], ...] = (
+    (ModuleNotFoundError, "PYTHON_MODULE_NOT_FOUND"),
+    (ImportError, "PYTHON_IMPORT_ERROR"),
+    (UnicodeError, "PYTHON_UNICODE_ERROR"),
+    (KeyError, "PYTHON_KEY_ERROR"),
+    (IndexError, "PYTHON_INDEX_ERROR"),
+    (AttributeError, "PYTHON_ATTRIBUTE_ERROR"),
+    (TypeError, "PYTHON_TYPE_ERROR"),
+    (ValueError, "PYTHON_VALUE_ERROR"),
+    (PermissionError, "PYTHON_PERMISSION_ERROR"),
+    (FileNotFoundError, "PYTHON_FILE_NOT_FOUND"),
+    (FileExistsError, "PYTHON_FILE_EXISTS"),
+    (OSError, "PYTHON_OS_ERROR"),
+    (MemoryError, "PYTHON_MEMORY_ERROR"),
+    (RecursionError, "PYTHON_RECURSION_ERROR"),
+    (NotImplementedError, "PYTHON_NOT_IMPLEMENTED"),
+    (AssertionError, "PYTHON_ASSERTION_ERROR"),
+    (RuntimeError, "PYTHON_RUNTIME_ERROR"),
+)
+_POST_FRAME_CODES = (
+    _POST_FRAME_REFUSAL_CODES
+    | frozenset(label for _cls, label in _POST_FRAME_EXCEPTION_LABELS)
+    | frozenset({"UNCLASSIFIED"})
+)
+
+
+class _PostFramePhase:
+    """Per-invocation, in-memory last-entered post-frame step; holds only fixed source labels."""
+
+    __slots__ = ("step",)
+
+    def __init__(self) -> None:
+        self.step = "PRIVATE_PHASE_ENTERED"
+
+
+def _mark_post_frame_step(phase: _PostFramePhase | None, step: str) -> None:
+    if phase is not None:
+        phase.step = step if step in _POST_FRAME_STEPS else "UNAVAILABLE"
+
+
+def _classify_post_frame_error(error: BaseException) -> str:
+    """Map listed codes or selected builtin exception families (including subclasses); otherwise UNCLASSIFIED."""
+    try:
+        raw_code = getattr(error, "code", None)
+        if type(raw_code) is str:
+            return raw_code if raw_code in _POST_FRAME_REFUSAL_CODES else "UNCLASSIFIED"
+        for cls, label in _POST_FRAME_EXCEPTION_LABELS:
+            if isinstance(error, cls):
+                return label
+    except Exception:
+        pass
+    return "UNCLASSIFIED"
+
+
+def _post_frame_diagnostic(phase: _PostFramePhase | None, error: BaseException) -> dict[str, str]:
+    step = getattr(phase, "step", None)
+    return {
+        "schema": POST_FRAME_DIAGNOSTIC_SCHEMA,
+        "step": step if type(step) is str and step in _POST_FRAME_STEPS else "UNAVAILABLE",
+        "code": _classify_post_frame_error(error),
+    }
+
+
+def _closed_post_frame_diagnostic(candidate: Any) -> dict[str, str]:
+    """Re-validate the in-memory claim to the closed schema; anything else becomes UNAVAILABLE/UNCLASSIFIED."""
+    try:
+        if (
+            type(candidate) is dict and set(candidate) == {"schema", "step", "code"}
+            and candidate["schema"] == POST_FRAME_DIAGNOSTIC_SCHEMA
+            and type(candidate["step"]) is str and candidate["step"] in _POST_FRAME_STEPS
+            and type(candidate["code"]) is str and candidate["code"] in _POST_FRAME_CODES
+        ):
+            return {"schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "step": candidate["step"], "code": candidate["code"]}
+    except Exception:
+        pass
+    return {"schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "step": "UNAVAILABLE", "code": "UNCLASSIFIED"}
+
 
 class WorkerError(RuntimeError):
     """Fixed-code worker refusal; never embeds secret or raw payload text."""
@@ -204,15 +343,19 @@ def _collect_and_snapshot(
 
 def _sign_and_verify_public(
     config: WorkerConfig, dirs: Mapping[str, Path], stage_state: tuple[Any, Any], streams: Any, hooks: WorkerHooks, *, worker_pid: int,
+    phase: _PostFramePhase | None = None,
 ) -> tuple[Any, Any, dict[str, Any], Any]:
+    _mark_post_frame_step(phase, "PRIVATE_MODULE_IMPORT")
     import protected_signing_runtime as runtime_mod
     import public_repository_files as pub_files_mod
     import public_repository_verifier as pub_verifier_mod
     from signer_protocol_io import read_secret_frame
 
     lease, before_sign_stage = stage_state
+    _mark_post_frame_step(phase, "FRAME_READ")
     key_buf, phrase_buf = read_secret_frame(streams, WorkerError)
     try:
+        _mark_post_frame_step(phase, "SIGNING_RUNTIME")
         _require_serial_preconditions(worker_pid, lease)
         active_runtime = hooks.runtime_factory() if hooks.runtime_factory is not None else runtime_mod.ProtectedSigningRuntime()
         try:
@@ -227,6 +370,7 @@ def _sign_and_verify_public(
     finally:
         zero_bytes(key_buf)
         zero_bytes(phrase_buf)
+    _mark_post_frame_step(phase, "CUSTODY_CHECK")
     if (
         active_runtime.retained_custody is not None or getattr(active_runtime, "_agent", None) is not None
         or getattr(lease, "state", None) != "closed" or (dirs["signing_output"] / ".protected-work").exists()
@@ -241,6 +385,7 @@ def _sign_and_verify_public(
     elif getattr(execution, "native_execution", None) is not False or getattr(execution, "status", None) != "test-only":
         raise WorkerError("SIGNING_FIXTURE_STATE_INVALID", "Control-plane fixture must not claim native execution")
     pub_files_mod.unchanged(before_sign_stage)
+    _mark_post_frame_step(phase, "PUBLIC_VERIFICATION")
     verifier_fn = hooks.public_verifier or pub_verifier_mod.verify_and_assemble
     pub_result = verifier_fn(
         unsigned_stage=dirs["stage"], signed_output=dirs["signing_output"],
@@ -252,6 +397,7 @@ def _sign_and_verify_public(
         raise WorkerError("PUBLIC_VERIFICATION_FAILED", "Public repository verification did not pass")
     pub_files_mod.unchanged(before_sign_stage)
     pub_verifier_mod.require_all_custody_closed()
+    _mark_post_frame_step(phase, "PUBLIC_EXPORT")
     verified_deploy = pub_files_mod.snapshot(dirs["public_deploy"])
     export_repo = config.export_root / "public-repository"
     os.mkdir(export_repo, 0o755)
@@ -331,6 +477,7 @@ def execute_worker_flow(config: WorkerConfig, *, hooks: WorkerHooks | None = Non
     online_token_present = _check_online_env(config.allow_online_intake_token)
     lease = active_runtime = active_streams = None
     private_phase_entered = False
+    phase: _PostFramePhase | None = None
     saved_home = os.environ.get("HOME")
     try:
         desc_info = _authenticate_worker_sources(config, hk)
@@ -358,9 +505,11 @@ def execute_worker_flow(config: WorkerConfig, *, hooks: WorkerHooks | None = Non
         active_streams.write_line(ack_line)
         active_streams.close_out()
         private_phase_entered = True
+        phase = _PostFramePhase()
         active_runtime, execution, pub_result, exported_snap = _sign_and_verify_public(
-            config, dirs, (lease, before_sign_stage), active_streams, hk, worker_pid=worker_pid,
+            config, dirs, (lease, before_sign_stage), active_streams, hk, worker_pid=worker_pid, phase=phase,
         )
+        _mark_post_frame_step(phase, "RECEIPT")
         return _write_worker_receipt(
             config.export_root, binding.record(), desc_info["descriptor_sha256"],
             (worker_pid, lease_pid, online_token_present), (execution, pub_result, exported_snap),
@@ -368,6 +517,11 @@ def execute_worker_flow(config: WorkerConfig, *, hooks: WorkerHooks | None = Non
     except BaseException as error:
         error.private_phase_entered = private_phase_entered  # type: ignore[attr-defined]
         _retain_worker_failure(worker_pid, lease, active_runtime, active_streams, error)
+        if phase is not None:
+            try:
+                error.post_frame_diagnostic = _post_frame_diagnostic(phase, error)  # type: ignore[attr-defined]
+            except Exception:
+                pass
         raise
     finally:
         if saved_home is None:
@@ -407,10 +561,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         execute_worker_flow(cfg)
     except Exception as error:
-        code = getattr(error, "code", None) or (
-            error.args[0] if error.args and isinstance(error.args[0], str) and re.fullmatch(r"[A-Z0-9_]{3,64}", error.args[0])
-            else "WORKER_EXECUTION_FAILED"
-        )
+        post_frame = bool(getattr(error, "private_phase_entered", False))
+        if post_frame:
+            # After frame release no exception attribute or args is serialized; only the closed diagnostic below.
+            code = _WITHHELD_POST_FRAME_CODE
+        else:
+            code = getattr(error, "code", None) or (
+                error.args[0] if error.args and isinstance(error.args[0], str) and re.fullmatch(r"[A-Z0-9_]{3,64}", error.args[0])
+                else "WORKER_EXECUTION_FAILED"
+            )
         payload: dict[str, Any] = {
             "schema": WORKER_RECEIPT_SCHEMA, "status": "failed-closed", "error_code": code,
             "custody_retained": bool(_RETAINED_WORKER_CUSTODIES),
@@ -423,6 +582,8 @@ def main(argv: list[str] | None = None) -> int:
             and detail in _ALLOWED_PRE_FRAME_ERROR_DETAILS
         ):
             payload["error_detail"] = detail
+        if post_frame:
+            payload["post_frame_diagnostic"] = _closed_post_frame_diagnostic(getattr(error, "post_frame_diagnostic", None))
         print(json.dumps(payload, sort_keys=True), file=sys.stderr, flush=True)
         return 2
     return 0

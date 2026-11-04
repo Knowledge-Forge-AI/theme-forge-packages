@@ -583,6 +583,91 @@ _DEFAULT_BRIDGE_OWNER_LABEL_KEY = "tf.current-signer.run"
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _SIGNING_SECRET_ENV_MARKERS = ("PACKAGE_SIGNING", "SIGNING_KEY", "PASSPHRASE", "GPG_KEY", "PRIVATE_KEY")
 
+# Post-frame closed diagnostic (PRIVATE, UNADOPTED proposal). Mirrors the worker's fixed vocabulary;
+# the record is an untrusted worker claim, never root-cause proof, gate input or release authority.
+POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-host-post-frame-diagnostic.v1"
+_WORKER_POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v1"
+_MAX_POST_FRAME_RECORD_BYTES = 4096
+_POST_FRAME_RECORD_STATES = frozenset({"VALID", "ABSENT", "NOT_SINGLE_RECORD", "INVALID_RECORD"})
+_POST_FRAME_WORKER_STEPS = frozenset({
+    "PRIVATE_PHASE_ENTERED",
+    "PRIVATE_MODULE_IMPORT",
+    "FRAME_READ",
+    "SIGNING_RUNTIME",
+    "CUSTODY_CHECK",
+    "PUBLIC_VERIFICATION",
+    "PUBLIC_EXPORT",
+    "RECEIPT",
+    "UNAVAILABLE",
+})
+_POST_FRAME_WORKER_CODES = frozenset({
+    "STDIN_FRAME_FORMAT",
+    "PROTOCOL_STDIN_CLOSED",
+    "PROTOCOL_READ_BOUND",
+    "PROTOCOL_CLOSE_FAILED",
+    "WORKER_PID_CHANGED",
+    "LEASE_PID_OR_STATE",
+    "SIGCHLD_OR_THREAD_PRECONDITION",
+    "PRIVATE_CLEANUP_UNCONFIRMED",
+    "SIGNING_NATIVE_EXECUTION_REQUIRED",
+    "SIGNING_FIXTURE_STATE_INVALID",
+    "PUBLIC_VERIFICATION_FAILED",
+    "EXPORT_INVENTORY_MISMATCH",
+    "SOURCE_FILE_MISSING",
+    "SOURCE_FILE_OPEN",
+    "SOURCE_FILE_BOUND",
+    "SOURCE_FILE_CHANGED",
+    "REGULAR_SOURCE_REQUIRED",
+    "PHYSICAL_DIR_REQUIRED",
+    "GPG_TIMEOUT",
+    "GPG_CLEANUP_UNCONFIRMED",
+    "GPG_OUTPUT_LIMIT",
+    "GPG_BINARY_CHANGED",
+    "GPG_BINARY_CUSTODY",
+    "HOME_NOT_FRESH",
+    "PRIVATE_WORK_PRESENT",
+    "RPM_SIGNING",
+    "SIGNATURE_REJECTED",
+    "PLAINTEXT_MISMATCH",
+    "VERIFY_FAILED",
+    "TOOL_EXECUTION",
+    "CURRENT_SIGNING_LEASE",
+    "STAGED_FILE_CHANGED",
+    "STAGED_CLEANUP_UNCONFIRMED",
+    "PUBLIC_SNAPSHOT_MUTATED",
+    "PUBLIC_ROOT_NOT_EMPTY",
+    "PUBLIC_FILE_CUSTODY",
+    "DESTINATION_EXISTS",
+    "NATIVE_REQUIRED",
+    "CUSTODY_INVENTORY",
+    "PUBLIC_DIRECTORY_MUTATED",
+    "PUBLIC_ROOT_MUTATED",
+    "MISSING_SIGNATURE",
+    "SIGNATURE_COUNT",
+    "PYTHON_MODULE_NOT_FOUND",
+    "PYTHON_IMPORT_ERROR",
+    "PYTHON_UNICODE_ERROR",
+    "PYTHON_KEY_ERROR",
+    "PYTHON_INDEX_ERROR",
+    "PYTHON_ATTRIBUTE_ERROR",
+    "PYTHON_TYPE_ERROR",
+    "PYTHON_VALUE_ERROR",
+    "PYTHON_PERMISSION_ERROR",
+    "PYTHON_FILE_NOT_FOUND",
+    "PYTHON_FILE_EXISTS",
+    "PYTHON_OS_ERROR",
+    "PYTHON_MEMORY_ERROR",
+    "PYTHON_RECURSION_ERROR",
+    "PYTHON_NOT_IMPLEMENTED",
+    "PYTHON_ASSERTION_ERROR",
+    "PYTHON_RUNTIME_ERROR",
+    "UNCLASSIFIED",
+})
+_POST_FRAME_WORKER_RECORD_KEYS = frozenset({
+    "schema", "status", "error_code", "custody_retained",
+    "publication_authority", "native_client_qualification", "post_frame_diagnostic",
+})
+
 
 class HostControllerError(RuntimeError):
     """Fixed-code host controller refusal; never embeds secret payloads."""
@@ -716,6 +801,82 @@ def _build_handshake_observation(
         })
     except Exception:
         return None
+
+
+def _post_frame_diagnostic_view(record: str, step: str = "UNAVAILABLE", code: str = "UNCLASSIFIED") -> dict[str, Any]:
+    return {
+        "schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "record": record, "step": step, "code": code,
+        "untrusted_worker_claim": True,
+    }
+
+
+def sanitize_post_frame_diagnostic(diagnostic: Any) -> dict[str, Any] | None:
+    try:
+        if (
+            type(diagnostic) is dict
+            and set(diagnostic) == {"schema", "record", "step", "code", "untrusted_worker_claim"}
+            and diagnostic["schema"] == POST_FRAME_DIAGNOSTIC_SCHEMA
+            and diagnostic["untrusted_worker_claim"] is True
+            and type(diagnostic["record"]) is str and diagnostic["record"] in _POST_FRAME_RECORD_STATES
+            and type(diagnostic["step"]) is str and diagnostic["step"] in _POST_FRAME_WORKER_STEPS
+            and type(diagnostic["code"]) is str and diagnostic["code"] in _POST_FRAME_WORKER_CODES
+            and (diagnostic["record"] == "VALID" or (diagnostic["step"], diagnostic["code"]) == ("UNAVAILABLE", "UNCLASSIFIED"))
+        ):
+            return _post_frame_diagnostic_view(diagnostic["record"], diagnostic["step"], diagnostic["code"])
+    except Exception:
+        pass
+    return None
+
+
+def _parse_untrusted_post_frame_worker_stderr(raw_stderr: bytes) -> dict[str, Any]:
+    """Validate exactly one bounded closed worker failure record; anything else is a fixed unavailable view."""
+    if type(raw_stderr) is not bytes:
+        return _post_frame_diagnostic_view("NOT_SINGLE_RECORD")
+    if not raw_stderr:
+        return _post_frame_diagnostic_view("ABSENT")
+    if len(raw_stderr) > _MAX_POST_FRAME_RECORD_BYTES or b"\x00" in raw_stderr or b"\r" in raw_stderr:
+        return _post_frame_diagnostic_view("NOT_SINGLE_RECORD")
+    try:
+        text = raw_stderr.decode("ascii")
+    except UnicodeDecodeError:
+        return _post_frame_diagnostic_view("NOT_SINGLE_RECORD")
+    lines = [line for line in text.split("\n") if line]
+    if len(lines) != 1:
+        return _post_frame_diagnostic_view("NOT_SINGLE_RECORD")
+    try:
+        doc = parse_strict_json(lines[0].encode("ascii"), "WORKER_STDERR_JSON")
+    except ClosureError:
+        return _post_frame_diagnostic_view("INVALID_RECORD")
+    diagnostic = doc.get("post_frame_diagnostic")
+    if (
+        set(doc) != _POST_FRAME_WORKER_RECORD_KEYS
+        or doc.get("schema") != WORKER_RECEIPT_SCHEMA
+        or doc.get("status") != "failed-closed"
+        or doc.get("error_code") != "WITHHELD_POST_FRAME"
+        or type(doc.get("custody_retained")) is not bool
+        or doc.get("publication_authority") is not False
+        or doc.get("native_client_qualification") is not False
+        or type(diagnostic) is not dict
+        or set(diagnostic) != {"schema", "step", "code"}
+        or diagnostic.get("schema") != _WORKER_POST_FRAME_DIAGNOSTIC_SCHEMA
+        or type(diagnostic.get("step")) is not str or diagnostic["step"] not in _POST_FRAME_WORKER_STEPS
+        or type(diagnostic.get("code")) is not str or diagnostic["code"] not in _POST_FRAME_WORKER_CODES
+    ):
+        return _post_frame_diagnostic_view("INVALID_RECORD")
+    return _post_frame_diagnostic_view("VALID", diagnostic["step"], diagnostic["code"])
+
+
+def _build_post_frame_diagnostic(gate: Any, session: Any | None, error: BaseException) -> dict[str, Any] | None:
+    """Only after the host's own POST_FRAME state and a worker nonzero exit; never alters error, gate or teardown."""
+    if not isinstance(error, HostControllerError) or error.code != "WORKER_NONZERO_EXIT":
+        return None
+    if not bool(getattr(gate, "frame_emitted", False)) or _classify_gate_phase(gate) != "POST_FRAME":
+        return None
+    if session is None:
+        return _post_frame_diagnostic_view("ABSENT")
+    return sanitize_post_frame_diagnostic(
+        _parse_untrusted_post_frame_worker_stderr(_drain_pre_frame_stderr(session, grace_seconds=1.0))
+    )
 
 
 @dataclass(frozen=True)
@@ -1302,6 +1463,13 @@ def execute_host_controller(config: HostControllerConfig, *, hooks: HostControll
         except BaseException as interruption:
             caught_error = interruption
             raise
+        try:
+            error.post_frame_diagnostic = _build_post_frame_diagnostic(gate, session, error)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        except BaseException as interruption:
+            caught_error = interruption
+            raise
         raise
     finally:
         teardown, teardown_interrupt = _teardown_default_bridge_session(
@@ -1375,6 +1543,12 @@ def main(argv: list[str] | None = None) -> int:
         observation = sanitize_handshake_observation(getattr(error, "handshake_observation", None))
         if observation is not None:
             payload["handshake_observation"] = observation
+        post_frame = sanitize_post_frame_diagnostic(getattr(error, "post_frame_diagnostic", None))
+        if (
+            post_frame is not None and code == "WORKER_NONZERO_EXIT"
+            and observation is not None and observation["gate_phase"] == "POST_FRAME"
+        ):
+            payload["post_frame_diagnostic"] = post_frame
         print(json.dumps(payload, sort_keys=True), file=sys.stderr)
         return 2
     return 0

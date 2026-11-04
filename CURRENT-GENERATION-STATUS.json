@@ -72,5 +72,21 @@
     },
     "policy": "docs/current-full-signer-policy.md",
     "campaignAllowance": "No allowance is granted or replenished by this status document."
+  },
+  "currentSignerPostFrameDiagnostics": {
+    "state": "source-prepared-pending-owner-disposition",
+    "sourceOnly": true,
+    "workerStepLabels": 9,
+    "workerCodeLabels": 61,
+    "hostRecordStates": 4,
+    "oneClosedObjectPerFailedInvocation": true,
+    "untrustedWorkerClaim": true,
+    "existingHandshakeDetailsWithheld": true,
+    "newRawRetention": false,
+    "gateSuccessOrCustodyRulesChanged": false,
+    "strictIsolationStillRequired": true,
+    "exactOwnerDispositionAndOriginalNativeQualificationRequired": true,
+    "nativeQualified": false,
+    "productionEnabled": false
   }
 }

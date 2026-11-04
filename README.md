@@ -49,3 +49,7 @@ The [current signer GPG probe](docs/current-signer-gpg-probe-policy.md) passed i
 ## Current signing-isolation preparation
 
 The [full-signer contract](docs/current-full-signer-policy.md#default-bridge-intake-candidate-and-ownership) describes the default-bridge intake candidate and immutable-ID ownership checks. The original [key-free custom-bridge probe](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/41739689778) passed at source0db75d27 and measured sockets surviving detachment; its strict predicate refused them. The new topology remains source/fixture preparation until its own native evidence and the required fresh signer/client and GUI campaigns pass. Signed repository publication stays held.
+
+## Bounded post-frame failure diagnostics
+
+The current signer can reach the private-frame phase while a failed worker remains opaque. The prepared diagnostic extension retains only one source-defined step/code record after the host has reached POST_FRAME and observed a nonzero worker exit. It marks the record as an untrusted worker claim. Existing handshake error fields stay WITHHELD_POST_FRAME; no exception text, raw stderr, private values or identifiers are retained. See [the full signer policy](docs/current-full-signer-policy.md). This source requires its owner policy disposition and fresh original source-bound qualification; it grants no signing, client or publication acceptance.
