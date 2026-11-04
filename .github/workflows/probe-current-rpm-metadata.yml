@@ -15,7 +15,7 @@ jobs:
       contents: read
       actions: read
     env:
-      EXPECTED_ENTRY_SHA256: "a363771cdb9c49ebb5d1ec828a99a003338bac1c1dd79e1697be81c031225ffc"
+      EXPECTED_ENTRY_SHA256: "78eb3f857cad69a85dd875a33b17c0487b719652d95dd48c147d53dc388a0a0c"
     steps:
       - name: Checkout exact public P source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

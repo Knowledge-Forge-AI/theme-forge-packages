@@ -586,7 +586,9 @@ _SIGNING_SECRET_ENV_MARKERS = ("PACKAGE_SIGNING", "SIGNING_KEY", "PASSPHRASE", "
 # Post-frame closed diagnostic (PRIVATE, UNADOPTED proposal). Mirrors the worker's fixed vocabulary;
 # the record is an untrusted worker claim, never root-cause proof, gate input or release authority.
 POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-host-post-frame-diagnostic.v1"
+POST_FRAME_DIAGNOSTIC_V2_SCHEMA = "tf.current-signer-host-post-frame-diagnostic.v2"
 _WORKER_POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v1"
+_WORKER_POST_FRAME_DIAGNOSTIC_V2_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v2"
 _MAX_POST_FRAME_RECORD_BYTES = 4096
 _POST_FRAME_RECORD_STATES = frozenset({"VALID", "ABSENT", "NOT_SINGLE_RECORD", "INVALID_RECORD"})
 _POST_FRAME_WORKER_STEPS = frozenset({
@@ -689,6 +691,146 @@ _POST_FRAME_WORKER_CODES = frozenset({
     "PYTHON_RUNTIME_ERROR",
     "UNCLASSIFIED",
 })
+_RUNTIME_REFUSAL_GRAPH_CODES = _POST_FRAME_WORKER_CODES | frozenset({
+    'AGENT_CLEANUP',
+    'AGENT_CLEANUP_UNCONFIRMED',
+    'AGENT_CONSUMER_LIFECYCLE',
+    'AGENT_EXEC_IDENTITY',
+    'AGENT_NOT_LIVE',
+    'AGENT_NOT_READY',
+    'AGENT_READINESS_MISMATCH',
+    'AGENT_READINESS_TIMEOUT',
+    'AGENT_READINESS_TRANSPORT',
+    'AGENT_REQUIRED',
+    'APT_ADAPTER',
+    'APT_INPUT',
+    'APT_OWNER_API',
+    'APT_RETAIN_FAILED',
+    'ARCHITECTURE',
+    'CHANNEL',
+    'CLEANUP_CUSTODY',
+    'CLEANUP_IO',
+    'CLEANUP_PATH_CHANGED',
+    'CLEANUP_UNCONFIRMED',
+    'COMMAND_CLEANUP',
+    'COMMAND_FAILED',
+    'COMMAND_OUTPUT_LIMIT',
+    'COMMAND_POLICY',
+    'COMMAND_TIMEOUT',
+    'COMMON_CONF_TAMPERED',
+    'COMMON_CONF_WRITE',
+    'CURRENT_IMPORT_ROUTING',
+    'CURRENT_SIGNING_LEASE',
+    'DESCRIPTOR_PATH',
+    'DESCRIPTOR_SCHEMA',
+    'DUPLICATE_OBJECT',
+    'FILE_CHANGED',
+    'GPGCONF_FAILED',
+    'GPGCONF_OUTPUT',
+    'HOME_NOT_EMPTY',
+    'INPUT_ROOT',
+    'JOB_ROOT_CHANGED',
+    'JOB_ROOT_HOME_MISSING',
+    'JOB_ROOT_NOT_OWNED',
+    'LIFECYCLE_STATE',
+    'LISTENER_STILL_HELD',
+    'LIVE_APT_TREE',
+    'LIVE_CUSTODY_RETAINED',
+    'LIVE_LEASE_REQUIRED',
+    'LIVE_METADATA_API',
+    'LIVE_OBJECTS',
+    'LIVE_OWNER_API',
+    'OBJECT_NAME',
+    'OBJECT_TYPE',
+    'ORIGIN',
+    'OUTPUT_CREATION',
+    'OUTPUT_CUSTODY',
+    'OUTPUT_DESCRIPTOR_CLEANUP',
+    'OUTPUT_EXISTS',
+    'OUTPUT_INVENTORY',
+    'OUTPUT_IO',
+    'PACKAGE_MUTATED',
+    'PATH_CHANGED',
+    'PATH_CUSTODY',
+    'PATH_FORMAT',
+    'PATH_IO',
+    'PATH_MISSING',
+    'PATH_SCOPE',
+    'PATH_TRAVERSAL',
+    'PATH_UNEXPECTED',
+    'PROC_VISIBILITY_UNCONFIRMED',
+    'READ_DESCRIPTOR_CLEANUP',
+    'REGULAR_FILE_REQUIRED',
+    'RELEASE_FORMAT',
+    'RELEASE_LIMIT',
+    'REPOSITORY_METADATA',
+    'RPM_DIGEST_COVERAGE',
+    'RPM_KEYRING_PATH',
+    'RPM_KEY_DATABASE',
+    'RPM_SIGNATURE_COUNT',
+    'RPM_SIGNATURE_ISSUER',
+    'RPM_VERIFY_AMBIGUOUS',
+    'RPM_VERIFY_BOUND',
+    'RPM_VERIFY_FORMAT',
+    'RPM_VERIFY_STATUS',
+    'RPM_VERIFY_STREAM',
+    'SECRET_FORMAT',
+    'SECRET_REQUIRED',
+    'SIGCHLD_PRECONDITION',
+    'SIGNER_CLEANUP',
+    'SIZE_LIMIT',
+    'SOCKETDIR_NOT_EMPTY',
+    'SOCKETDIR_NOT_FRESH',
+    'SOCKETDIR_REPLACED',
+    'SOCKET_REPLACED',
+    'SOURCE_IDENTITY',
+    'SOURCE_MANIFEST',
+    'STARTUP_CHILD_EXITED',
+    'STATUS_PROOF_BINDING',
+    'SYMLINK_REJECTED',
+    'TOOL_CHANGED',
+    'TOOL_PREFLIGHT_FAILED',
+    'UNRECORDED_CLEANUP_ENTRY',
+    'UNSUPPORTED_PLATFORM',
+    'UNSUPPORTED_SOCKET_PLACEMENT',
+    'UNSUPPORTED_VERSION',
+    'VERSION',
+})
+
+_RUNTIME_REFUSAL_GRAPH_SCHEMA = "tf.current-signer-runtime-refusal-graph.v1"
+_RUNTIME_REFUSAL_GRAPH_MAX_NODES = 8
+_RUNTIME_REFUSAL_GRAPH_MAX_DEPTH = 3
+
+
+def _validate_runtime_refusal_graph(value):
+    """Copy only a bounded graph of closed labels; never retain caller containers."""
+    if (type(value) is not dict or set(value) != {"schema", "nodes", "truncated"}
+            or type(value["schema"]) is not str or value["schema"] != _RUNTIME_REFUSAL_GRAPH_SCHEMA
+            or type(value["truncated"]) is not bool or type(value["nodes"]) is not list
+            or not 1 <= len(value["nodes"]) <= _RUNTIME_REFUSAL_GRAPH_MAX_NODES):
+        return None
+    nodes, depths = [], []
+    for index, item in enumerate(value["nodes"]):
+        if (type(item) is not dict or set(item) != {"parent", "edge", "code"}
+                or type(item["edge"]) is not str or type(item["code"]) is not str
+                or item["code"] not in _RUNTIME_REFUSAL_GRAPH_CODES):
+            return None
+        parent, edge = item["parent"], item["edge"]
+        if index == 0:
+            if parent is not None or edge != "ROOT":
+                return None
+            depth = 0
+        else:
+            if (type(parent) is not int or not 0 <= parent < index
+                    or edge not in {"BODY", "BODY_CAUSE", "CLEANUP", "POSTCHECK", "RETENTION"}):
+                return None
+            depth = depths[parent] + 1
+            if depth > _RUNTIME_REFUSAL_GRAPH_MAX_DEPTH:
+                return None
+        depths.append(depth)
+        nodes.append({"parent": parent, "edge": edge, "code": item["code"]})
+    return {"schema": _RUNTIME_REFUSAL_GRAPH_SCHEMA, "nodes": nodes, "truncated": value["truncated"]}
+
 _POST_FRAME_WORKER_RECORD_KEYS = frozenset({
     "schema", "status", "error_code", "custody_retained",
     "publication_authority", "native_client_qualification", "post_frame_diagnostic",
@@ -829,26 +971,45 @@ def _build_handshake_observation(
         return None
 
 
-def _post_frame_diagnostic_view(record: str, step: str = "UNAVAILABLE", code: str = "UNCLASSIFIED") -> dict[str, Any]:
-    return {
+def _post_frame_diagnostic_view(record: str, step: str = "UNAVAILABLE", code: str = "UNCLASSIFIED",
+                                runtime_refusal_graph=None) -> dict[str, Any]:
+    result = {
         "schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "record": record, "step": step, "code": code,
         "untrusted_worker_claim": True,
     }
+    if runtime_refusal_graph is not None:
+        result["schema"] = POST_FRAME_DIAGNOSTIC_V2_SCHEMA
+        result["runtime_refusal_graph"] = runtime_refusal_graph
+    return result
 
 
 def sanitize_post_frame_diagnostic(diagnostic: Any) -> dict[str, Any] | None:
     try:
         if (
             type(diagnostic) is dict
-            and set(diagnostic) == {"schema", "record", "step", "code", "untrusted_worker_claim"}
-            and diagnostic["schema"] == POST_FRAME_DIAGNOSTIC_SCHEMA
+            and set(diagnostic) in (
+                {"schema", "record", "step", "code", "untrusted_worker_claim"},
+                {"schema", "record", "step", "code", "untrusted_worker_claim", "runtime_refusal_graph"},
+            )
+            and type(diagnostic["schema"]) is str
+            and (
+                (set(diagnostic) == {"schema", "record", "step", "code", "untrusted_worker_claim"}
+                    and diagnostic["schema"] == POST_FRAME_DIAGNOSTIC_SCHEMA)
+                or (set(diagnostic) == {"schema", "record", "step", "code", "untrusted_worker_claim", "runtime_refusal_graph"}
+                    and diagnostic["schema"] == POST_FRAME_DIAGNOSTIC_V2_SCHEMA)
+            )
             and diagnostic["untrusted_worker_claim"] is True
             and type(diagnostic["record"]) is str and diagnostic["record"] in _POST_FRAME_RECORD_STATES
             and type(diagnostic["step"]) is str and diagnostic["step"] in _POST_FRAME_WORKER_STEPS
             and type(diagnostic["code"]) is str and diagnostic["code"] in _POST_FRAME_WORKER_CODES
             and (diagnostic["record"] == "VALID" or (diagnostic["step"], diagnostic["code"]) == ("UNAVAILABLE", "UNCLASSIFIED"))
         ):
-            return _post_frame_diagnostic_view(diagnostic["record"], diagnostic["step"], diagnostic["code"])
+            graph = None
+            if "runtime_refusal_graph" in diagnostic:
+                graph = _validate_runtime_refusal_graph(diagnostic["runtime_refusal_graph"])
+                if diagnostic["record"] != "VALID" or graph is None:
+                    return None
+            return _post_frame_diagnostic_view(diagnostic["record"], diagnostic["step"], diagnostic["code"], graph)
     except Exception:
         pass
     return None
@@ -883,13 +1044,26 @@ def _parse_untrusted_post_frame_worker_stderr(raw_stderr: bytes) -> dict[str, An
         or doc.get("publication_authority") is not False
         or doc.get("native_client_qualification") is not False
         or type(diagnostic) is not dict
-        or set(diagnostic) != {"schema", "step", "code"}
-        or diagnostic.get("schema") != _WORKER_POST_FRAME_DIAGNOSTIC_SCHEMA
+        or set(diagnostic) not in (
+            {"schema", "step", "code"}, {"schema", "step", "code", "runtime_refusal_graph"},
+        )
+        or type(diagnostic.get("schema")) is not str
+        or not (
+            (set(diagnostic) == {"schema", "step", "code"}
+                and diagnostic.get("schema") == _WORKER_POST_FRAME_DIAGNOSTIC_SCHEMA)
+            or (set(diagnostic) == {"schema", "step", "code", "runtime_refusal_graph"}
+                and diagnostic.get("schema") == _WORKER_POST_FRAME_DIAGNOSTIC_V2_SCHEMA)
+        )
         or type(diagnostic.get("step")) is not str or diagnostic["step"] not in _POST_FRAME_WORKER_STEPS
         or type(diagnostic.get("code")) is not str or diagnostic["code"] not in _POST_FRAME_WORKER_CODES
     ):
         return _post_frame_diagnostic_view("INVALID_RECORD")
-    return _post_frame_diagnostic_view("VALID", diagnostic["step"], diagnostic["code"])
+    graph = None
+    if "runtime_refusal_graph" in diagnostic:
+        graph = _validate_runtime_refusal_graph(diagnostic["runtime_refusal_graph"])
+        if graph is None:
+            return _post_frame_diagnostic_view("INVALID_RECORD")
+    return _post_frame_diagnostic_view("VALID", diagnostic["step"], diagnostic["code"], graph)
 
 
 def _build_post_frame_diagnostic(gate: Any, session: Any | None, error: BaseException) -> dict[str, Any] | None:
