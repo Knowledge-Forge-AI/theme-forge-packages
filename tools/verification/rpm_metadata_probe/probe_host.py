@@ -15,7 +15,7 @@ from tf_rpm_probe_inputs import R_COMMIT, R_TREE, prepare_inputs
 
 WORKFLOW_REF = ("Knowledge-Forge-AI/theme-forge-packages/"
                 ".github/workflows/probe-current-rpm-metadata.yml@refs/heads/main")
-ISO_SHA256 = "d26589a6b813e034e2a6451a26a90572c6e664f7b4d848a7d01be671de0a2455"
+ISO_SHA256 = "428b49cd76bcadf4c872fff4a00e6ff8878444e8f46788f5a9b2ddcb35da2c3a"
 OWNER_LABEL = "io.themeforge.rpm-keyfree"
 
 
