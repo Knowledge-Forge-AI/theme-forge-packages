@@ -6,20 +6,20 @@
   "publication_authority": false,
   "rs9": {
     "repository": "Knowledge-Forge-AI/release-starport-9",
-    "source_commit": "40472289ca289d4b9dc70d0bfdc0603c2f731907",
-    "source_tree": "b45d2e9fcd2973eef10acd319ef86dabf56b479a",
-    "run_id": 41725370571,
+    "source_commit": "a0791b18cb232c839fa78238e183e96023afaaad",
+    "source_tree": "0bf7b65df24081ce31679d80292143f4c836c8ca",
+    "run_id": 41750919388,
     "workflow_path": ".github/workflows/rs9-current-distribution-tests.yml",
     "workflow_sha256": "376b13ccf8ac9ddee3210f60d622ebb65ad63087676f00fe4556a034703c695c",
     "contract_sha256": "f606fd883e1592b8a627660b16620a71627be9cd094eb77f20dc2688166da033",
-    "builder_source_sha256": "7374e501c20e7314cc33ffadf51350717c146c1281feb9cdb2116b1fcf456b8b",
+    "builder_source_sha256": "cc830225054358dd10ff4ab4abce71b66342448570b1a389e11266c943f275cf",
     "configuration_sha256": "71d12701441c866a8f6206462d22d2a086ff9f5de98298dc269ad5bded37233b",
-    "release_ingestion_sha256": "066a99727def12083320f5ec95e4b5c221bad50a1adf6d7178646d247aaadc4c",
+    "release_ingestion_sha256": "4ff44388a03f2de483075e24c6f44857429caf396abe22b5617c1c13f366802c",
     "generation": "theme-forge-current-202610",
     "qualification_scope": "current-distribution-only",
     "event": "push",
     "ref": "refs/heads/main",
     "attempt": 1,
-    "not_before": "2026-11-03T21:50:11+00:00"
+    "not_before": "2026-11-04T00:59:58+00:00"
   }
 }
