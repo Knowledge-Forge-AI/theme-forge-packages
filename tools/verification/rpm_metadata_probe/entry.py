@@ -11,8 +11,8 @@ from pathlib import Path
 import stat
 import sys
 
-BUNDLE_SHA256 = "8d133f5614251cb224dd48ba0401addfcab4a5f76fb430f818e06f53aea1ac72"
-LEAF_SHA256 = "be9f081a98b10a5c8b554d799e66ffa3bff6f8ab92817d73da773378559311fd"
+BUNDLE_SHA256 = "5701b8306c51faa0ec4d19902a41d6ca938226ef9ea9b8a4bb3845a1ce05fd56"
+LEAF_SHA256 = "b1e388efd94b9fff70eb3a1ee374c5e202cf5ce0cc556b251bb770f3167cf4e3"
 BUNDLE_FILES = {"metadata_core.py", "probe_inputs.py", "probe_host.py", "inputs.json"}
 SIGNER_DIR = "tools/verification/current_signer"
 RUNTIME_MODULES = frozenset({

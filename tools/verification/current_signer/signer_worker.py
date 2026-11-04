@@ -47,6 +47,7 @@ _ALLOWED_PRE_FRAME_ERROR_DETAILS = frozenset({
 # be serialized; no exception text, args, paths, payload bytes, exact lengths or private values
 # are forwarded. Labels and collapsed categories may still correlate with input validity.
 POST_FRAME_DIAGNOSTIC_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v1"
+POST_FRAME_DIAGNOSTIC_V2_SCHEMA = "tf.current-signer-worker-post-frame-diagnostic.v2"
 _WITHHELD_POST_FRAME_CODE = "WITHHELD_POST_FRAME"
 _RUNTIME_OPERATION_STEPS = frozenset({
     "RUNTIME_IMPORT_PUBLIC",
@@ -174,14 +175,241 @@ _POST_FRAME_CODES = (
     | frozenset({"UNCLASSIFIED"})
 )
 
+_RUNTIME_REFUSAL_GRAPH_CODES = _POST_FRAME_CODES | frozenset({
+    'AGENT_CLEANUP',
+    'AGENT_CLEANUP_UNCONFIRMED',
+    'AGENT_CONSUMER_LIFECYCLE',
+    'AGENT_EXEC_IDENTITY',
+    'AGENT_NOT_LIVE',
+    'AGENT_NOT_READY',
+    'AGENT_READINESS_MISMATCH',
+    'AGENT_READINESS_TIMEOUT',
+    'AGENT_READINESS_TRANSPORT',
+    'AGENT_REQUIRED',
+    'APT_ADAPTER',
+    'APT_INPUT',
+    'APT_OWNER_API',
+    'APT_RETAIN_FAILED',
+    'ARCHITECTURE',
+    'CHANNEL',
+    'CLEANUP_CUSTODY',
+    'CLEANUP_IO',
+    'CLEANUP_PATH_CHANGED',
+    'CLEANUP_UNCONFIRMED',
+    'COMMAND_CLEANUP',
+    'COMMAND_FAILED',
+    'COMMAND_OUTPUT_LIMIT',
+    'COMMAND_POLICY',
+    'COMMAND_TIMEOUT',
+    'COMMON_CONF_TAMPERED',
+    'COMMON_CONF_WRITE',
+    'CURRENT_IMPORT_ROUTING',
+    'CURRENT_SIGNING_LEASE',
+    'DESCRIPTOR_PATH',
+    'DESCRIPTOR_SCHEMA',
+    'DUPLICATE_OBJECT',
+    'FILE_CHANGED',
+    'GPGCONF_FAILED',
+    'GPGCONF_OUTPUT',
+    'HOME_NOT_EMPTY',
+    'INPUT_ROOT',
+    'JOB_ROOT_CHANGED',
+    'JOB_ROOT_HOME_MISSING',
+    'JOB_ROOT_NOT_OWNED',
+    'LIFECYCLE_STATE',
+    'LISTENER_STILL_HELD',
+    'LIVE_APT_TREE',
+    'LIVE_CUSTODY_RETAINED',
+    'LIVE_LEASE_REQUIRED',
+    'LIVE_METADATA_API',
+    'LIVE_OBJECTS',
+    'LIVE_OWNER_API',
+    'OBJECT_NAME',
+    'OBJECT_TYPE',
+    'ORIGIN',
+    'OUTPUT_CREATION',
+    'OUTPUT_CUSTODY',
+    'OUTPUT_DESCRIPTOR_CLEANUP',
+    'OUTPUT_EXISTS',
+    'OUTPUT_INVENTORY',
+    'OUTPUT_IO',
+    'PACKAGE_MUTATED',
+    'PATH_CHANGED',
+    'PATH_CUSTODY',
+    'PATH_FORMAT',
+    'PATH_IO',
+    'PATH_MISSING',
+    'PATH_SCOPE',
+    'PATH_TRAVERSAL',
+    'PATH_UNEXPECTED',
+    'PROC_VISIBILITY_UNCONFIRMED',
+    'READ_DESCRIPTOR_CLEANUP',
+    'REGULAR_FILE_REQUIRED',
+    'RELEASE_FORMAT',
+    'RELEASE_LIMIT',
+    'REPOSITORY_METADATA',
+    'RPM_DIGEST_COVERAGE',
+    'RPM_KEYRING_PATH',
+    'RPM_KEY_DATABASE',
+    'RPM_SIGNATURE_COUNT',
+    'RPM_SIGNATURE_ISSUER',
+    'RPM_VERIFY_AMBIGUOUS',
+    'RPM_VERIFY_BOUND',
+    'RPM_VERIFY_FORMAT',
+    'RPM_VERIFY_STATUS',
+    'RPM_VERIFY_STREAM',
+    'SECRET_FORMAT',
+    'SECRET_REQUIRED',
+    'SIGCHLD_PRECONDITION',
+    'SIGNER_CLEANUP',
+    'SIZE_LIMIT',
+    'SOCKETDIR_NOT_EMPTY',
+    'SOCKETDIR_NOT_FRESH',
+    'SOCKETDIR_REPLACED',
+    'SOCKET_REPLACED',
+    'SOURCE_IDENTITY',
+    'SOURCE_MANIFEST',
+    'STARTUP_CHILD_EXITED',
+    'STATUS_PROOF_BINDING',
+    'SYMLINK_REJECTED',
+    'TOOL_CHANGED',
+    'TOOL_PREFLIGHT_FAILED',
+    'UNRECORDED_CLEANUP_ENTRY',
+    'UNSUPPORTED_PLATFORM',
+    'UNSUPPORTED_SOCKET_PLACEMENT',
+    'UNSUPPORTED_VERSION',
+    'VERSION',
+})
+
+_RUNTIME_REFUSAL_GRAPH_SCHEMA = "tf.current-signer-runtime-refusal-graph.v1"
+_RUNTIME_REFUSAL_GRAPH_MAX_NODES = 8
+_RUNTIME_REFUSAL_GRAPH_MAX_DEPTH = 3
+
+
+def _validate_runtime_refusal_graph(value):
+    """Copy only a bounded graph of closed labels; never retain caller containers."""
+    if (type(value) is not dict or set(value) != {"schema", "nodes", "truncated"}
+            or type(value["schema"]) is not str or value["schema"] != _RUNTIME_REFUSAL_GRAPH_SCHEMA
+            or type(value["truncated"]) is not bool or type(value["nodes"]) is not list
+            or not 1 <= len(value["nodes"]) <= _RUNTIME_REFUSAL_GRAPH_MAX_NODES):
+        return None
+    nodes, depths = [], []
+    for index, item in enumerate(value["nodes"]):
+        if (type(item) is not dict or set(item) != {"parent", "edge", "code"}
+                or type(item["edge"]) is not str or type(item["code"]) is not str
+                or item["code"] not in _RUNTIME_REFUSAL_GRAPH_CODES):
+            return None
+        parent, edge = item["parent"], item["edge"]
+        if index == 0:
+            if parent is not None or edge != "ROOT":
+                return None
+            depth = 0
+        else:
+            if (type(parent) is not int or not 0 <= parent < index
+                    or edge not in {"BODY", "BODY_CAUSE", "CLEANUP", "POSTCHECK", "RETENTION"}):
+                return None
+            depth = depths[parent] + 1
+            if depth > _RUNTIME_REFUSAL_GRAPH_MAX_DEPTH:
+                return None
+        depths.append(depth)
+        nodes.append({"parent": parent, "edge": edge, "code": item["code"]})
+    return {"schema": _RUNTIME_REFUSAL_GRAPH_SCHEMA, "nodes": nodes, "truncated": value["truncated"]}
+
+
+def _runtime_refusal_graph(error, runtime_module, routing_module, agent_module):
+    """Observe only fixed codes and exact admitted wrapper classes; no message/args/resources."""
+    if any(type(module) is not type(sys) for module in (runtime_module, routing_module, agent_module)):
+        return None
+    runtime, routing, agent = vars(runtime_module), vars(routing_module), vars(agent_module)
+    lifecycle_types = tuple(cls for cls in (
+        runtime.get("_LifecycleFailure"), runtime.get("_ConsumerCleanupUnconfirmed"),
+    ) if type(cls) is type)
+    lease_type = routing.get("_LeasePhaseFailure")
+    enumeration_type = routing.get("_EnumerationFailure")
+    coded_types = tuple(cls for cls in (
+        runtime.get("ProtectedSigningError"), *lifecycle_types, lease_type, enumeration_type,
+        routing.get("ContractError"), agent.get("OwnedAgentError"),
+    ) if type(cls) is type)
+
+    def closed_code(item):
+        # Exact source-owned classes have ordinary instance dictionaries. Never
+        # evaluate arbitrary exception properties, __str__, args or resources.
+        if any(type(item) is cls for cls in coded_types):
+            attrs = object.__getattribute__(item, "__dict__")
+            raw = dict.get(attrs, "code") if type(attrs) is dict else None
+            return raw if type(raw) is str and raw in _RUNTIME_REFUSAL_GRAPH_CODES else "UNCLASSIFIED"
+        for cls, label in _POST_FRAME_EXCEPTION_LABELS:
+            if issubclass(type(item), cls):
+                return label
+        return "UNCLASSIFIED"
+
+    pending = [(error, None, "ROOT", 0)]
+    nodes, seen, truncated = [], set(), False
+    while pending and len(nodes) < _RUNTIME_REFUSAL_GRAPH_MAX_NODES:
+        item, parent, edge, depth = pending.pop(0)
+        if not issubclass(type(item), BaseException) or id(item) in seen:
+            truncated = True
+            continue
+        seen.add(id(item))
+        index = len(nodes)
+        nodes.append({"parent": parent, "edge": edge, "code": closed_code(item)})
+        children = []
+        if any(type(item) is cls for cls in lifecycle_types):
+            attrs = object.__getattribute__(item, "__dict__")
+            if type(attrs) is not dict:
+                truncated = True
+                continue
+            body, cleanup = dict.get(attrs, "original_error"), dict.get(attrs, "cleanup_errors")
+            if body is not None:
+                children.append((body, "BODY"))
+            if type(cleanup) is tuple:
+                if len(cleanup) > _RUNTIME_REFUSAL_GRAPH_MAX_NODES:
+                    truncated = True
+                children.extend((child, "CLEANUP") for child in cleanup[:_RUNTIME_REFUSAL_GRAPH_MAX_NODES])
+            else:
+                truncated = True
+        elif type(item) is lease_type:
+            attrs = object.__getattribute__(item, "__dict__")
+            if type(attrs) is not dict:
+                truncated = True
+                continue
+            children.extend((dict.get(attrs, name), label) for name, label in (
+                ("body_error", "BODY"), ("post_error", "POSTCHECK"), ("retention_error", "RETENTION"),
+            ) if dict.get(attrs, name) is not None)
+        elif type(item) is enumeration_type:
+            attrs = object.__getattribute__(item, "__dict__")
+            if type(attrs) is not dict:
+                truncated = True
+                continue
+            children.extend((dict.get(attrs, name), label) for name, label in (
+                ("body_error", "BODY"), ("body_cause", "BODY_CAUSE"),
+            ) if dict.get(attrs, name) is not None)
+            cleanup = dict.get(attrs, "cleanup_errors")
+            if type(cleanup) is tuple:
+                if len(cleanup) > _RUNTIME_REFUSAL_GRAPH_MAX_NODES:
+                    truncated = True
+                children.extend((child, "CLEANUP") for child in cleanup[:_RUNTIME_REFUSAL_GRAPH_MAX_NODES])
+            else:
+                truncated = True
+        if depth == _RUNTIME_REFUSAL_GRAPH_MAX_DEPTH:
+            truncated = truncated or bool(children)
+        else:
+            pending.extend((child, index, label, depth + 1) for child, label in children)
+    truncated = truncated or bool(pending)
+    return _validate_runtime_refusal_graph({
+        "schema": _RUNTIME_REFUSAL_GRAPH_SCHEMA, "nodes": nodes, "truncated": truncated,
+    })
+
 
 class _PostFramePhase:
     """Per-invocation, in-memory last-entered post-frame step; holds only fixed source labels."""
 
-    __slots__ = ("step",)
+    __slots__ = ("step", "runtime_refusal_graph", "runtime_refusal_error")
 
     def __init__(self) -> None:
         self.step = "PRIVATE_PHASE_ENTERED"
+        self.runtime_refusal_graph = None
+        self.runtime_refusal_error = None
 
 
 def _mark_post_frame_step(phase: _PostFramePhase | None, step: str) -> None:
@@ -203,25 +431,48 @@ def _classify_post_frame_error(error: BaseException) -> str:
     return "UNCLASSIFIED"
 
 
-def _post_frame_diagnostic(phase: _PostFramePhase | None, error: BaseException) -> dict[str, str]:
+def _post_frame_diagnostic(phase: _PostFramePhase | None, error: BaseException) -> dict[str, Any]:
     step = getattr(phase, "step", None)
-    return {
+    result = {
         "schema": POST_FRAME_DIAGNOSTIC_SCHEMA,
         "step": step if type(step) is str and step in _POST_FRAME_STEPS else "UNAVAILABLE",
         "code": _classify_post_frame_error(error),
     }
+    graph = getattr(phase, "runtime_refusal_graph", None)
+    same_error = getattr(phase, "runtime_refusal_error", None) is error
+    if phase is not None:
+        phase.runtime_refusal_graph = None
+        phase.runtime_refusal_error = None
+    if graph is not None and same_error:
+        checked = _validate_runtime_refusal_graph(graph)
+        if checked is not None:
+            result["schema"] = POST_FRAME_DIAGNOSTIC_V2_SCHEMA
+            result["runtime_refusal_graph"] = checked
+    return result
 
 
-def _closed_post_frame_diagnostic(candidate: Any) -> dict[str, str]:
+def _closed_post_frame_diagnostic(candidate: Any) -> dict[str, Any]:
     """Re-validate the in-memory claim to the closed schema; anything else becomes UNAVAILABLE/UNCLASSIFIED."""
     try:
         if (
-            type(candidate) is dict and set(candidate) == {"schema", "step", "code"}
-            and candidate["schema"] == POST_FRAME_DIAGNOSTIC_SCHEMA
+            type(candidate) is dict and set(candidate) in ({"schema", "step", "code"}, {"schema", "step", "code", "runtime_refusal_graph"})
+            and type(candidate["schema"]) is str
+            and (
+                (set(candidate) == {"schema", "step", "code"} and candidate["schema"] == POST_FRAME_DIAGNOSTIC_SCHEMA)
+                or (set(candidate) == {"schema", "step", "code", "runtime_refusal_graph"}
+                    and candidate["schema"] == POST_FRAME_DIAGNOSTIC_V2_SCHEMA)
+            )
             and type(candidate["step"]) is str and candidate["step"] in _POST_FRAME_STEPS
             and type(candidate["code"]) is str and candidate["code"] in _POST_FRAME_CODES
         ):
-            return {"schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "step": candidate["step"], "code": candidate["code"]}
+            result = {"schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "step": candidate["step"], "code": candidate["code"]}
+            if "runtime_refusal_graph" in candidate:
+                graph = _validate_runtime_refusal_graph(candidate["runtime_refusal_graph"])
+                if graph is None:
+                    return {"schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "step": "UNAVAILABLE", "code": "UNCLASSIFIED"}
+                result["schema"] = POST_FRAME_DIAGNOSTIC_V2_SCHEMA
+                result["runtime_refusal_graph"] = graph
+            return result
     except Exception:
         pass
     return {"schema": POST_FRAME_DIAGNOSTIC_SCHEMA, "step": "UNAVAILABLE", "code": "UNCLASSIFIED"}
@@ -419,6 +670,17 @@ def _sign_and_verify_public(
                     operation = getattr(active_runtime, "_last_native_operation", None)
                     if type(operation) is str and operation in _RUNTIME_OPERATION_STEPS:
                         _mark_post_frame_step(phase, operation)
+                    if phase is not None:
+                        # Optional observation cannot replace an ordinary primary
+                        # failure. Interrupts still propagate with runtime custody.
+                        try:
+                            import current_import_routing as routing_mod
+                            import owned_gpg_agent as agent_mod
+                            graph = _runtime_refusal_graph(error, runtime_mod, routing_mod, agent_mod)
+                        except Exception:
+                            graph = None
+                        phase.runtime_refusal_graph = graph
+                        phase.runtime_refusal_error = error if graph is not None else None
             except BaseException as diagnostic_error:
                 diagnostic_error.runtime = active_runtime
                 raise
