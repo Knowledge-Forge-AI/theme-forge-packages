@@ -11,7 +11,7 @@ from pathlib import Path
 import stat
 import sys
 
-BUNDLE_SHA256 = "5701b8306c51faa0ec4d19902a41d6ca938226ef9ea9b8a4bb3845a1ce05fd56"
+BUNDLE_SHA256 = "4efb733793006f6eb32d34ef095b71ea042acb7d7265738fd139b22377a2e85b"
 LEAF_SHA256 = "b1e388efd94b9fff70eb3a1ee374c5e202cf5ce0cc556b251bb770f3167cf4e3"
 BUNDLE_FILES = {"metadata_core.py", "probe_inputs.py", "probe_host.py", "inputs.json"}
 SIGNER_DIR = "tools/verification/current_signer"
