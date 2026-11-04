@@ -554,7 +554,34 @@ _ALLOWED_HOST_ERROR_CODES = frozenset({
     "FRAME_GROUP_RETAINED",
     "FRAME_CUSTODY_LOST",
     "FRAME_STREAM_CLOSE_FAILED",
+    # Built-in default-bridge intake: fixed closed labels only.
+    "DOCKER_BRIDGE_INSPECT",
+    "DOCKER_CONTAINER_LIST",
+    "DOCKER_WORKER_INSPECT",
+    "DEFAULT_BRIDGE_ARGV",
+    "DEFAULT_BRIDGE_CUSTODY",
+    "DEFAULT_BRIDGE_WORKER_ENV",
+    "BRIDGE_IDENTITY_BOUND",
+    "BRIDGE_IDENTITY_FORMAT",
+    "BRIDGE_IDENTITY_DUPLICATE",
+    "BRIDGE_IDENTITY_MISMATCH",
+    "BRIDGE_IDENTITY_CHANGED",
+    "BRIDGE_PEER_PRESENT",
+    "BRIDGE_OWNERSHIP_MISMATCH",
+    "WORKER_NETWORK_FORMAT",
+    "WORKER_NETWORK_MISMATCH",
+    "CONTAINER_ID_FORMAT",
+    "CONTAINER_LISTING_FORMAT",
+    "CONTAINER_NAME_COLLISION",
+    "OWNER_LABEL_INPUT",
+    "OWNER_LOOKUP_EMPTY",
+    "OWNER_LOOKUP_AMBIGUOUS",
 })
+
+_DEFAULT_BRIDGE_NETWORK = "bridge"
+_DEFAULT_BRIDGE_OWNER_LABEL_KEY = "tf.current-signer.run"
+_HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+_SIGNING_SECRET_ENV_MARKERS = ("PACKAGE_SIGNING", "SIGNING_KEY", "PASSPHRASE", "GPG_KEY", "PRIVATE_KEY")
 
 
 class HostControllerError(RuntimeError):
@@ -779,6 +806,51 @@ def validate_docker_run_argv(argv: Sequence[str]) -> None:
         raise HostControllerError("DOCKER_RUN_HARDENING", "Missing user, mount readonly, tmpfs uid, or capability hardening")
 
 
+def build_default_bridge_run_argv(config: HostControllerConfig, container_name: str, owner_label: str) -> tuple[str, ...]:
+    """Production worker argv on the built-in default bridge with the run/nonce-bound owner label.
+
+    The generic custom-network builder is reused unchanged; only the fixed label pair is inserted.
+    """
+    if type(owner_label) is not str or not _HEX64_RE.fullmatch(owner_label):
+        raise HostControllerError("DEFAULT_BRIDGE_ARGV", "Default-bridge owner label invalid")
+    base = build_docker_run_argv(config, _DEFAULT_BRIDGE_NETWORK, container_name)
+    index = base.index("--network")
+    argv = base[:index + 2] + ("--label", f"{_DEFAULT_BRIDGE_OWNER_LABEL_KEY}={owner_label}") + base[index + 2:]
+    validate_docker_run_argv(argv)
+    _require_default_bridge_argv(argv, container_name, owner_label)
+    return argv
+
+
+def _require_default_bridge_argv(argv: Sequence[str], container_name: str, owner_label: str) -> None:
+    tokens = tuple(argv)
+    try:
+        # Docker options end before the image, which precedes "<python> -I".
+        options = tokens[:tokens.index("-I") - 2] + ("",)
+    except ValueError:
+        raise HostControllerError("DEFAULT_BRIDGE_ARGV", "Default-bridge argv shape invalid") from None
+    network_flags = [i for i, t in enumerate(options) if t in {"--network", "--net"} or t.startswith(("--network=", "--net="))]
+    label_flags = [i for i, t in enumerate(options) if t in {"--label", "-l", "--label-file"} or t.startswith(("--label=", "--label-file="))]
+    name_flags = [i for i, t in enumerate(options) if t == "--name" or t.startswith("--name=")]
+    env_flags = [i for i, t in enumerate(options) if t in {"-e", "--env", "--env-file"} or t.startswith(("--env=", "--env-file=", "-e"))]
+    if (
+        len(options) < 5
+        or len(network_flags) != 1 or options[network_flags[0]] != "--network"
+        or options[network_flags[0] + 1] != _DEFAULT_BRIDGE_NETWORK
+        or len(label_flags) != 1 or options[label_flags[0]] != "--label"
+        or options[label_flags[0] + 1] != f"{_DEFAULT_BRIDGE_OWNER_LABEL_KEY}={owner_label}"
+        or len(name_flags) != 1 or options[name_flags[0] + 1] != container_name
+        or any(options[i] != "-e" or options[i + 1] != "GH_TOKEN" for i in env_flags)
+        or any(marker in token.upper() for token in tokens for marker in _SIGNING_SECRET_ENV_MARKERS)
+    ):
+        raise HostControllerError("DEFAULT_BRIDGE_ARGV", "Default-bridge argv selection invalid")
+
+
+def _require_default_worker_env(env: Mapping[str, str]) -> None:
+    # Host env may hold signing secrets for the later frame emitter; the worker env never does.
+    if any(type(key) is not str or any(marker in key.upper() for marker in _SIGNING_SECRET_ENV_MARKERS) for key in env):
+        raise HostControllerError("DEFAULT_BRIDGE_WORKER_ENV", "Signing secret name in worker environment")
+
+
 def _default_docker_runner(argv: tuple[str, ...], timeout: float) -> tuple[int, bytes, bytes]:
     completed = subprocess.run(
         argv, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C", "LANG": "C"},
@@ -923,19 +995,33 @@ def _authenticate_host_sources(config: HostControllerConfig, hooks: HostControll
 
 
 def _run_gate_session(
-    gate: Any, session: Any, gate_cmds: tuple[tuple[str, ...], tuple[str, ...]],
+    gate: Any, session: Any, gate_cmds: tuple[tuple[str, ...], tuple[str, ...]] | None,
     runner: Callable[[tuple[str, ...], float], tuple[int, bytes, bytes]], emitter: Callable[[], bytearray],
+    *, prepare_disconnect: Callable[[], tuple[tuple[str, ...], tuple[str, ...]]] | None = None,
 ) -> str:
     from signer_protocol_io import validate_frame_bytes
 
-    disconnect_cmd, inspect_cmd = gate_cmds
+    if (gate_cmds is None) == (prepare_disconnect is None):
+        raise HostControllerError("DEFAULT_BRIDGE_CUSTODY", "Exactly one gate command source is required")
+    resolved: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+    if gate_cmds is not None:
+        disconnect_cmd, inspect_cmd = gate_cmds
+        resolved.append((disconnect_cmd, inspect_cmd))
 
     def _disconnect() -> None:
-        if runner(disconnect_cmd, 30.0)[0] != 0:
+        if prepare_disconnect is not None:
+            # Invoked only by HostGate inside its disconnect step, after ready validated.
+            if resolved:
+                raise HostControllerError("DEFAULT_BRIDGE_CUSTODY", "Disconnect preparation reused")
+            prepared_disconnect, prepared_inspect = prepare_disconnect()
+            resolved.append((prepared_disconnect, prepared_inspect))
+        if runner(resolved[0][0], 30.0)[0] != 0:
             raise HostControllerError("DOCKER_NETWORK_DISCONNECT", "Failed to disconnect worker network")
 
     def _inspect() -> bytes:
-        rc, out, _ = runner(inspect_cmd, 30.0)
+        if not resolved:
+            raise HostControllerError("DEFAULT_BRIDGE_CUSTODY", "Readback without resolved worker custody")
+        rc, out, _ = runner(resolved[0][1], 30.0)
         if rc != 0:
             raise HostControllerError("DOCKER_NETWORK_INSPECT", "Failed to inspect worker networks")
         return out
@@ -1005,39 +1091,200 @@ def _teardown_host_session(
     }, interrupt
 
 
+def _docker_output(
+    runner: Callable[[tuple[str, ...], float], tuple[int, bytes, bytes]], argv: tuple[str, ...], code: str,
+) -> bytes:
+    # Docker stdout/stderr never enter error text; only the fixed code does.
+    rc, out, _err = runner(argv, 30.0)
+    if rc != 0 or type(out) is not bytes:
+        raise HostControllerError(code, "Docker query refused")
+    return out
+
+
+def _default_bridge_preflight(
+    runner: Callable[[tuple[str, ...], float], tuple[int, bytes, bytes]], container_name: str,
+) -> str:
+    """Capture the built-in bridge ID; refuse peers and any same-name container before spawn."""
+    import signing_network_gate as network_gate
+
+    observation = network_gate.require_default_bridge_identity(
+        _docker_output(runner, network_gate.default_bridge_inspect_command(), "DOCKER_BRIDGE_INSPECT"))
+    network_gate.require_no_bridge_peers(observation)
+    if network_gate.parse_container_id_listing(_docker_output(
+            runner, network_gate.container_name_listing_command(container_name), "DOCKER_CONTAINER_LIST")):
+        raise network_gate.GateError("CONTAINER_NAME_COLLISION")
+    return observation.network_id
+
+
+def _prepare_default_bridge_disconnect(
+    runner: Callable[[tuple[str, ...], float], tuple[int, bytes, bytes]], container_name: str, owner_label: str,
+    bridge_id: str, custody: dict[str, Any],
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Resolve and pin the owned immutable ID, then prove sole bridge ownership before detach."""
+    import signing_network_gate as network_gate
+
+    owned_id = network_gate.require_single_owned_id(network_gate.parse_container_id_listing(_docker_output(
+        runner, network_gate.owned_container_listing_command(container_name, owner_label), "DOCKER_CONTAINER_LIST")))
+    if custody.get("owned_id") not in (None, owned_id):
+        raise HostControllerError("DEFAULT_BRIDGE_CUSTODY", "Owned worker identity changed")
+    custody["owned_id"] = owned_id
+    observation = network_gate.require_default_bridge_identity(
+        _docker_output(runner, network_gate.default_bridge_inspect_command(), "DOCKER_BRIDGE_INSPECT"),
+        expected_id=bridge_id)
+    network_gate.require_sole_owned_bridge_peer(observation, owned_id)
+    network_gate.require_worker_on_default_bridge(
+        _docker_output(runner, network_gate.worker_networks_command(owned_id), "DOCKER_WORKER_INSPECT"), bridge_id)
+    return network_gate.default_bridge_gate_commands(bridge_id, owned_id)
+
+
+def _teardown_default_bridge_session(
+    session: Any | None, container_name: str, owner_label: str, bridge_id: str | None,
+    runner: Callable[[tuple[str, ...], float], tuple[int, bytes, bytes]], *,
+    pinned_owned_id: str | None, spawn_attempted: bool, spawn_uncertain: bool,
+) -> tuple[dict[str, Any], BaseException | None]:
+    """Close only our session; delete only a resolved owned immutable ID; never touch the bridge."""
+    import signing_network_gate as network_gate
+
+    interrupt: BaseException | None = None
+
+    def _keep(error: BaseException) -> None:
+        nonlocal interrupt
+        if not isinstance(error, Exception) and interrupt is None:
+            interrupt = error
+
+    session_uncertain = False
+    if session is not None:
+        try:
+            session.terminate_and_close()
+        except BaseException as error:
+            session_uncertain = True
+            _keep(error)
+        try:
+            session_uncertain = session_uncertain or bool(session.cleanup_uncertain)
+        except BaseException as error:
+            session_uncertain = True
+            _keep(error)
+
+    owner_cmd = network_gate.owned_container_listing_command(container_name, owner_label)
+    owner_custody, owned_id = "unavailable", None
+    try:
+        ids = network_gate.parse_container_id_listing(_docker_output(runner, owner_cmd, "DOCKER_CONTAINER_LIST"))
+        if not ids:
+            owner_custody = "absent"
+        elif len(ids) != 1:
+            owner_custody = "ambiguous"
+        elif pinned_owned_id is not None and ids[0] != pinned_owned_id:
+            owner_custody = "mismatch"
+        else:
+            owner_custody, owned_id = "resolved", network_gate.require_container_id(ids[0])
+    except network_gate.GateError:
+        owner_custody = "malformed"
+    except BaseException as error:
+        _keep(error)
+
+    remove_attempted = removed = False
+    if owned_id is not None:
+        remove_attempted = True
+        try:
+            removed = runner(network_gate.owned_container_remove_command(owned_id), 30.0)[0] == 0
+        except BaseException as error:
+            _keep(error)
+
+    owned_absent = name_absent = False
+    if owner_custody in {"resolved", "absent"}:
+        try:
+            owned_absent = not network_gate.parse_container_id_listing(
+                _docker_output(runner, owner_cmd, "DOCKER_CONTAINER_LIST"))
+        except BaseException as error:
+            _keep(error)
+    try:
+        name_absent = not network_gate.parse_container_id_listing(_docker_output(
+            runner, network_gate.container_name_listing_command(container_name), "DOCKER_CONTAINER_LIST"))
+    except BaseException as error:
+        _keep(error)
+
+    bridge_preserved = owned_endpoint_absent = False
+    unexpected_bridge_peer = True
+    if bridge_id is not None:
+        try:
+            observation = network_gate.require_default_bridge_identity(
+                _docker_output(runner, network_gate.default_bridge_inspect_command(), "DOCKER_BRIDGE_INSPECT"),
+                expected_id=bridge_id)
+            bridge_preserved = True
+            owned_endpoint_absent = not ({owned_id, pinned_owned_id} - {None}) & observation.peer_ids
+            unexpected_bridge_peer = bool(observation.peer_ids - ({owned_id, pinned_owned_id} - {None}))
+        except BaseException as error:
+            _keep(error)
+
+    return {
+        "network": _DEFAULT_BRIDGE_NETWORK, "network_kind": "builtin-default-bridge", "container": container_name,
+        "owner_custody": owner_custody, "removal_by_immutable_id_only": True,
+        "container_force_remove_attempted": remove_attempted, "container_force_removed": removed,
+        "owned_container_absence_confirmed": owned_absent, "container_name_absent_confirmed": name_absent,
+        "container_absence_confirmed": owned_absent and name_absent,
+        "network_removed": False, "builtin_bridge_preserved": bridge_preserved,
+        "unexpected_bridge_peer_observed": unexpected_bridge_peer,
+        "builtin_bridge_configuration_commands_issued": False,
+        "owned_worker_endpoint_mutation_attempted": bool(spawn_attempted),
+        "owned_bridge_endpoint_absent_confirmed": owned_endpoint_absent,
+        "spawn_outcome_uncertain": bool(spawn_uncertain), "session_cleanup_uncertain": bool(session_uncertain),
+        "teardown_interrupted": interrupt is not None, "teardown_is_not_c6_cleanup": True,
+    }, interrupt
+
+
+def _default_bridge_teardown_uncertain(teardown: Mapping[str, Any], interrupt: BaseException | None) -> bool:
+    return (
+        interrupt is not None
+        or teardown.get("owner_custody") not in {"resolved", "absent"}
+        or any(teardown.get(key) is not True for key in (
+            "container_absence_confirmed", "builtin_bridge_preserved", "owned_bridge_endpoint_absent_confirmed"))
+        or any(teardown.get(key) is not False for key in (
+            "session_cleanup_uncertain", "spawn_outcome_uncertain", "frame_capture_custody_retained",
+            "unexpected_bridge_peer_observed"))
+        or (teardown.get("container_force_remove_attempted") is not False
+            and teardown.get("container_force_removed") is not True)
+    )
+
+
 def execute_host_controller(config: HostControllerConfig, *, hooks: HostControllerHooks | None = None) -> dict[str, Any]:
     hk = hooks or HostControllerHooks()
     p_root, r_root, exp_root, verified_leaves = _authenticate_host_sources(config, hk)
     from signer_protocol_io import ForegroundContainerSession
-    from signing_network_gate import HostGate, SourceBinding, docker_gate_commands
+    from signing_network_gate import HostGate, SourceBinding, default_bridge_owner_label
 
     binding = SourceBinding(
         config.p_commit, config.p_tree, config.r_commit, config.r_tree, config.source_closure_sha256, config.rs9_run,
     )
     gate = HostGate(binding, config.challenge_nonce)
-    network_name = f"tf-current-signer-{config.run_id_suffix}-1"
+    # Production uses the fixed built-in default bridge; the custom-network helpers stay for the historical probe.
     container_name = f"tf-current-signer-{config.run_id_suffix}-2"
-    gate_cmds = docker_gate_commands(network_name, container_name)
-    create_net_cmd = (DOCKER_BINARY, "network", "create", "--driver", "bridge", network_name)
-    remove_net_cmd = (DOCKER_BINARY, "network", "rm", network_name)
-    docker_run_argv = build_docker_run_argv(config, network_name, container_name)
+    owner_label = default_bridge_owner_label(config.run_id_suffix, config.challenge_nonce)
+    docker_run_argv = build_default_bridge_run_argv(config, container_name, owner_label)
     runner = hk.docker_cmd_runner or _default_docker_runner
     spawner = hk.worker_spawner or _default_worker_spawner
     emitter = hk.frame_emitter or (lambda: _default_frame_emitter(p_root, verified_leaves))
 
-    if runner(create_net_cmd, 30.0)[0] != 0:
-        raise HostControllerError("DOCKER_NETWORK_CREATE", "Failed to create fresh Docker bridge network")
+    bridge_id = _default_bridge_preflight(runner, container_name)
+    custody: dict[str, Any] = {"owned_id": None}
     session: ForegroundContainerSession | None = None
     caught_error: BaseException | None = None
     run_succeeded = False
+    spawn_attempted = spawn_uncertain = False
     try:
         spawn_env = dict(scoped_git_env(p_root, r_root))
         if config.pass_online_github_token and "GH_TOKEN" in os.environ:
             spawn_env["GH_TOKEN"] = os.environ["GH_TOKEN"]
+        _require_default_worker_env(spawn_env)
+        spawn_attempted = spawn_uncertain = True
         session = ForegroundContainerSession(
             spawner(docker_run_argv, spawn_env), time.monotonic() + config.timeout_seconds, HostControllerError,
         )
-        gate_state = _run_gate_session(gate, session, gate_cmds, runner, emitter)
+        spawn_uncertain = False
+        gate_state = _run_gate_session(
+            gate, session, None, runner, emitter,
+            prepare_disconnect=lambda: _prepare_default_bridge_disconnect(
+                runner, container_name, owner_label, bridge_id, custody),
+        )
         exit_code = session.wait_for_exit()
         session.require_stdout_clean_eof()
         if exit_code != 0:
@@ -1057,16 +1304,12 @@ def execute_host_controller(config: HostControllerConfig, *, hooks: HostControll
             raise
         raise
     finally:
-        teardown, teardown_interrupt = _teardown_host_session(
-            session, (network_name, container_name), remove_net_cmd, runner, succeeded=run_succeeded,
+        teardown, teardown_interrupt = _teardown_default_bridge_session(
+            session, container_name, owner_label, bridge_id, runner,
+            pinned_owned_id=custody["owned_id"], spawn_attempted=spawn_attempted, spawn_uncertain=spawn_uncertain,
         )
         teardown["frame_capture_custody_retained"] = _frame_custody_retained()
-        uncertain = (
-            teardown["session_cleanup_uncertain"] or not teardown["container_absence_confirmed"]
-            or not teardown["network_removed"] or teardown["frame_capture_custody_retained"]
-            or (teardown["container_force_remove_attempted"] and not teardown["container_force_removed"])
-            or teardown_interrupt is not None
-        )
+        uncertain = _default_bridge_teardown_uncertain(teardown, teardown_interrupt)
         if caught_error is not None:
             caught_error.host_teardown = teardown
             if teardown_interrupt is not None:

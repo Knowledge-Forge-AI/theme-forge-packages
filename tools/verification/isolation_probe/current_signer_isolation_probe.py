@@ -1,7 +1,7 @@
 """Key-free diagnostic probe of the current signer container network lifecycle.
 
-PROPOSED ONLY. Owner approval of the probe purpose, the workflow permission
-deviation and one hosted run precedes landing or dispatch. This module never
+This source authorizes no hosted run. Adoption and invocation require their
+current bounded owner disposition. This module never
 signs, never reads or maps signing secrets, never mints a production gate
 message or admission handle, and never relaxes, replaces or bypasses the
 production isolation predicate. Diagnostic completion is not isolation
@@ -20,12 +20,25 @@ Roles (one file because ``python -I`` does not import sibling modules):
 ``--host`` (on the hosted runner)
     Authenticates the clean P checkout and unchanged production pins, builds
     the admitted key-free runtime image through the production image-build
-    leaves inside one in-memory same-process lease, runs the production-shaped
-    network create/run/disconnect/inspect lifecycle once, reuses the production
-    teardown with a deletion-restricted runner, disposes the image and writes
-    one closed-schema RESULT.json. Unknown creation is retained; only the
-    captured owned network ID can be deleted, and containers are never forced
-    away by name. A remaining container makes the diagnostic refuse.
+    leaves inside one in-memory same-process lease, runs exactly one observed
+    lifecycle selected by ``--network-profile``, disposes the image and writes
+    one closed-schema (v2, profile-discriminated) RESULT.json.
+
+    ``custom-bridge`` (historical direct-CLI default; not a hosted allowance):
+    the production-shaped network create/run/disconnect/inspect lifecycle,
+    reusing the production teardown with a deletion-restricted runner. Unknown
+    creation is retained; only the captured owned network ID can be deleted,
+    and containers are never forced away by name. A remaining container makes
+    the diagnostic refuse.
+
+    ``default-bridge`` (selected explicitly by the workflow): the observer joins
+    the built-in ``bridge`` with a run/nonce-bound owner label. The authenticated
+    controller helpers perform the bridge identity/no-peer/name-free preflight,
+    resolve and pin the owned immutable container ID before the detach, and run
+    the ownership-bound teardown. No network is created, deleted, connected or
+    reconfigured; only the owned worker endpoint is detached, the built-in
+    bridge is preserved (``network_removed`` is reported false) and only the
+    resolved owned immutable ID can ever be removed. No frame emitter exists.
 """
 from __future__ import annotations
 
@@ -52,11 +65,11 @@ EXPECTED_PROBE_WORKFLOW_REF = f"{REPOSITORY}/{PROBE_WORKFLOW_PATH}@refs/heads/ma
 PROBE_REL_PATH = "tools/verification/isolation_probe/current_signer_isolation_probe.py"
 CURRENT_SIGNER_REL_DIR = "tools/verification/current_signer"
 LEAF_MANIFEST_REL_PATH = "tools/verification/current_signer/leaf-manifest.json"
-PINNED_LEAF_MANIFEST_SHA256 = "246d7b51ff31d184756b4b2b4524534369f4b034d058fb85d46e152e90c89fae"
+PINNED_LEAF_MANIFEST_SHA256 = "9d2e61148393041fd4fcdd60d4ebcaab775091ac0d12095a2e7d71ff9419b2ab"
 PRODUCTION_PINS = {
     "tools/verification/current_signer/leaf-manifest.json": PINNED_LEAF_MANIFEST_SHA256,
-    "tools/verification/current_import_routing.py": "7eec36b61e74f607562d36462ca039ede45c3053dd4f21fc52e49e6686f5e3da",
-    ".github/workflows/qualify-current-signer.yml": "4a8690c65d04fc100405b33ca1798ef883f6a0d4e15b2774cf832e4d105e0efd",
+    "tools/verification/current_import_routing.py": "b7f820ca3d49e8caf96eda4da733da00b7365b105c64903ac1168647729aad12",
+    ".github/workflows/qualify-current-signer.yml": "b39b0717f4cc6f1eefe63c05c09f152ed70f91dca38763b39b4a6f7e2c2d08f6",
     "tools/verification/current-rs9-inputs.json": "94a189ad76e594960320021ec8df6def3fb3245dc3b2183e3c95357d921b8843",
 }
 OBSERVER_LEAVES = ("signing_network_gate", "signing_linux_isolation")
@@ -79,7 +92,13 @@ MAX_LINE_BYTES = 4096
 DOCKER_COMMAND_SECONDS = 30.0
 SESSION_SECONDS = 600.0
 LINE_SCHEMA = "tf.current-signer-isolation-probe-line.v1"
-RESULT_SCHEMA = "tf.current-signer-isolation-probe-result.v1"
+RESULT_SCHEMA = "tf.current-signer-isolation-probe-result.v2"
+# Exactly two closed choices. custom-bridge stays the direct-CLI default for
+# compatibility; the hosted workflow selects default-bridge explicitly.
+NETWORK_PROFILES = ("custom-bridge", "default-bridge")
+DEFAULT_NETWORK_PROFILE = "custom-bridge"
+DEFAULT_BRIDGE_NETWORK = "bridge"
+OWNER_LABEL_KEY = "tf.current-signer.run"  # Checked against the loaded core leaf before any use.
 _HEX40 = re.compile(r"[0-9a-f]{40}")
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _RUN_ID = re.compile(r"[1-9][0-9]{0,19}")
@@ -131,7 +150,32 @@ HOST_REFUSALS = frozenset({
     "DISCONNECT_FAILED", "INSPECT_FAILED", "DETACH_NOT_CONFIRMED", "RESULT_INVALID", "OBSERVER_NONZERO_EXIT",
     "OBSERVER_STDOUT_UNCLEAN", "OBSERVER_STDOUT_OVERFLOW", "OBSERVER_STDIN_FAILED", "SESSION_TIMEOUT",
     "TEARDOWN_UNCONFIRMED", "IMAGE_DISPOSAL_UNCONFIRMED", "INTERNAL",
+    # default-bridge lifecycle refusals; the closed core category is in bridge_gate_code.
+    "BRIDGE_PREFLIGHT_REFUSED", "OWNERSHIP_NOT_PROVEN", "COMMAND_NOT_ALLOWED",
 })
+CUSTOM_BRIDGE_STEPS = ("network_create", "container_start", "ready", "disconnect", "challenge", "result",
+                       "observer_exit")
+DEFAULT_BRIDGE_STEPS = ("preflight", "container_start", "ready", "ownership", "disconnect", "challenge", "result",
+                        "observer_exit")
+# Closed copy of the core DEFAULT_BRIDGE_ERROR_CODES (equality against the loaded leaf is tested).
+DEFAULT_BRIDGE_GATE_CODES = frozenset({
+    "BRIDGE_IDENTITY_BOUND", "BRIDGE_IDENTITY_FORMAT", "BRIDGE_IDENTITY_DUPLICATE", "BRIDGE_IDENTITY_MISMATCH",
+    "BRIDGE_IDENTITY_CHANGED", "BRIDGE_PEER_PRESENT", "BRIDGE_OWNERSHIP_MISMATCH", "WORKER_NETWORK_FORMAT",
+    "WORKER_NETWORK_MISMATCH", "CONTAINER_ID_FORMAT", "CONTAINER_LISTING_FORMAT", "CONTAINER_NAME_COLLISION",
+    "OWNER_LABEL_INPUT", "OWNER_LOOKUP_EMPTY", "OWNER_LOOKUP_AMBIGUOUS", "RESOURCE_ID",
+})
+BRIDGE_GATE_VALUES = frozenset({"NONE", "DOCKER_COMMAND_FAILED", "CUSTODY_CHANGED", "UNLISTED"}) | DEFAULT_BRIDGE_GATE_CODES
+OWNER_CUSTODY_VALUES = frozenset({"NOT_RUN", "resolved", "absent", "ambiguous", "mismatch", "malformed", "unavailable"})
+DEFAULT_TEARDOWN_BOOLS = (
+    "teardown_run", "removal_by_immutable_id_only", "container_force_remove_attempted", "container_force_removed",
+    "owned_container_absence_confirmed", "container_name_absent_confirmed", "container_absence_confirmed",
+    "network_removed", "builtin_bridge_preserved", "builtin_bridge_configuration_commands_issued",
+    "owned_worker_endpoint_mutation_attempted", "owned_bridge_endpoint_absent_confirmed",
+    "unexpected_bridge_peer_observed",
+    "spawn_outcome_uncertain", "session_cleanup_uncertain", "teardown_interrupted",
+    "frame_capture_custody_retained", "teardown_is_not_c6_cleanup",
+)
+_CORE_TEARDOWN_BOOLS = tuple(key for key in DEFAULT_TEARDOWN_BOOLS if key != "teardown_run")
 IMAGE_STAGES = frozenset({"NOT_REACHED", "LEAF_IDENTITY", "CLASS_NOT_ADMITTED", "ADMISSION",
                           "WORK_ROOT", "INTAKE", "QUARANTINE", "SOURCE_RECHECK", "BUILD", "BINDING", "READY"})
 STEP_VALUES = frozenset({"NOT_REACHED", "OK", "FAILED"})
@@ -644,20 +688,53 @@ def verify_production_pins(p_dir: Path) -> None:
 
 
 def build_observer_argv(*, image_id: str, container_python: str, network: str, container: str,
-                        p_dir: Path, uid: int, gid: int, nonce: str, hc: Any) -> tuple[str, ...]:
-    """Production docker-run hardening, minus every env/token/secret and the R/export mounts."""
+                        p_dir: Path, uid: int, gid: int, nonce: str, hc: Any,
+                        owner_label: str | None = None) -> tuple[str, ...]:
+    """Production docker-run hardening, minus every env/token/secret and the R/export mounts.
+
+    ``owner_label`` is supplied only by the default-bridge profile: it inserts the
+    single fixed run/nonce-bound owner label directly after the network pair.
+    """
+    label = () if owner_label is None else ("--label", f"{OWNER_LABEL_KEY}={owner_label}")
     argv = (
-        DOCKER, "run", "--rm", "-i", "--pull", "never", "--name", container, "--network", network,
+        DOCKER, "run", "--rm", "-i", "--pull", "never", "--name", container, "--network", network, *label,
         "--user", f"{uid}:{gid}", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
         "--mount", f"type=bind,src={p_dir},dst={CONTAINER_P_ROOT},readonly",
         "--tmpfs", f"/work/workspace:rw,exec,nosuid,nodev,mode=0700,uid={uid},gid={gid}",
         image_id, container_python, "-I", "-B", f"{CONTAINER_P_ROOT}/{PROBE_REL_PATH}", "--observe", "--nonce", nonce,
     )
-    validate_observer_argv(argv, hc)
+    validate_observer_argv(argv, hc, container=container, owner_label=owner_label)
     return argv
 
 
-def validate_observer_argv(argv: tuple[str, ...], hc: Any) -> None:
+def _require_profile_argv(argv: tuple[str, ...], image_index: int, container: str | None,
+                          owner_label: str | None) -> None:
+    """Exact network/label shape per profile, after the generic hardening checks.
+
+    custom-bridge (no owner label): no label at all and never the built-in bridge.
+    default-bridge: exactly ``--network bridge``, exactly one ``--label`` pair with
+    the fixed key and this run's label right after it, and exactly the expected name.
+    """
+    options = argv[:image_index]
+    networks = [i for i, t in enumerate(options) if t == "--network"]
+    labels = [i for i, t in enumerate(options) if t.startswith(("--label", "-l"))]
+    if len(networks) != 1:
+        raise ProbeRefusal("CONTAINER_ARGV_REFUSED")
+    network = argv[networks[0] + 1]
+    if owner_label is None:
+        if labels or network == DEFAULT_BRIDGE_NETWORK:
+            raise ProbeRefusal("CONTAINER_ARGV_REFUSED")
+        return
+    names = [i for i, t in enumerate(options) if t == "--name" or t.startswith("--name=")]
+    if (type(owner_label) is not str or not _HEX64.fullmatch(owner_label) or network != DEFAULT_BRIDGE_NETWORK
+            or labels != [networks[0] + 2] or options[labels[0]] != "--label"
+            or argv[labels[0] + 1] != f"{OWNER_LABEL_KEY}={owner_label}"
+            or len(names) != 1 or options[names[0]] != "--name" or argv[names[0] + 1] != container):
+        raise ProbeRefusal("CONTAINER_ARGV_REFUSED")
+
+
+def validate_observer_argv(argv: tuple[str, ...], hc: Any, *, container: str | None = None,
+                           owner_label: str | None = None) -> None:
     forbidden_flags = set(hc._FORBIDDEN_DOCKER_FLAGS) | {
         "-e", "--env", "--env-file", "--cap-add", "--device", "--pid", "--ipc", "--userns", "--volume",
         "--privileged", "--dns", "--add-host", "--net",
@@ -680,6 +757,7 @@ def validate_observer_argv(argv: tuple[str, ...], hc: Any) -> None:
             or not re.fullmatch(r"[1-9][0-9]*:[0-9]+", argv[argv.index("--user") + 1])
             or argv.count("--mount") != 1 or not argv[argv.index("--mount") + 1].endswith(f",dst={CONTAINER_P_ROOT},readonly")):
         raise ProbeRefusal("CONTAINER_ARGV_REFUSED")
+    _require_profile_argv(argv, image_index, container, owner_label)
 
 
 _SESSION_CODE_MAP = {
@@ -821,6 +899,222 @@ def run_lifecycle(*, run_suffix: str, image_id: str, container_python: str, p_di
     return out
 
 
+# --------------------------------------------------------------------------
+# default-bridge profile: built-in bridge, ownership-bound, core helpers only
+# --------------------------------------------------------------------------
+def _bridge_gate_value(error: BaseException, gate: Any, hc: Any) -> str:
+    """Closed category of a core default-bridge refusal; never its message or Docker output."""
+    if isinstance(error, gate.GateError):
+        return error.code if error.code in DEFAULT_BRIDGE_GATE_CODES else "UNLISTED"
+    code = getattr(error, "code", None)
+    if isinstance(error, hc.HostControllerError) and type(code) is str:
+        if code == "DEFAULT_BRIDGE_CUSTODY":
+            return "CUSTODY_CHANGED"
+        if code.startswith("DOCKER_"):
+            return "DOCKER_COMMAND_FAILED"
+    return "UNLISTED"
+
+
+class _DefaultBridgeCommandGuard:
+    """Closed allow-list wrapped around the native runner for the default-bridge lifecycle.
+
+    Permitted: built-in bridge inspect, the exact name and owner-label listings,
+    readback of the pinned owned worker's networks, detaching only the pinned
+    owned endpoint from the captured built-in bridge ID, and removing only the
+    immutable ID that the immediately preceding owner-label listing resolved
+    (and that equals the pinned ID once one exists). Everything else (network
+    create/rm/connect/prune, removal by name or of foreign IDs, daemon or
+    configuration commands) is refused without execution and recorded.
+    """
+
+    def __init__(self, runner: Callable, gate: Any, container: str, owner_label: str,
+                 custody: Mapping[str, Any]) -> None:
+        self._runner, self._gate, self._custody = runner, gate, custody
+        self._fixed = frozenset({gate.default_bridge_inspect_command(), gate.container_name_listing_command(container)})
+        self._owner_listing = gate.owned_container_listing_command(container, owner_label)
+        self.bridge_id: str | None = None
+        self._label_resolved: str | None = None
+        self.refused = False
+
+    def _allowed(self, command: tuple) -> bool:
+        if command in self._fixed or command == self._owner_listing:
+            return True
+        target = command[-1] if command else None
+        if type(target) is not str or not _HEX64.fullmatch(target):
+            return False
+        pinned = self._custody.get("owned_id")
+        if command == self._gate.owned_container_remove_command(target):
+            return target == self._label_resolved and pinned in (None, target)
+        if pinned is None or target != pinned:
+            return False
+        if command == self._gate.worker_networks_command(target):
+            return True
+        return self.bridge_id is not None and command == self._gate.default_bridge_gate_commands(self.bridge_id, target)[0]
+
+    def __call__(self, command: Any, timeout: float) -> tuple[int, bytes, bytes]:
+        command = tuple(command)
+        if not self._allowed(command):
+            self.refused = True
+            return 1, b"", b""
+        if command == self._owner_listing:
+            self._label_resolved = None
+        result = self._runner(command, timeout)
+        if command == self._owner_listing:
+            try:
+                ids = self._gate.parse_container_id_listing(result[1]) if result[0] == 0 else ()
+            except self._gate.GateError:
+                ids = ()
+            self._label_resolved = ids[0] if len(ids) == 1 else None
+        return result
+
+
+def _default_teardown_not_run() -> dict[str, Any]:
+    """Nothing was spawned: no container, endpoint or network was ever created by this run."""
+    tear: dict[str, Any] = {key: False for key in DEFAULT_TEARDOWN_BOOLS}
+    tear.update(owner_custody="NOT_RUN", removal_by_immutable_id_only=True, teardown_is_not_c6_cleanup=True)
+    return tear
+
+
+def _record_default_teardown(teardown: Any) -> tuple[dict[str, Any], bool]:
+    """Reduce the core teardown to closed booleans/status; drop names, IDs and labels."""
+    source = teardown if type(teardown) is dict else {}
+    custody = source.get("owner_custody")
+    valid_custody = type(custody) is str and custody in OWNER_CUSTODY_VALUES and custody != "NOT_RUN"
+    malformed = (type(teardown) is not dict or not valid_custody
+                 or any(type(source.get(key)) is not bool for key in _CORE_TEARDOWN_BOOLS))
+    tear: dict[str, Any] = {key: source.get(key) is True for key in _CORE_TEARDOWN_BOOLS}
+    tear.update(teardown_run=True, owner_custody=custody if valid_custody else "unavailable")
+    return tear, malformed
+
+
+def run_default_lifecycle(*, run_suffix: str, image_id: str, container_python: str, p_dir: Path,
+                          mods: Mapping[str, Any], runner: Callable, spawner: Callable, session_factory: Callable,
+                          nonce: str, uid: int, gid: int) -> dict[str, Any]:
+    """One built-in default-bridge lifecycle through the authenticated controller helpers.
+
+    Order: owner label -> hardened argv -> core preflight (bridge identity, no
+    peers, name free) -> spawn -> ready + attached snapshot -> core
+    prepare-disconnect (resolve/pin owned immutable ID, sole peer, worker on
+    bridge) -> detach by resolved ID -> empty readback -> challenge -> after
+    snapshot -> exit -> core ownership-bound teardown. No retry, no poll, no
+    network create/delete/connect/config. No frame emitter exists in this
+    process and HostGate/_run_gate_session are never used, so frame custody is
+    false by construction. Diagnostic completion is not predicate acceptance.
+    """
+    gate, hc = mods["signing_network_gate"], mods["signer_host_controller"]
+    container = f"tf-current-signer-{run_suffix}-2"
+    steps = {key: "NOT_REACHED" for key in DEFAULT_BRIDGE_STEPS}
+    out: dict[str, Any] = {"steps": steps, "detached_readback": "NOT_REACHED", "ready_framing": "NONE",
+                           "observer_stderr": "NOT_READ", "attached_before_disconnect": None,
+                           "after_disconnect": None, "bridge_gate_code": "NONE", "ownership_pinned": False,
+                           "command_guard_refused": False, "refusal": "NONE"}
+    custody: dict[str, Any] = {}
+    session = guard = bridge_id = owner_label = None
+    spawn_attempted = spawn_uncertain = succeeded = False
+    teardown, interrupt, core_uncertain = None, None, True
+    try:
+        if gate.DEFAULT_BRIDGE_NAME != DEFAULT_BRIDGE_NETWORK or gate.OWNER_LABEL_KEY != OWNER_LABEL_KEY:
+            raise ProbeRefusal("CONTAINER_ARGV_REFUSED")
+        try:
+            owner_label = gate.default_bridge_owner_label(run_suffix, nonce)
+        except gate.GateError:
+            raise ProbeRefusal("CONTAINER_ARGV_REFUSED") from None
+        argv = build_observer_argv(image_id=image_id, container_python=container_python, network=DEFAULT_BRIDGE_NETWORK,
+                                   container=container, p_dir=p_dir, uid=uid, gid=gid, nonce=nonce, hc=hc,
+                                   owner_label=owner_label)
+        guard = _DefaultBridgeCommandGuard(runner, gate, container, owner_label, custody)
+        steps["preflight"] = "FAILED"
+        try:
+            bridge_id = hc._default_bridge_preflight(guard, container)
+        except (gate.GateError, hc.HostControllerError) as error:
+            out["bridge_gate_code"] = _bridge_gate_value(error, gate, hc)
+            raise ProbeRefusal("BRIDGE_PREFLIGHT_REFUSED") from None
+        if type(bridge_id) is not str or not _HEX64.fullmatch(bridge_id):
+            raise ProbeRefusal("BRIDGE_PREFLIGHT_REFUSED")
+        guard.bridge_id = bridge_id
+        steps["preflight"], steps["container_start"] = "OK", "FAILED"
+        spawn_attempted = True
+        try:
+            session = session_factory(spawner(argv, {"PATH": "/usr/bin:/bin", "LC_ALL": "C", "LANG": "C"}),
+                                      time.monotonic() + SESSION_SECONDS, ProbeRefusal)
+        except Exception:
+            spawn_uncertain = True
+            raise ProbeRefusal("CONTAINER_SPAWN_FAILED") from None
+        steps["container_start"], steps["ready"] = "OK", "FAILED"
+        ready = session.read_protocol_line()
+        framing = gate.classify_message_framing(ready)
+        out["ready_framing"] = framing if framing in FRAMING_VALUES else "NONE"
+        out["attached_before_disconnect"] = parse_line(ready, "ready", nonce, "READY_INVALID")
+        steps["ready"], steps["ownership"] = "OK", "FAILED"
+        try:
+            disconnect_cmd, inspect_cmd = hc._prepare_default_bridge_disconnect(
+                guard, container, owner_label, bridge_id, custody)
+        except (gate.GateError, hc.HostControllerError) as error:
+            out["bridge_gate_code"] = _bridge_gate_value(error, gate, hc)
+            raise ProbeRefusal("OWNERSHIP_NOT_PROVEN") from None
+        owned_id = custody.get("owned_id")
+        if (type(owned_id) is not str or not _HEX64.fullmatch(owned_id)
+                or (tuple(disconnect_cmd), tuple(inspect_cmd)) != gate.default_bridge_gate_commands(bridge_id, owned_id)):
+            raise ProbeRefusal("OWNERSHIP_NOT_PROVEN")
+        out["ownership_pinned"] = True
+        steps["ownership"], steps["disconnect"] = "OK", "FAILED"
+        if guard(disconnect_cmd, DOCKER_COMMAND_SECONDS)[0] != 0:
+            raise ProbeRefusal("DISCONNECT_FAILED")
+        rc, readback, _ = guard(inspect_cmd, DOCKER_COMMAND_SECONDS)
+        if rc != 0:
+            out["detached_readback"] = "COMMAND_FAILED"
+            raise ProbeRefusal("INSPECT_FAILED")
+        try:
+            gate.require_detached_networks(readback)
+        except gate.GateError as error:
+            out["detached_readback"] = error.code if error.code in READBACK_VALUES else "NETWORK_READBACK_FORMAT"
+            raise ProbeRefusal("DETACH_NOT_CONFIRMED") from None
+        out["detached_readback"], steps["disconnect"] = "EMPTY_OBJECT", "OK"
+        steps["challenge"] = "FAILED"
+        session.write_stdin(encode_line("challenge", nonce), close_after=True)
+        steps["challenge"], steps["result"] = "OK", "FAILED"
+        out["after_disconnect"] = parse_line(session.read_protocol_line(), "result", nonce, "RESULT_INVALID")
+        steps["result"], steps["observer_exit"] = "OK", "FAILED"
+        exit_code = session.wait_for_exit()
+        session.require_stdout_clean_eof()
+        if exit_code != 0:
+            raise ProbeRefusal("OBSERVER_NONZERO_EXIT")
+        steps["observer_exit"] = "OK"
+        succeeded = True
+    except Exception as error:
+        out["refusal"] = _label(error)
+        if session is not None and not succeeded:
+            stderr = hc._drain_pre_frame_stderr(session, grace_seconds=1.0)
+            out["observer_stderr"] = parse_observer_stderr(stderr)
+    finally:
+        if spawn_attempted:
+            # Ownership-bound core teardown: closes only our session, removes only a
+            # resolved owned immutable ID (pinned when known), never touches the bridge.
+            teardown, interrupt = hc._teardown_default_bridge_session(
+                session, container, owner_label, bridge_id, guard, pinned_owned_id=custody.get("owned_id"),
+                spawn_attempted=True, spawn_uncertain=spawn_uncertain)
+            # Invariant: no secret frame or emitter exists or is invoked in this process.
+            teardown["frame_capture_custody_retained"] = False
+            core_uncertain = hc._default_bridge_teardown_uncertain(teardown, interrupt)
+    if teardown is None:
+        tear, uncertain = _default_teardown_not_run(), False
+    else:
+        tear, malformed = _record_default_teardown(teardown)
+        uncertain = (core_uncertain is not False or malformed or tear["network_removed"]
+                     or tear["builtin_bridge_configuration_commands_issued"] or not tear["removal_by_immutable_id_only"])
+    if guard is not None and guard.refused:
+        out["command_guard_refused"] = True
+        uncertain = uncertain or teardown is not None
+        if out["refusal"] == "NONE":
+            out["refusal"] = "COMMAND_NOT_ALLOWED"
+    out["teardown"], out["custody_retained"] = tear, uncertain
+    if uncertain and out["refusal"] == "NONE":
+        out["refusal"] = "TEARDOWN_UNCONFIRMED"
+    if interrupt is not None:
+        out["interrupt"] = interrupt
+    return out
+
+
 def prepare_runtime_image(*, p_dir: Path, work_dir: Path, run_suffix: str, token: str, environ: MutableMapping[str, str],
                           mods: Mapping[str, Any], recheck: Callable[[], None], leaf_importer: Callable | None = None,
                           transport_factory: Callable | None = None, engine_factory: Callable | None = None) -> dict:
@@ -925,9 +1219,10 @@ def dispose_runtime_image(lease: Mapping[str, Any] | None, mods: Mapping[str, An
         return {"attempted": True, "tag_removed": False, "image_id_removed": False, "confirmed": False}
 
 
-def _base_result(source: dict | None) -> dict[str, Any]:
+def _base_result(source: dict | None, network_profile: str = DEFAULT_NETWORK_PROFILE) -> dict[str, Any]:
     return {
         "schema": RESULT_SCHEMA, "status": "refused", "refusal": "INTERNAL", "source": source,
+        "network_profile": network_profile,
         "image": {"stage": "NOT_REACHED", "prepared": False, "manifest_sha256": None, "recipe_sha256": None,
                   "lease_scope": "same-process-in-memory", "work_root_cleaned": False,
                   "disposal_attempted": False, "tag_removed": False, "image_id_removed": False,
@@ -943,13 +1238,79 @@ def _base_result(source: dict | None) -> dict[str, Any]:
 _CONSTANT_FALSE = ("isolation_accepted", "signing_performed", "signing_secrets_mapped", "credential_passed_to_container",
                    "publication_authority", "production_admission", "listener_identity_established",
                    "root_cause_established", "native_equivalence_claimed")
+_OBSERVATION_KEYS = frozenset({"steps", "detached_readback", "ready_framing", "observer_stderr",
+                               "attached_before_disconnect", "after_disconnect", "teardown"})
+_CUSTOM_TEARDOWN_KEYS = frozenset({"container_force_remove_attempted", "container_force_removed",
+                                   "container_absence_confirmed", "network_removed",
+                                   "session_cleanup_uncertain", "teardown_interrupted"})
+_DEFAULT_LIFECYCLE_KEYS = _OBSERVATION_KEYS | {"bridge_gate_code", "ownership_pinned", "command_guard_refused"}
+_DEFAULT_COMPLETE_TRUE = ("teardown_run", "removal_by_immutable_id_only", "owned_container_absence_confirmed",
+                          "container_name_absent_confirmed", "container_absence_confirmed", "builtin_bridge_preserved",
+                          "owned_bridge_endpoint_absent_confirmed", "owned_worker_endpoint_mutation_attempted",
+                          "teardown_is_not_c6_cleanup")
+_DEFAULT_COMPLETE_FALSE = ("network_removed", "builtin_bridge_configuration_commands_issued", "spawn_outcome_uncertain",
+                           "session_cleanup_uncertain", "teardown_interrupted", "frame_capture_custody_retained",
+                           "unexpected_bridge_peer_observed")
+
+
+def _validate_observation(lc: dict, step_names: tuple[str, ...], code: str) -> dict[str, Any]:
+    steps = _exact(lc["steps"], set(step_names), code)
+    return {
+        "steps": {key: _enum(steps[key], STEP_VALUES, code) for key in sorted(step_names)},
+        "detached_readback": _enum(lc["detached_readback"], READBACK_VALUES, code),
+        "ready_framing": _enum(lc["ready_framing"], FRAMING_VALUES, code),
+        "observer_stderr": _enum(lc["observer_stderr"], OBSERVER_STDERR_VALUES, code),
+        "attached_before_disconnect": None if lc["attached_before_disconnect"] is None
+        else validate_snapshot(lc["attached_before_disconnect"], code),
+        "after_disconnect": None if lc["after_disconnect"] is None else validate_snapshot(lc["after_disconnect"], code),
+    }
+
+
+def _validate_custom_lifecycle(obj: Any, code: str) -> dict[str, Any]:
+    lc = _exact(obj, set(_OBSERVATION_KEYS), code)
+    tear = _exact(lc["teardown"], set(_CUSTOM_TEARDOWN_KEYS), code)
+    lifecycle = _validate_observation(lc, CUSTOM_BRIDGE_STEPS, code)
+    lifecycle["teardown"] = {key: _bool(value, code) for key, value in sorted(tear.items())}
+    return lifecycle
+
+
+def _validate_default_lifecycle(obj: Any, code: str) -> dict[str, Any]:
+    lc = _exact(obj, set(_DEFAULT_LIFECYCLE_KEYS), code)
+    tear = _exact(lc["teardown"], {"owner_custody", *DEFAULT_TEARDOWN_BOOLS}, code)
+    lifecycle = _validate_observation(lc, DEFAULT_BRIDGE_STEPS, code)
+    lifecycle.update(
+        bridge_gate_code=_enum(lc["bridge_gate_code"], BRIDGE_GATE_VALUES, code),
+        ownership_pinned=_bool(lc["ownership_pinned"], code),
+        command_guard_refused=_bool(lc["command_guard_refused"], code),
+        teardown={"owner_custody": _enum(tear["owner_custody"], OWNER_CUSTODY_VALUES, code),
+                  **{key: _bool(tear[key], code) for key in sorted(DEFAULT_TEARDOWN_BOOLS)}})
+    teardown = lifecycle["teardown"]
+    if ((teardown["owner_custody"] == "NOT_RUN") == teardown["teardown_run"]
+            or lifecycle["ownership_pinned"] != (lifecycle["steps"]["ownership"] == "OK")):
+        raise ProbeRefusal(code)
+    return lifecycle
+
+
+def _lifecycle_cleanup_complete(profile: str, lifecycle: Mapping[str, Any]) -> bool:
+    tear = lifecycle["teardown"]
+    if profile == "custom-bridge":
+        return (tear["container_absence_confirmed"] and tear["network_removed"]
+                and not tear["session_cleanup_uncertain"] and not tear["teardown_interrupted"])
+    # Pinned ownership before the detach is required; a force removal is never the basis.
+    return (lifecycle["ownership_pinned"] and not lifecycle["command_guard_refused"]
+            and lifecycle["bridge_gate_code"] == "NONE" and tear["owner_custody"] in {"resolved", "absent"}
+            and all(tear[key] for key in _DEFAULT_COMPLETE_TRUE)
+            and not any(tear[key] for key in _DEFAULT_COMPLETE_FALSE)
+            and (not tear["container_force_remove_attempted"] or tear["container_force_removed"]))
 
 
 def validate_result(doc: Any) -> dict[str, Any]:
-    """Closed RESULT.json schema; rebuilt from validated values only."""
+    """Closed v2 RESULT.json schema discriminated by network_profile; rebuilt from validated values only."""
     code = "RESULT_SCHEMA"
-    keys = {"schema", "status", "refusal", "source", "image", "lifecycle", "custody_retained", *_CONSTANT_FALSE}
+    keys = {"schema", "status", "refusal", "source", "network_profile", "image", "lifecycle", "custody_retained",
+            *_CONSTANT_FALSE}
     doc = _exact(doc, keys, code)
+    profile = _enum(doc["network_profile"], NETWORK_PROFILES, code)
     if doc["schema"] != RESULT_SCHEMA or any(doc[key] is not False for key in _CONSTANT_FALSE):
         raise ProbeRefusal(code)
     status = _enum(doc["status"], frozenset({"diagnostic-complete", "refused"}), code)
@@ -986,23 +1347,8 @@ def validate_result(doc: Any) -> dict[str, Any]:
                                                   "tag_removed", "image_id_removed", "disposal_confirmed")}}
     lifecycle = None
     if doc["lifecycle"] is not None:
-        lc = _exact(doc["lifecycle"], {"steps", "detached_readback", "ready_framing", "observer_stderr",
-                                       "attached_before_disconnect", "after_disconnect", "teardown"}, code)
-        steps = _exact(lc["steps"], {"network_create", "container_start", "ready", "disconnect", "challenge",
-                                     "result", "observer_exit"}, code)
-        tear = _exact(lc["teardown"], {"container_force_remove_attempted", "container_force_removed",
-                                       "container_absence_confirmed", "network_removed",
-                                       "session_cleanup_uncertain", "teardown_interrupted"}, code)
-        lifecycle = {
-            "steps": {key: _enum(value, STEP_VALUES, code) for key, value in sorted(steps.items())},
-            "detached_readback": _enum(lc["detached_readback"], READBACK_VALUES, code),
-            "ready_framing": _enum(lc["ready_framing"], FRAMING_VALUES, code),
-            "observer_stderr": _enum(lc["observer_stderr"], OBSERVER_STDERR_VALUES, code),
-            "attached_before_disconnect": None if lc["attached_before_disconnect"] is None
-            else validate_snapshot(lc["attached_before_disconnect"], code),
-            "after_disconnect": None if lc["after_disconnect"] is None else validate_snapshot(lc["after_disconnect"], code),
-            "teardown": {key: _bool(value, code) for key, value in sorted(tear.items())},
-        }
+        validate_lifecycle = _validate_default_lifecycle if profile == "default-bridge" else _validate_custom_lifecycle
+        lifecycle = validate_lifecycle(doc["lifecycle"], code)
     if status == "diagnostic-complete":
         if (lifecycle is None or lifecycle["attached_before_disconnect"] is None
                 or lifecycle["after_disconnect"] is None or source is None
@@ -1010,12 +1356,10 @@ def validate_result(doc: Any) -> dict[str, Any]:
                 or lifecycle["detached_readback"] != "EMPTY_OBJECT" or lifecycle["ready_framing"] != "NONE"
                 or not image["prepared"] or not image["work_root_cleaned"]
                 or not all(image[key] for key in ("disposal_attempted", "tag_removed", "image_id_removed", "disposal_confirmed"))
-                or not lifecycle["teardown"]["container_absence_confirmed"]
-                or not lifecycle["teardown"]["network_removed"]
-                or lifecycle["teardown"]["session_cleanup_uncertain"]
-                or lifecycle["teardown"]["teardown_interrupted"]):
+                or not _lifecycle_cleanup_complete(profile, lifecycle)):
             raise ProbeRefusal(code)
-    return {"schema": RESULT_SCHEMA, "status": status, "refusal": refusal, "source": source, "image": image,
+    return {"schema": RESULT_SCHEMA, "status": status, "refusal": refusal, "source": source,
+            "network_profile": profile, "image": image,
             "lifecycle": lifecycle, "custody_retained": custody, **{key: False for key in _CONSTANT_FALSE}}
 
 
@@ -1037,14 +1381,18 @@ def write_result(path: Path, doc: dict) -> None:
 
 
 def execute_host(*, p_root: str, p_commit: str, work_root: str, environ: MutableMapping[str, str],
-                 hooks: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                 hooks: Mapping[str, Any] | None = None,
+                 network_profile: str = DEFAULT_NETWORK_PROFILE) -> dict[str, Any]:
     """Return closed ordinary failures; interrupts propagate after best-effort cleanup.
 
     An interrupt can retain the partial image lease and prevent RESULT.json
     emission; final disposal then relies on the bounded hosted VM lifetime.
+    The image lease/disposal path is identical for both network profiles.
     """
+    if type(network_profile) is not str or network_profile not in NETWORK_PROFILES:
+        raise ValueError("network_profile")  # Caller error; refused before any effect.
     hk = dict(hooks or {})
-    result = _base_result(None)
+    result = _base_result(None, network_profile)
     mods: dict[str, Any] = {}
     lease: dict[str, Any] | None = None
     interrupt = None
@@ -1102,7 +1450,7 @@ def execute_host(*, p_root: str, p_commit: str, work_root: str, environ: Mutable
         result["image"].update(stage="READY", prepared=True, work_root_cleaned=True,
                                manifest_sha256=lease["manifest_sha256"], recipe_sha256=lease["recipe_sha256"])
         hc, protocol_io = mods["signer_host_controller"], mods["signer_protocol_io"]
-        lifecycle = run_lifecycle(
+        lifecycle = (run_default_lifecycle if network_profile == "default-bridge" else run_lifecycle)(
             run_suffix=str(run_id), image_id=lease["image_id"], container_python=lease["container_python"],
             p_dir=p_dir, mods=mods, runner=hk.get("runner") or hc._default_docker_runner,
             spawner=hk.get("spawner") or hc._default_worker_spawner,
@@ -1140,16 +1488,23 @@ def execute_host(*, p_root: str, p_commit: str, work_root: str, environ: Mutable
     return result
 
 
-def host_main(argv: list[str]) -> int:
+def parse_host_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="current_signer_isolation_probe.py --host", allow_abbrev=False)
     for flag in ("--p-root", "--p-commit", "--work-root", "--result-out"):
         parser.add_argument(flag, required=True)
+    # Exactly two closed choices; custom-bridge remains the historical direct-CLI default.
+    parser.add_argument("--network-profile", choices=NETWORK_PROFILES, default=DEFAULT_NETWORK_PROFILE)
+    return parser.parse_args(argv)
+
+
+def host_main(argv: list[str]) -> int:
     try:
-        args = parser.parse_args(argv)
+        args = parse_host_args(argv)
     except SystemExit:
         print("REFUSED HOST_ARGUMENTS", file=sys.stderr)
         return 2
-    result = execute_host(p_root=args.p_root, p_commit=args.p_commit, work_root=args.work_root, environ=os.environ)
+    result = execute_host(p_root=args.p_root, p_commit=args.p_commit, work_root=args.work_root, environ=os.environ,
+                          network_profile=args.network_profile)
     interrupt = result.pop("teardown_interrupt", None)
     try:
         write_result(Path(args.result_out), result)

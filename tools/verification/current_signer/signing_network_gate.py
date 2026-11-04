@@ -195,3 +195,230 @@ def worker_acknowledgement(challenge: bytes, binding: SourceBinding, nonce: str,
     require_message(challenge, "isolation-challenge", binding, nonce, worker_pid=worker_pid)
     prove_isolation()  # No private input read until this succeeds and ack is sent.
     return encode_message("isolated", binding, nonce, worker_pid=worker_pid)
+
+
+# ---------------------------------------------------------------------------
+# Built-in default bridge for the temporary online intake phase.
+#
+# Pure parsing and fixed argv only. Nothing here creates, deletes or
+# reconfigures the built-in bridge. The only network mutation the controller
+# performs with these helpers is attaching (at run) and detaching (at the gate)
+# its own resolved worker endpoint. Parsed IDs stay internal; every refusal is
+# a fixed code without Docker output, IDs, labels or paths. The custom-network
+# helpers above are unchanged and remain for the historical probe caller.
+
+import hashlib as _hashlib
+
+DEFAULT_BRIDGE_NAME = "bridge"
+OWNER_LABEL_KEY = "tf.current-signer.run"
+_OWNER_LABEL_DOMAIN = b"tf.current-signer.default-bridge.owner-label.v1\x00"
+_RUN_SUFFIX = re.compile(r"[0-9]{1,20}")
+_DEFAULT_BRIDGE_MARKER_OPTION = "com.docker.network.bridge.default_bridge"
+DEFAULT_BRIDGE_INSPECT_FORMAT = (
+    '{"id":{{json .Id}},"name":{{json .Name}},"driver":{{json .Driver}},'
+    '"scope":{{json .Scope}},"internal":{{json .Internal}},'
+    '"default_marker":{{json (index .Options "' + _DEFAULT_BRIDGE_MARKER_OPTION + '")}},'
+    '"containers":{{json .Containers}}}'
+)
+WORKER_NETWORKS_FORMAT = "{{json .NetworkSettings.Networks}}"
+_BRIDGE_FIELDS = frozenset({"id", "name", "driver", "scope", "internal", "default_marker", "containers"})
+MAX_LISTING_BYTES = 4096
+DEFAULT_BRIDGE_ERROR_CODES = frozenset({
+    "BRIDGE_IDENTITY_BOUND",
+    "BRIDGE_IDENTITY_FORMAT",
+    "BRIDGE_IDENTITY_DUPLICATE",
+    "BRIDGE_IDENTITY_MISMATCH",
+    "BRIDGE_IDENTITY_CHANGED",
+    "BRIDGE_PEER_PRESENT",
+    "BRIDGE_OWNERSHIP_MISMATCH",
+    "WORKER_NETWORK_FORMAT",
+    "WORKER_NETWORK_MISMATCH",
+    "CONTAINER_ID_FORMAT",
+    "CONTAINER_LISTING_FORMAT",
+    "CONTAINER_NAME_COLLISION",
+    "OWNER_LABEL_INPUT",
+    "OWNER_LOOKUP_EMPTY",
+    "OWNER_LOOKUP_AMBIGUOUS",
+    "RESOURCE_ID",
+})
+
+
+@dataclass(frozen=True, repr=False)
+class BridgeObservation:
+    network_id: str
+    peer_ids: frozenset
+
+    def __repr__(self) -> str:  # IDs are internal only.
+        return "BridgeObservation(<withheld>)"
+
+
+def _strict_pairs(code: str):
+    def hook(items):
+        value = {}
+        for key, item in items:
+            if key in value:
+                raise GateError(code)
+            value[key] = item
+        return value
+    return hook
+
+
+def _reject_constant(_name: str):
+    raise ValueError("JSON_CONSTANT")
+
+
+def _strict_line_json(data: object, *, bound_code: str, format_code: str, duplicate_code: str):
+    if type(data) is not bytes or len(data) > MAX_LINE_BYTES:
+        raise GateError(bound_code)
+    if classify_message_framing(data) is not None:
+        raise GateError(format_code)
+    try:
+        return json.loads(data.decode("ascii"), object_pairs_hook=_strict_pairs(duplicate_code),
+                          parse_constant=_reject_constant)
+    except GateError:
+        raise
+    except (UnicodeError, ValueError, RecursionError):
+        raise GateError(format_code) from None
+
+
+def require_container_id(value: object) -> str:
+    if type(value) is not str or not _HEX64.fullmatch(value):
+        raise GateError("CONTAINER_ID_FORMAT")
+    return value
+
+
+def _require_bridge_id(value: object) -> str:
+    if type(value) is not str or not _HEX64.fullmatch(value):
+        raise GateError("BRIDGE_IDENTITY_FORMAT")
+    return value
+
+
+def _require_owner_label(value: object) -> str:
+    if type(value) is not str or not _HEX64.fullmatch(value):
+        raise GateError("OWNER_LABEL_INPUT")
+    return value
+
+
+def _require_container_name(value: object) -> str:
+    if type(value) is not str or not _RESOURCE.fullmatch(value):
+        raise GateError("RESOURCE_ID")
+    return value
+
+
+def default_bridge_owner_label(run_id_suffix: str, challenge_nonce: str) -> str:
+    """Run- and nonce-bound unpredictable owner label value (64 lowercase hex)."""
+    if (type(run_id_suffix) is not str or not _RUN_SUFFIX.fullmatch(run_id_suffix)
+            or type(challenge_nonce) is not str or not _HEX64.fullmatch(challenge_nonce)):
+        raise GateError("OWNER_LABEL_INPUT")
+    return _hashlib.sha256(
+        _OWNER_LABEL_DOMAIN + run_id_suffix.encode("ascii") + challenge_nonce.encode("ascii")
+    ).hexdigest()
+
+
+def default_bridge_inspect_command() -> tuple[str, ...]:
+    return (DOCKER, "network", "inspect", "--format", DEFAULT_BRIDGE_INSPECT_FORMAT, DEFAULT_BRIDGE_NAME)
+
+
+def container_name_listing_command(container_name: str) -> tuple[str, ...]:
+    name = _require_container_name(container_name)
+    return (DOCKER, "container", "ls", "--all", "--no-trunc", "--quiet", "--filter", f"name=^/{name}$")
+
+
+def owned_container_listing_command(container_name: str, owner_label: str) -> tuple[str, ...]:
+    name = _require_container_name(container_name)
+    label = _require_owner_label(owner_label)
+    return (DOCKER, "container", "ls", "--all", "--no-trunc", "--quiet",
+            "--filter", f"name=^/{name}$", "--filter", f"label={OWNER_LABEL_KEY}={label}")
+
+
+def worker_networks_command(container_id: str) -> tuple[str, ...]:
+    return (DOCKER, "container", "inspect", "--format", WORKER_NETWORKS_FORMAT, require_container_id(container_id))
+
+
+def default_bridge_gate_commands(bridge_id: str, container_id: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Disconnect/readback bound to the captured bridge ID and resolved immutable container ID."""
+    bridge = _require_bridge_id(bridge_id)
+    owned = require_container_id(container_id)
+    return ((DOCKER, "network", "disconnect", bridge, owned), worker_networks_command(owned))
+
+
+def owned_container_remove_command(container_id: str) -> tuple[str, ...]:
+    """Removal is only ever by resolved immutable ID, never by name."""
+    return (DOCKER, "container", "rm", "--force", require_container_id(container_id))
+
+
+def require_default_bridge_identity(data: bytes, *, expected_id: str | None = None) -> BridgeObservation:
+    doc = _strict_line_json(data, bound_code="BRIDGE_IDENTITY_BOUND", format_code="BRIDGE_IDENTITY_FORMAT",
+                            duplicate_code="BRIDGE_IDENTITY_DUPLICATE")
+    if type(doc) is not dict or set(doc) != _BRIDGE_FIELDS:
+        raise GateError("BRIDGE_IDENTITY_FORMAT")
+    network_id = doc["id"]
+    if type(network_id) is not str or not _HEX64.fullmatch(network_id):
+        raise GateError("BRIDGE_IDENTITY_FORMAT")
+    if (type(doc["name"]) is not str or doc["name"] != DEFAULT_BRIDGE_NAME
+            or type(doc["driver"]) is not str or doc["driver"] != "bridge"
+            or type(doc["scope"]) is not str or doc["scope"] != "local"
+            or doc["internal"] is not False
+            or type(doc["default_marker"]) is not str or doc["default_marker"] != "true"):
+        raise GateError("BRIDGE_IDENTITY_MISMATCH")
+    containers = doc["containers"]
+    if type(containers) is not dict:
+        raise GateError("BRIDGE_IDENTITY_FORMAT")
+    for key, value in containers.items():
+        if not _HEX64.fullmatch(key) or type(value) is not dict:
+            raise GateError("BRIDGE_IDENTITY_FORMAT")
+    if expected_id is not None and network_id != _require_bridge_id(expected_id):
+        raise GateError("BRIDGE_IDENTITY_CHANGED")
+    return BridgeObservation(network_id, frozenset(containers))
+
+
+def require_no_bridge_peers(observation: BridgeObservation) -> None:
+    if type(observation) is not BridgeObservation or observation.peer_ids:
+        raise GateError("BRIDGE_PEER_PRESENT")
+
+
+def require_sole_owned_bridge_peer(observation: BridgeObservation, owned_id: str) -> None:
+    owned = require_container_id(owned_id)
+    if type(observation) is not BridgeObservation:
+        raise GateError("BRIDGE_OWNERSHIP_MISMATCH")
+    if observation.peer_ids != frozenset({owned}):
+        raise GateError("BRIDGE_PEER_PRESENT" if owned in observation.peer_ids else "BRIDGE_OWNERSHIP_MISMATCH")
+
+
+def require_worker_on_default_bridge(data: bytes, bridge_id: str) -> None:
+    expected = _require_bridge_id(bridge_id)
+    networks = _strict_line_json(data, bound_code="WORKER_NETWORK_FORMAT", format_code="WORKER_NETWORK_FORMAT",
+                                 duplicate_code="WORKER_NETWORK_FORMAT")
+    if type(networks) is not dict or set(networks) != {DEFAULT_BRIDGE_NAME}:
+        raise GateError("WORKER_NETWORK_MISMATCH")
+    endpoint = networks[DEFAULT_BRIDGE_NAME]
+    if type(endpoint) is not dict or endpoint.get("NetworkID") != expected:
+        raise GateError("WORKER_NETWORK_MISMATCH")
+
+
+def parse_container_id_listing(data: bytes) -> tuple[str, ...]:
+    """Parse `container ls --no-trunc --quiet` output: zero or more distinct 64-hex lines."""
+    if type(data) is not bytes or len(data) > MAX_LISTING_BYTES:
+        raise GateError("CONTAINER_LISTING_FORMAT")
+    if data == b"":
+        return ()
+    if not data.endswith(b"\n") or b"\r" in data:
+        raise GateError("CONTAINER_LISTING_FORMAT")
+    try:
+        text = data.decode("ascii")
+    except UnicodeError:
+        raise GateError("CONTAINER_LISTING_FORMAT") from None
+    rows = text[:-1].split("\n")
+    if any(not _HEX64.fullmatch(row) for row in rows) or len(set(rows)) != len(rows):
+        raise GateError("CONTAINER_LISTING_FORMAT")
+    return tuple(rows)
+
+
+def require_single_owned_id(ids: tuple[str, ...]) -> str:
+    if type(ids) is not tuple:
+        raise GateError("CONTAINER_LISTING_FORMAT")
+    if not ids:
+        raise GateError("OWNER_LOOKUP_EMPTY")
+    if len(ids) != 1:
+        raise GateError("OWNER_LOOKUP_AMBIGUOUS")
+    return require_container_id(ids[0])

@@ -1,9 +1,9 @@
 name: Current Signer Key-Free Isolation Diagnostic Probe
 
-# PROPOSED ONLY. Owner approval of this diagnostic purpose, the actions:read
-# deviation and exactly one hosted run precedes landing or dispatch. Not a
-# signer run, not an R/Q/GUI cycle, not isolation acceptance. No environment,
-# no secrets mapping, no signing, no publication, no package clients.
+# This source authorizes no hosted run. Adoption and invocation require a
+# current bounded owner disposition. Key-free observations carry no signing,
+# isolation, publication or R/Q/GUI admission authority.
+# No signing environment or signing secrets; no package clients.
 on:
   workflow_dispatch:
 
@@ -31,7 +31,9 @@ jobs:
           path: p
           persist-credentials: false
       - name: Check pure probe contracts without native effects
-        run: /usr/bin/python3 -I -B p/tools/verification/isolation_probe/test_current_signer_isolation_probe.py
+        run: |
+          /usr/bin/python3 -I -B p/tests/test_current_signer_default_bridge.py
+          /usr/bin/python3 -I -B p/tools/verification/isolation_probe/test_current_signer_isolation_probe.py
       - name: Key-free image lease, one observed network lifecycle, fail-closed teardown
         env:
           # Host-only read token for the existing pinned runtime input intake.
@@ -44,7 +46,8 @@ jobs:
           /usr/bin/python3 -I -B p/tools/verification/isolation_probe/current_signer_isolation_probe.py --host \
             --p-root "$GITHUB_WORKSPACE/p" --p-commit "$GITHUB_SHA" \
             --work-root "$RUNNER_TEMP/tf-isolation-probe-image-$GITHUB_RUN_ID" \
-            --result-out "$RUNNER_TEMP/tf-isolation-probe-$GITHUB_RUN_ID/RESULT.json"
+            --result-out "$RUNNER_TEMP/tf-isolation-probe-$GITHUB_RUN_ID/RESULT.json" \
+            --network-profile default-bridge
       - name: Retain the closed diagnostic result only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -60,5 +60,17 @@
     "existingEnvironment": "github-pages",
     "priorKeyEnvironmentGuardPythonApprovals": "already granted; not pending",
     "fullSignerQualified": false
+  },
+  "currentSignerIsolationPreparation": {
+    "status": "default-bridge-source-candidate-native-unqualified",
+    "sourceEvidence": "Source/fixture checks only; exact current default-bridge native probe, fresh original R, full signer/client and same-source GUI evidence remain required before promotion.",
+    "historicalKeyfreeProbe": {
+      "run": 41739689778,
+      "source": "0db75d2727115ba482b9400e3c9979c3fd13bbba",
+      "conclusion": "success",
+      "meaning": "Measured custom-bridge sockets at127.0.0.11 survived detach; strict predicate refused TCP_V4_LISTEN; cleanup passed. No signing acceptance or original-listener ownership proof."
+    },
+    "policy": "docs/current-full-signer-policy.md",
+    "campaignAllowance": "No allowance is granted or replenished by this status document."
   }
 }

@@ -271,8 +271,11 @@ def _handshake_config():
 
 
 def _handshake_teardown(*args, **kwargs):
-    return {"session_cleanup_uncertain":False,"container_absence_confirmed":True,"network_removed":True,
-            "container_force_remove_attempted":True,"container_force_removed":True,"teardown_interrupted":False},None
+    # Default-bridge teardown shape: the shared built-in bridge is preserved, never removed.
+    return {"session_cleanup_uncertain":False,"container_absence_confirmed":True,"network_removed":False,
+            "container_force_remove_attempted":True,"container_force_removed":True,"teardown_interrupted":False,
+            "owner_custody":"resolved","builtin_bridge_preserved":True,"owned_bridge_endpoint_absent_confirmed":True,"unexpected_bridge_peer_observed":False,
+            "spawn_outcome_uncertain":False},None
 
 
 class HandshakeFailureAttributionTests(unittest.TestCase):
@@ -280,12 +283,13 @@ class HandshakeFailureAttributionTests(unittest.TestCase):
         original=_diag_host.HostControllerError("MESSAGE_FRAMING","synthetic primary")
         fake_session=types.SimpleNamespace()
         with mock.patch.object(_diag_host,"_authenticate_host_sources",return_value=(Path("/fixture/p"),Path("/fixture/r"),Path("/fixture/export"),{})),\
-             mock.patch.object(_diag_host,"build_docker_run_argv",return_value=("/usr/bin/docker","run")),\
+             mock.patch.object(_diag_host,"build_default_bridge_run_argv",return_value=("/usr/bin/docker","run")),\
+             mock.patch.object(_diag_host,"_default_bridge_preflight",return_value="b"*64),\
              mock.patch.object(_diag_host,"scoped_git_env",return_value={}),\
              mock.patch.object(_diag_protocol,"ForegroundContainerSession",return_value=fake_session),\
              mock.patch.object(_diag_host,"_run_gate_session",side_effect=original),\
              mock.patch.object(_diag_host,"_build_handshake_observation",side_effect=diagnostic_error),\
-             mock.patch.object(_diag_host,"_teardown_host_session",side_effect=_handshake_teardown) as cleanup:
+             mock.patch.object(_diag_host,"_teardown_default_bridge_session",side_effect=_handshake_teardown) as cleanup:
             hooks=_diag_host.HostControllerHooks(docker_cmd_runner=lambda *args:(0,b"",b""),worker_spawner=lambda *args:object(),frame_emitter=lambda:bytearray())
             try:_diag_host.execute_host_controller(_handshake_config(),hooks=hooks)
             except BaseException as caught:

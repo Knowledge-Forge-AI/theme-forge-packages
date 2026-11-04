@@ -473,7 +473,10 @@ class HostEndToEnd(unittest.TestCase):
             return 0, ("2" * 40 + "\n").encode(), b""
         return 0, b"", b""
 
-    def run_host(self, **overrides):
+    def run_host(self, network_profile=None, **overrides):
+        if network_profile is not None:
+            overrides["_network_profile"] = network_profile
+        profile = overrides.pop("_network_profile", None)
         mods = dict(PROD, signing_image_build=self.sib, runtime_input_intake=self.rii)
         hooks = {"require_flags": False, "uname": lambda: SimpleNamespace(sysname="Linux", machine="x86_64"),
                  "mods": mods, "git_runner": self.git, "leaf_importer": lambda p: (self.sib, self.rii),
@@ -483,7 +486,8 @@ class HostEndToEnd(unittest.TestCase):
                  "session_factory": lambda proc, deadline, err: self.session, "nonce_fn": lambda: NONCE}
         hooks.update(overrides)
         return probe.execute_host(p_root=str(self.p), p_commit="1" * 40, work_root=str(self.tmp / "image-work"),
-                                  environ=self.env, hooks=hooks)
+                                  environ=self.env, hooks=hooks,
+                                  **({} if profile is None else {"network_profile": profile}))
 
     def test_happy_path_closed_result_and_cleanup(self):
         result = self.run_host()
@@ -629,7 +633,9 @@ class Invariants(unittest.TestCase):
         self.assertFalse(imported & (probe.FORBIDDEN_LEAVES | {"subprocess", "socket", "urllib", "http"}))
         names = {getattr(node, "attr", None) or getattr(node, "id", None) for node in ast.walk(tree)}
         for banned in ("_default_frame_emitter", "capture_frame", "execute_live_lease", "read_secret_frame",
-                       "emit_existing_frame_and_eof", "HostGate", "encode_message", "worker_acknowledgement"):
+                       "emit_existing_frame_and_eof", "HostGate", "encode_message", "worker_acknowledgement",
+                       "_run_gate_session", "execute_host_controller", "build_default_bridge_run_argv",
+                       "owned_container_remove_command_by_name"):
             self.assertNotIn(banned, names)
         self.assertNotIn("PACKAGE_SIGNING", PROBE_FILE.read_text())
 
@@ -646,6 +652,359 @@ class Invariants(unittest.TestCase):
         for line in text.splitlines():
             if "uses:" in line:
                 self.assertRegex(line.strip(), r"^(- )?uses: [A-Za-z0-9_.\-/]+@[0-9a-f]{40}$")
+        # The hosted run selects default-bridge explicitly, after the pure suite; bounds unchanged.
+        self.assertEqual(text.count("--network-profile default-bridge"), 1)
+        self.assertNotIn("custom-bridge", text)
+        self.assertLess(text.index("test_current_signer_isolation_probe.py"), text.index("--network-profile default-bridge"))
+        for kept in ("timeout-minutes: 90", "retention-days: 7", "runs-on: ubuntu-24.04", "github.run_attempt == 1",
+                     "github.ref == 'refs/heads/main'"):
+            self.assertIn(kept, text)
+
+
+# --------------------------------------------------------------------------
+# default-bridge profile: fakes only, real authenticated core helpers
+# --------------------------------------------------------------------------
+BRIDGE_ID, OWNED_ID, FOREIGN_ID = "b" * 64, "d" * 64, "e" * 64
+RUN_SUFFIX = "41728995205"
+CONTAINER = f"tf-current-signer-{RUN_SUFFIX}-2"
+OWNER_LABEL = gate.default_bridge_owner_label(RUN_SUFFIX, NONCE)
+MUTATING = {("network", "create"), ("network", "rm"), ("network", "connect"), ("network", "disconnect"),
+            ("network", "prune"), ("container", "rm"), ("rm", "-f")}
+
+
+class BridgeDocker:
+    """Stateful fake of the built-in bridge plus one --rm worker. Records argv; no native effect."""
+
+    def __init__(self, *, overrides=None, bridge_extra=(), late_peers=(), owner_rows=None, name_preexisting=False,
+                 marker="true", changed_id=None, stays_attached=False):
+        self.events, self.calls, self.spawned = [], [], []
+        self.overrides, self.bridge_extra, self.late_peers = dict(overrides or {}), tuple(bridge_extra), tuple(late_peers)
+        self.owner_rows, self.name_preexisting, self.marker = owner_rows, name_preexisting, marker
+        self.changed_id, self.stays_attached = changed_id, stays_attached
+        self.alive = self.attached = False
+
+    def spawn(self, argv, env):
+        self.events.append("spawn")
+        self.spawned.append((tuple(argv), dict(env)))
+        self.alive = self.attached = True
+        return object()
+
+    def exited(self):  # Natural --rm removal once the observer exits.
+        self.alive = self.attached = False
+
+    def _bridge(self):
+        peers = list(self.bridge_extra) + (list(self.late_peers) if self.spawned else []) + (
+            [OWNED_ID] if self.attached else [])
+        network_id = self.changed_id if self.changed_id and self.spawned else BRIDGE_ID
+        doc = {"id": network_id, "name": "bridge", "driver": "bridge", "scope": "local", "internal": False,
+               "default_marker": self.marker, "containers": {peer: {} for peer in peers}}
+        return json.dumps(doc, separators=(",", ":")).encode() + b"\n"
+
+    def __call__(self, argv, timeout):
+        argv = tuple(argv)
+        self.calls.append(argv)
+        self.events.append(("docker",) + argv[1:3])
+        for prefix, response in self.overrides.items():
+            if argv[1:1 + len(prefix)] == prefix:
+                return response
+        if argv == gate.default_bridge_inspect_command():
+            return 0, self._bridge(), b""
+        if argv == gate.owned_container_listing_command(CONTAINER, OWNER_LABEL):
+            if self.owner_rows is not None and self.alive:
+                return 0, self.owner_rows, b""
+            return 0, ((OWNED_ID + "\n").encode() if self.alive else b""), b""
+        if argv == gate.container_name_listing_command(CONTAINER):
+            row = FOREIGN_ID if self.name_preexisting else (OWNED_ID if self.alive else None)
+            return 0, ((row + "\n").encode() if row else b""), b""
+        if argv == gate.worker_networks_command(OWNED_ID):
+            body = {"bridge": {"NetworkID": BRIDGE_ID}} if self.attached or self.stays_attached else {}
+            return 0, json.dumps(body).encode() + b"\n", b""
+        if argv == gate.default_bridge_gate_commands(BRIDGE_ID, OWNED_ID)[0]:
+            self.attached = False
+            return 0, b"", b""
+        if argv == gate.owned_container_remove_command(OWNED_ID):
+            self.alive = self.attached = False
+            return 0, OWNED_ID.encode() + b"\n", b""
+        return 1, b"", b"unexpected"
+
+
+class BridgeSession(FakeSession):
+    def __init__(self, docker, lines, **kw):
+        super().__init__(lines, **kw)
+        self.docker = docker
+
+    def write_stdin(self, payload, *, close_after=False):
+        self.docker.events.append("challenge")
+        super().write_stdin(payload, close_after=close_after)
+
+    def wait_for_exit(self):
+        self.docker.exited()
+        return self.exit_code
+
+
+class SpyController:
+    """Delegates to the real authenticated controller; records which helpers are reached."""
+    TRACKED = frozenset({"_default_bridge_preflight", "_prepare_default_bridge_disconnect",
+                         "_teardown_default_bridge_session", "_default_bridge_teardown_uncertain",
+                         "_teardown_host_session", "_run_gate_session", "execute_host_controller",
+                         "build_default_bridge_run_argv"})
+
+    def __init__(self, events, replace=None):
+        self._events, self._replace, self.teardown_seen = events, dict(replace or {}), None
+
+    def __getattr__(self, name):
+        real = self._replace[name] if name in self._replace else getattr(hc, name)
+        if name not in self.TRACKED:
+            return real
+
+        def tracked(*args, **kwargs):
+            self._events.append(name)
+            if name == "_default_bridge_teardown_uncertain":
+                self.teardown_seen = dict(args[0])
+            return real(*args, **kwargs)
+        return tracked
+
+
+def default_lifecycle(docker, session, replace=None):
+    spy = SpyController(docker.events, replace)
+    out = probe.run_default_lifecycle(
+        run_suffix=RUN_SUFFIX, image_id="sha256:" + "ab" * 32, container_python="/usr/bin/python3",
+        p_dir=Path("/home/runner/work/p"), mods=dict(PROD, signer_host_controller=spy), runner=docker,
+        spawner=lambda argv, env: docker.spawn(argv, env), session_factory=lambda proc, deadline, err: session,
+        nonce=NONCE, uid=1001, gid=118)
+    return out, spy
+
+
+def mutations(docker):
+    return [call for call in docker.calls if call[1:3] in MUTATING]
+
+
+class DefaultBridgeLifecycle(unittest.TestCase):
+    def run_case(self, *, replace=None, lines=(READY, RESULT), **docker_kw):
+        docker = BridgeDocker(**docker_kw)
+        session = BridgeSession(docker, list(lines))
+        out, spy = default_lifecycle(docker, session, replace)
+        return out, docker, session, spy
+
+    def test_core_helpers_in_order_bridge_preserved_and_nothing_raw(self):
+        out, docker, session, spy = self.run_case()
+        self.assertEqual((out["refusal"], out["custody_retained"], out["ownership_pinned"], out["bridge_gate_code"]),
+                         ("NONE", False, True, "NONE"))
+        self.assertTrue(all(value == "OK" for value in out["steps"].values()))
+        ev = docker.events
+        order = [e for e in ev if e in ("_default_bridge_preflight", "spawn", "_prepare_default_bridge_disconnect",
+                                        "challenge", "_teardown_default_bridge_session",
+                                        "_default_bridge_teardown_uncertain")]
+        self.assertEqual(order, ["_default_bridge_preflight", "spawn", "_prepare_default_bridge_disconnect", "challenge",
+                                 "_teardown_default_bridge_session", "_default_bridge_teardown_uncertain"])
+        detach = ev.index(("docker", "network", "disconnect"))
+        self.assertLess(ev.index("_prepare_default_bridge_disconnect"), detach)
+        self.assertLess(detach, ev.index("challenge"))
+        # The only mutation is detaching the resolved owned endpoint from the captured bridge ID.
+        self.assertEqual(mutations(docker), [gate.default_bridge_gate_commands(BRIDGE_ID, OWNED_ID)[0]])
+        tear = out["teardown"]
+        self.assertEqual((tear["network_removed"], tear["builtin_bridge_preserved"], tear["owner_custody"],
+                          tear["container_force_remove_attempted"], tear["owned_worker_endpoint_mutation_attempted"]),
+                         (False, True, "absent", False, True))
+        self.assertIs(spy.teardown_seen["frame_capture_custody_retained"], False)
+        for banned in ("_teardown_host_session", "_run_gate_session", "execute_host_controller",
+                       "build_default_bridge_run_argv"):
+            self.assertNotIn(banned, ev)
+        self.assertEqual(session.writes, [(probe.encode_line("challenge", NONCE), True)])
+        text = json.dumps(out)
+        for raw in (BRIDGE_ID, OWNED_ID, OWNER_LABEL, CONTAINER):
+            self.assertNotIn(raw, text)
+
+    def test_argv_is_label_bound_secret_free_and_profile_exact(self):
+        _, docker, _, _ = self.run_case()
+        argv, env = docker.spawned[0]
+        self.assertEqual(env, {"PATH": "/usr/bin:/bin", "LC_ALL": "C", "LANG": "C"})
+        self.assertEqual(argv[argv.index("--network") + 1], "bridge")
+        self.assertEqual(argv[argv.index("--label") + 1], f"{gate.OWNER_LABEL_KEY}={OWNER_LABEL}")
+        self.assertFalse({"-e", "--env", "--env-file", "GH_TOKEN", "-v", "--privileged"} & set(argv))
+        self.assertFalse(any(m in t.upper() for t in argv for m in ("TOKEN", "GPG", "SIGNING", "SECRET", "PASSPHRASE")))
+        kw = dict(container=CONTAINER, owner_label=OWNER_LABEL)
+        probe.validate_observer_argv(argv, hc, **kw)
+        i, lab = argv.index("--rm") + 1, argv.index("--label")
+        bad_argvs = [
+            tuple(f"{gate.OWNER_LABEL_KEY}={'f' * 64}" if t == argv[lab + 1] else t for t in argv),
+            argv[:i] + ("--label", argv[lab + 1]) + argv[i:], argv[:lab] + argv[lab + 2:],
+            tuple("tf-current-signer-1-1" if t == "bridge" else t for t in argv),
+            argv[:i] + ("-e", "GH_TOKEN") + argv[i:], argv[:i] + ("--label-file", "/tmp/x") + argv[i:],
+            argv[:i] + ("--network=host",) + argv[i:], tuple("other-name-2" if t == CONTAINER else t for t in argv),
+        ]
+        for bad in bad_argvs:
+            with self.assertRaises(probe.ProbeRefusal):
+                probe.validate_observer_argv(bad, hc, **kw)
+        with self.assertRaises(probe.ProbeRefusal):  # custom profile never carries a label or the built-in bridge
+            probe.validate_observer_argv(argv, hc)
+
+    def test_preflight_refusal_never_spawns_mutates_or_tears_down(self):
+        cases = ((dict(bridge_extra=(FOREIGN_ID,)), "BRIDGE_PEER_PRESENT"),
+                 (dict(name_preexisting=True), "CONTAINER_NAME_COLLISION"),
+                 (dict(marker="false"), "BRIDGE_IDENTITY_MISMATCH"),
+                 (dict(overrides={("network", "inspect"): (1, b"", b"raw daemon text")}), "DOCKER_COMMAND_FAILED"))
+        for kw, code in cases:
+            out, docker, _, _ = self.run_case(**kw)
+            self.assertEqual((out["refusal"], out["bridge_gate_code"]), ("BRIDGE_PREFLIGHT_REFUSED", code), code)
+            self.assertEqual((docker.spawned, mutations(docker)), ([], []), code)
+            self.assertNotIn("_teardown_default_bridge_session", docker.events, code)
+            self.assertEqual((out["custody_retained"], out["teardown"]["owner_custody"]), (False, "NOT_RUN"), code)
+
+    def test_foreign_ambiguous_or_malformed_ownership_never_detaches_or_removes_foreign(self):
+        cases = ((dict(owner_rows=f"{OWNED_ID}\n{FOREIGN_ID}\n".encode()), "OWNER_LOOKUP_AMBIGUOUS", False),
+                 (dict(owner_rows=b""), "OWNER_LOOKUP_EMPTY", False),
+                 (dict(owner_rows=b"not-an-id\n"), "CONTAINER_LISTING_FORMAT", False),
+                 (dict(late_peers=(FOREIGN_ID,)), "BRIDGE_PEER_PRESENT", True),
+                 (dict(changed_id="f" * 64), "BRIDGE_IDENTITY_CHANGED", True))
+        for kw, code, owned_removed in cases:
+            out, docker, session, _ = self.run_case(**kw)
+            self.assertEqual((out["refusal"], out["bridge_gate_code"], out["ownership_pinned"]),
+                             ("OWNERSHIP_NOT_PROVEN", code, False), code)
+            self.assertNotIn(("docker", "network", "disconnect"), docker.events, code)
+            self.assertEqual(session.writes, [], code)
+            removals = [call for call in docker.calls if call[1:3] == ("container", "rm")]
+            self.assertEqual(removals, [gate.owned_container_remove_command(OWNED_ID)] if owned_removed else [], code)
+            self.assertTrue(out["teardown"]["teardown_run"], code)
+            self.assertFalse(out["teardown"]["network_removed"], code)
+            if not owned_removed or code == "BRIDGE_IDENTITY_CHANGED":
+                self.assertTrue(out["custody_retained"], code)
+
+    def test_detach_not_confirmed_stops_before_challenge_and_removes_only_owned_id(self):
+        out, docker, session, _ = self.run_case(stays_attached=True)
+        self.assertEqual((out["refusal"], out["detached_readback"]), ("DETACH_NOT_CONFIRMED", "NETWORK_ATTACHED"))
+        self.assertEqual((session.writes, out["after_disconnect"]), ([], None))
+        self.assertEqual([call for call in docker.calls if call[1:3] == ("container", "rm")],
+                         [gate.owned_container_remove_command(OWNED_ID)])
+        self.assertTrue(out["teardown"]["builtin_bridge_preserved"])
+
+    def test_spawn_failure_is_uncertain_and_still_runs_owned_teardown(self):
+        docker = BridgeDocker()
+
+        def failing(argv, env):
+            docker.events.append("spawn")
+            raise OSError("raw spawn text")
+        docker.spawn = failing
+        out, _ = default_lifecycle(docker, BridgeSession(docker, [READY, RESULT]))
+        self.assertEqual((out["refusal"], out["custody_retained"]), ("CONTAINER_SPAWN_FAILED", True))
+        self.assertTrue(out["teardown"]["teardown_run"] and out["teardown"]["spawn_outcome_uncertain"])
+        self.assertEqual(mutations(docker), [])
+
+    def test_unlisted_network_or_foreign_mutation_is_refused_before_the_runner(self):
+        real = hc._teardown_default_bridge_session
+
+        def widened(session, container, label, bridge_id, runner, **kw):
+            runner((probe.DOCKER, "network", "rm", "bridge"), 30.0)
+            runner((probe.DOCKER, "network", "connect", "bridge", OWNED_ID), 30.0)
+            runner((probe.DOCKER, "container", "rm", "--force", FOREIGN_ID), 30.0)
+            runner((probe.DOCKER, "rm", "-f", CONTAINER), 30.0)
+            return real(session, container, label, bridge_id, runner, **kw)
+        out, docker, _, _ = self.run_case(replace={"_teardown_default_bridge_session": widened})
+        self.assertEqual(mutations(docker), [gate.default_bridge_gate_commands(BRIDGE_ID, OWNED_ID)[0]])
+        self.assertEqual((out["refusal"], out["command_guard_refused"], out["custody_retained"]),
+                         ("COMMAND_NOT_ALLOWED", True, True))
+
+    def test_custom_profile_stays_legacy_and_never_reaches_default_helpers(self):
+        events, spawned, runner = [], [], FakeRunner()
+        out = probe.run_lifecycle(
+            run_suffix=RUN_SUFFIX, image_id="sha256:" + "ab" * 32, container_python="/usr/bin/python3",
+            p_dir=Path("/home/runner/work/p"), mods=dict(PROD, signer_host_controller=SpyController(events)),
+            runner=runner, spawner=lambda argv, env: spawned.append(argv) or object(),
+            session_factory=lambda proc, deadline, err: FakeSession([READY, RESULT]), nonce=NONCE, uid=1001, gid=118)
+        self.assertEqual((out["refusal"], events), ("NONE", ["_teardown_host_session"]))
+        self.assertFalse({"--label", "bridge"} & set(spawned[0]))
+        self.assertEqual(runner.kinds()[0], "network create")
+
+    def test_closed_local_copies_match_loaded_core_leaf(self):
+        self.assertEqual(probe.DEFAULT_BRIDGE_GATE_CODES, gate.DEFAULT_BRIDGE_ERROR_CODES)
+        self.assertEqual((probe.OWNER_LABEL_KEY, probe.DEFAULT_BRIDGE_NETWORK),
+                         (gate.OWNER_LABEL_KEY, gate.DEFAULT_BRIDGE_NAME))
+
+
+class DefaultBridgeEndToEnd(unittest.TestCase):
+    setUp, tearDown, _build, _dispose = HostEndToEnd.setUp, HostEndToEnd.tearDown, HostEndToEnd._build, HostEndToEnd._dispose
+    git, run_host = HostEndToEnd.git, HostEndToEnd.run_host
+
+    def run_default(self, **docker_kw):
+        docker = BridgeDocker(**docker_kw)
+        self.session = BridgeSession(docker, [READY, RESULT])
+        return self.run_host(network_profile="default-bridge", runner=docker,
+                             spawner=lambda argv, env: docker.spawn(argv, env)), docker
+
+    def test_end_to_end_closed_v2_result_without_raw_identifiers(self):
+        result, docker = self.run_default()
+        self.assertEqual((result["status"], result["refusal"], result["network_profile"]),
+                         ("diagnostic-complete", "NONE", "default-bridge"))
+        self.assertEqual(probe.validate_result(result)["schema"], "tf.current-signer-isolation-probe-result.v2")
+        self.assertEqual(self.events.count("dispose"), 1)
+        self.assertFalse((self.tmp / "image-work").exists())
+        out = self.tmp / "out" / "RESULT.json"
+        probe.write_result(out, result)
+        text = out.read_text()
+        for raw in (BRIDGE_ID, OWNED_ID, OWNER_LABEL, "tf-current-signer-", "ghs_fixture", str(self.tmp)):
+            self.assertNotIn(raw, text)
+        self.assertFalse(any("ghs_fixture" in token for token in docker.spawned[0][0]))
+
+    def test_refused_preflight_result_is_valid_and_image_still_disposed(self):
+        result, docker = self.run_default(bridge_extra=(FOREIGN_ID,))
+        self.assertEqual((result["status"], result["refusal"], result["custody_retained"]),
+                         ("refused", "BRIDGE_PREFLIGHT_REFUSED", False))
+        self.assertEqual((docker.spawned, self.events.count("dispose")), ([], 1))
+        probe.validate_result(result)
+
+    def test_complete_default_result_refuses_invalid_combinations(self):
+        result, _ = self.run_default()
+        for path, value in (
+            (("lifecycle", "teardown", "network_removed"), True),
+            (("lifecycle", "teardown", "builtin_bridge_preserved"), False),
+            (("lifecycle", "teardown", "frame_capture_custody_retained"), True),
+            (("lifecycle", "teardown", "unexpected_bridge_peer_observed"), True),
+            (("lifecycle", "teardown", "owner_custody"), "ambiguous"),
+            (("lifecycle", "teardown", "owner_custody"), OWNED_ID),
+            (("lifecycle", "teardown", "removal_by_immutable_id_only"), False),
+            (("lifecycle", "teardown", "teardown_run"), False),
+            (("lifecycle", "teardown", "container_force_removed"), "yes"),
+            (("lifecycle", "ownership_pinned"), False),
+            (("lifecycle", "command_guard_refused"), True),
+            (("lifecycle", "bridge_gate_code"), "BRIDGE_PEER_PRESENT"),
+            (("lifecycle", "bridge_gate_code"), "Error response from daemon"),
+            (("lifecycle", "steps", "ownership"), "NOT_REACHED"),
+            (("lifecycle", "owned_id"), OWNED_ID),
+            (("network_profile",), "custom-bridge"),
+            (("network_profile",), "host"),
+            (("image", "image_id_removed"), False),
+        ):
+            changed = json.loads(json.dumps(result))
+            cursor = changed
+            for name in path[:-1]:
+                cursor = cursor[name]
+            cursor[path[-1]] = value
+            with self.assertRaises(probe.ProbeRefusal, msg=str(path)):
+                probe.validate_result(changed)
+        # The previous run consumed its host token and observer lines.
+        # Build a fresh successful custom-profile fixture before crossing profiles.
+        self.env = dict(GOOD_ENV)
+        self.session = FakeSession([READY, RESULT])
+        self.runner = FakeRunner()
+        mixed = json.loads(json.dumps(self.run_host()))
+        self.assertEqual(mixed["status"], "diagnostic-complete")
+        mixed["network_profile"] = "default-bridge"
+        with self.assertRaises(probe.ProbeRefusal):
+            probe.validate_result(mixed)
+
+
+class HostArguments(unittest.TestCase):
+    def test_network_profile_has_two_closed_choices_and_legacy_default(self):
+        base = ["--p-root", "/p", "--p-commit", "1" * 40, "--work-root", "/w", "--result-out", "/r/RESULT.json"]
+        self.assertEqual(probe.parse_host_args(base).network_profile, "custom-bridge")
+        self.assertEqual(probe.parse_host_args(base + ["--network-profile", "default-bridge"]).network_profile,
+                         "default-bridge")
+        for bad in (["--network-profile", "host"], ["--network-profile", "none"], ["--network-profile"],
+                    ["--network-prof", "default-bridge"]):
+            with self.assertRaises(SystemExit):
+                probe.parse_host_args(base + bad)
+        with self.assertRaises(ValueError):
+            probe.execute_host(p_root="/p", p_commit="1" * 40, work_root="/w", environ={}, network_profile="host")
 
 
 if __name__ == "__main__":
