@@ -82,3 +82,54 @@ The added operation labels deliberately declassify coarse control-flow informati
 This step axis partially supersedes the baseline privacy rationale for excluding key- and passphrase-specific refusal codes. RUNTIME_IMPORT_CI may correlate with a failed import or rejected key topology. A first signing-operation marker may correlate with a passphrase rejection. These public correlations are deliberately admitted coarse information, even though one marker covers many unrelated refusals and is not a credential verdict. Values and raw diagnostics remain withheld; no claim of zero information leakage follows.
 
 Ownership is attached to the original error before the optional diagnostic calls. If those calls are interrupted, the replacement exception receives the same runtime ownership before propagating. The existing outer finally still zeroes both frame buffers. Diagnostic calls extend the time before that finally by their bounded computation; they do not move zeroization after any native operation.
+
+
+## Credential-free owned-agent image preparation candidate
+
+The full image uses the same pinned global-configuration preparation helper as
+the GPG probe, after the offline package transaction and before removal of its
+staging inputs. The helper authenticates the existing GnuPG package identity and
+quarantines only its validated configuration or verified empty ghost directory.
+The owned-agent global-path guard remains unchanged.
+
+Before accepting a built image, its existing inspection container also starts,
+checks and closes the exact pinned production owned-agent class without a key,
+passphrase, frame, token or signing request. This runs in the inspection process
+as UID/GID 1001 with no network, a read-only root, dropped capabilities and
+no-new-privileges. Its only additional writable mount is a fresh private tmpfs
+at /work/workspace. Source files are pinned before staging, rechecked before
+build, and installed root-owned and read-only.
+
+Acceptance requires confirmed agent liveness and agent cleanup. Unknown or
+failed checks refuse image handoff. Fixed check phases/codes and proof flags
+may be retained; exception text and native tool streams are not public
+diagnostics. An unconfirmed close retains the agent object until the owned
+inspection container is disposed. Container disposal removes the fresh
+credential-free fixture state; it does not prove successful agent cleanup.
+
+This is a proposed additional image test purpose, temporary-state lifetime and
+closed-diagnostic policy. It does not establish the first failed predicate in
+the previous protected run, credential validity, signing qualification or
+publication readiness. Activation and new hosted campaigns require the current
+bounded owner disposition. Existing package, key, environment, network,
+toolchain, timeout, signing and cleanup controls remain in force.
+
+Both inspection and protected-worker entry now use the same pinned Python
+namespace entry. PID1 forks one child before bootstrap, intake or a frame;
+it closes its own protocol descriptors and clears future environment before
+releasing the child through a private pipe. It only waits for that child and
+returns its status. It never reads protocol streams or forwards signals.
+The child executes the fixed isolated Python target and keeps one worker PID
+through all private phases. Initial online-token kernel storage is not
+claimed erased. No signing secret enters the entry environment. Namespace
+teardown remains disposal, not evidence of private cleanup. The inspection's
+offline network, read-only root and test job differ from the private worker.
+
+The namespace entry accepts the controller's dynamic nonroot real UID/GID
+with matching effective IDs; only inspection binds 1001:1001. Parent-only
+SIGINT handling is a caught no-op after fork, leaving child signal semantics
+unchanged. Internal parent failure exits 125. The entry is not a general
+orphan reaper; namespace disposal remains separately controlled.
+The key-free observer lifecycle does not exercise the protected worker
+target. Its image inspection exercises the shared entry and credential-free
+agent; Q remains the required first full protected-worker target gate.

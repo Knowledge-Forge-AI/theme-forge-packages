@@ -232,7 +232,7 @@
   },
   "production_authority": false,
   "quarantine_sha256": "db2eb505c0b66eae7efe8a3e18b19c37b3374fea28cae83904c9d7e5b8d83b00",
-  "recipe_sha256": "56a12ec8fb8955a22ca78259b36da9b6aa73efd025e14afd9aa3bae3a017e2b5",
+  "recipe_sha256": "5a9dfadba582c09990c948ffa4e99924b219cb3f400497523a34ba2d3708cee0",
   "required_tools": {
     "gpg": {
       "bytes": 1174728,

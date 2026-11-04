@@ -30,7 +30,7 @@ IMAGE_DISPOSAL_OBLIGATION = "same-job-owned-tag-removal-and-image-id-absence-con
 
 CLASS_ADMISSION_GATE_OPEN = True
 UNADMITTED_MANIFEST_PIN = "0" * 64
-ADMITTED_MANIFEST_SHA256 = "ba93088c618c9f9aa27f4bbae41309c72efe325f5e56389dd83878c8b51c67d6"
+ADMITTED_MANIFEST_SHA256 = "00fa8a1d2f0b398dd1640222fc844cdd15718c43f0950e5a7f028245d8cb0d94"
 
 APPROVED_BASE_IMAGE_DIGEST = "c5e15bd1e07c25904d0c5b9865fb7ee4589f8ca234e635742b0c1195838f4bfd"
 APPROVED_BASE_IMAGE = f"registry.fedoraproject.org/fedora@sha256:{APPROVED_BASE_IMAGE_DIGEST}"
@@ -382,6 +382,13 @@ NOTICE_CONTAINER_SUBDIRS: tuple[str, ...] = tuple(
         }
     )
 )
+IMAGE_CHECK_DIR = "/usr/local/libexec/tf-runtime-entry"
+IMAGE_CHECK_SCHEMA = "tf.signing-image-keyfree-agent-check.v1"
+# Exact local project sources; no download or caller-selected executable.
+IMAGE_CHECK_SOURCE_PINS: dict[str, tuple[str, int, str]] = {'prepare_isolated_global_config.py': ('b3/prepare_isolated_global_config.py', 63755, 'c6a8cf05d3c46fd1497fd9de490366e4ad7fb3caafbb61c049a15bc669526a11'), 'owned_gpg_agent.py': ('current_signer/owned_gpg_agent.py', 50589, '305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf'), 'keyfree_agent_image_check.py': ('current_signer/keyfree_agent_image_check.py', 6140, '089b142662301b2b7454306d8a788f7794e8d22daa2fd68dd95eff54c32fbba3'), 'container_process_entry.py': ('current_signer/container_process_entry.py', 3148, 'af66d8b10a44fee9532eed5509ba1fd6421bce88fd5b3933233e6b662fd6ce62')}
+KEYFREE_AGENT_CODES = frozenset(['AGENT_CHECK_FAILED', 'AGENT_CLEANUP_UNCONFIRMED', 'AGENT_EXEC_IDENTITY', 'AGENT_NOT_LIVE', 'AGENT_NOT_READY', 'AGENT_READINESS_MISMATCH', 'AGENT_READINESS_TIMEOUT', 'AGENT_READINESS_TRANSPORT', 'AGENT_SOURCE_REFUSED', 'AGENT_UNEXPECTED_DESCENDANT', 'CHECK_CONTEXT_REFUSED', 'CLEANUP_PATH_CHANGED', 'CLEANUP_UNCONFIRMED', 'COMMON_CONF_TAMPERED', 'COMMON_CONF_WRITE', 'GLOBAL_CONFIG_REJECTED', 'GPGCONF_FAILED', 'GPGCONF_OUTPUT', 'HOME_NOT_EMPTY', 'JOB_ROOT_CHANGED', 'JOB_ROOT_HOME_MISSING', 'JOB_ROOT_NOT_OWNED', 'LIFECYCLE_STATE', 'LISTENER_HOLDER_UNCONFIRMED', 'LISTENER_STILL_HELD', 'PATH_CHANGED', 'PATH_CUSTODY', 'PATH_FORMAT', 'PATH_SCOPE', 'PATH_UNEXPECTED', 'PIDFD_ENROLLMENT_UNCONFIRMED', 'PROC_VISIBILITY_UNCONFIRMED', 'SIGCHLD_PRECONDITION', 'SOCKETDIR_BINDING_UNCONFIRMED', 'SOCKETDIR_NOT_EMPTY', 'SOCKETDIR_NOT_FRESH', 'SOCKETDIR_REPLACED', 'SOCKET_REPLACED', 'STARTUP_CHILD_EXITED', 'TOOL_CHANGED', 'TOOL_PREFLIGHT_FAILED', 'UNRECORDED_CLEANUP_ENTRY', 'UNSUPPORTED_PLATFORM', 'UNSUPPORTED_SOCKET_PLACEMENT', 'UNSUPPORTED_VERSION', 'WORKSPACE_REFUSED'])
+
+
 ALLOWED_CONTEXT_FILENAMES: frozenset[str] = frozenset(
     {
         "Dockerfile",
@@ -389,6 +396,7 @@ ALLOWED_CONTEXT_FILENAMES: frozenset[str] = frozenset(
         SUPPLEMENTAL_NOTICE_CONTEXT_FILENAME,
         *QUARANTINE_ARCHIVES,
         *NOTICE_CONTEXT_FILENAMES.values(),
+        *IMAGE_CHECK_SOURCE_PINS,
     }
 )
 ALLOWED_BUILDER_ENV_KEYS: frozenset[str] = frozenset({"PATH", "LC_ALL", "LANG"})
@@ -504,6 +512,7 @@ class ImageInspectionReport:
     tools: Mapping[str, InspectedTool]
     step_receipt: EngineStepReceipt
     supplemental_notice_pins_sha256: str = ""
+    keyfree_agent_check: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -541,6 +550,8 @@ class BuildCommandPlan:
             "--network",
             "none",
             "--read-only",
+            "--tmpfs",
+            "/work/workspace:rw,noexec,nosuid,nodev,mode=0700,uid=1001,gid=1001",
             "--user",
             f"{WORKER_RUNTIME_UID}:{WORKER_RUNTIME_GID}",
             "--cap-drop",
@@ -548,6 +559,11 @@ class BuildCommandPlan:
             "--security-opt",
             "no-new-privileges",
             require_local_image_id(image_id),
+            CONTAINER_PYTHON_PATH,
+            "-I",
+            "-B",
+            f"{IMAGE_CHECK_DIR}/container_process_entry.py",
+            "--",
             CONTAINER_PYTHON_PATH,
             "-I",
             "-B",
@@ -573,6 +589,7 @@ class ImageBuildResult:
     retained_custody_count: int
     native_execution_observed: bool
     native_ready_for_host_controller: bool
+    keyfree_agent_check: Mapping[str, Any] | None = None
     build_tag: str = ""
     built_image_retained_for_host_controller: bool = True
     image_disposal_obligation: str = IMAGE_DISPOSAL_OBLIGATION
@@ -624,6 +641,7 @@ class ImageBuildResult:
             "tool_digests": dict(self.tool_digests),
             "tool_bytes": dict(self.tool_bytes),
             "tool_versions": dict(self.tool_versions),
+            "keyfree_agent_check": dict(self.keyfree_agent_check) if self.keyfree_agent_check is not None else None,
             "step_count": len(self.step_receipts),
             "steps": [s.record() for s in self.step_receipts],
             "context_cleaned": self.context_cleaned,
@@ -913,6 +931,11 @@ def render_offline_dockerfile() -> str:
         (SUPPLEMENTAL_NOTICE_DIR_IN_CONTAINER, *NOTICE_CONTAINER_SUBDIRS)
     )
     copy_lines = [
+        f"COPY --chown=0:0 --chmod=0400 prepare_isolated_global_config.py {STAGE_DIR_IN_CONTAINER}/prepare_isolated_global_config.py",
+        *(
+            f"COPY --chown=0:0 --chmod=0444 {name} {IMAGE_CHECK_DIR}/{name}"
+            for name in ("owned_gpg_agent.py", "keyfree_agent_image_check.py", "container_process_entry.py")
+        ),
         f"COPY --chown=0:0 --chmod=0600 {FEDORA_CERT_CONTEXT_FILENAME} {STAGE_DIR_IN_CONTAINER}/{FEDORA_CERT_CONTEXT_FILENAME}",
         *(
             f"COPY --chown=0:0 --chmod=0600 {name} {STAGE_DIR_IN_CONTAINER}/{name}"
@@ -934,6 +957,8 @@ def render_offline_dockerfile() -> str:
         f"    /usr/bin/dnf install -y --disablerepo=* --setopt=install_weak_deps=False "
         f"--setopt=gpgcheck=True --setopt=localpkg_gpgcheck=True --setopt=tsflags= \\\n"
         f"    {rpm_stage_paths} && \\\n"
+        f"    /usr/bin/python3 -I -B {STAGE_DIR_IN_CONTAINER}/prepare_isolated_global_config.py --prepare-image "
+        f"--expected-helper-sha256 {IMAGE_CHECK_SOURCE_PINS['prepare_isolated_global_config.py'][2]} && \\\n"
         f"    /usr/bin/rm -rf {STAGE_DIR_IN_CONTAINER} && \\\n"
         f"    /usr/bin/dnf clean all --disablerepo=* && \\\n"
         f"    /usr/bin/chmod 0555 \\\n"
@@ -947,7 +972,7 @@ def render_offline_dockerfile() -> str:
             "USER 0:0",
             f"RUN /usr/bin/install -d -m 0700 -o 0 -g 0 {STAGE_DIR_IN_CONTAINER} && \\\n"
             f"    /usr/bin/install -d -m 0755 -o 0 -g 0 \\\n"
-            f"    {notice_dirs}",
+            f"    {notice_dirs} {IMAGE_CHECK_DIR}",
             *copy_lines,
             run_block,
             "ENV HOME=/work/workspace PATH=/usr/bin:/bin LC_ALL=C LANG=C",
@@ -963,7 +988,7 @@ EXPECTED_DOCKERFILE_SHA256 = sha256_hex(EXPECTED_DOCKERFILE_TEXT.encode("utf-8")
 
 _CONTAINER_PROBE_CODE = "\n".join(
     [
-        "import hashlib, json, os, stat, subprocess",
+        "import hashlib, json, os, stat, subprocess, sys, types",
         "tools = {",
         "    'gpg': ('/usr/bin/gpg', ('--version',)),",
         "    'gpg-agent': ('/usr/bin/gpg-agent', ('--version',)),",
@@ -1021,13 +1046,35 @@ _CONTAINER_PROBE_CODE = "\n".join(
         "        and hashlib.sha256(fraw).hexdigest() == row['sha256']",
         "        and fblob == row['gitBlob']",
         "    )",
+        f"check_path = {IMAGE_CHECK_DIR!r} + '/keyfree_agent_image_check.py'",
+        "fd = os.open(check_path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)",
+        "try:",
+        "    before = os.fstat(fd)",
+        "    assert stat.S_ISREG(before.st_mode) and before.st_uid == 0 and before.st_gid == 0",
+        "    assert before.st_nlink == 1 and stat.S_IMODE(before.st_mode) == 0o444",
+        f"    assert before.st_size == {IMAGE_CHECK_SOURCE_PINS['keyfree_agent_image_check.py'][1]!r}",
+        "    body = os.pread(fd, before.st_size + 1, 0)",
+        "    after = os.fstat(fd)",
+        "    named = os.lstat(check_path)",
+        "    identity = lambda st: (st.st_dev, st.st_ino, st.st_mode, st.st_uid, st.st_gid, st.st_nlink, st.st_size, st.st_mtime_ns, st.st_ctime_ns)",
+        "    assert identity(before) == identity(after) == identity(named)",
+        f"    assert hashlib.sha256(body).hexdigest() == {IMAGE_CHECK_SOURCE_PINS['keyfree_agent_image_check.py'][2]!r}",
+        "finally:",
+        "    os.close(fd)",
+        "check_module = types.ModuleType('_tf_signing_image_keyfree_check')",
+        "check_module.__file__ = check_path",
+        "sys.modules[check_module.__name__] = check_module",
+        "exec(compile(body, check_path, 'exec', dont_inherit=True), check_module.__dict__)",
+        "keyfree_agent_check = check_module.run_keyfree_agent_check() if notices_ok else None",
         "print(json.dumps({",
+
         "    'container_python_ok': True,",
         "    'stage_dir_absent': not os.path.exists('/tmp/tf-rpm-stage'),",
         "    'workspace_owner_ok': (ws.st_uid == 1001 and ws.st_gid == 1001 and ex.st_uid == 1001 and ex.st_gid == 1001),",
         "    'supplemental_notices_ok': bool(notices_ok),",
         "    'supplemental_notice_pins_sha256': pins_sha256,",
         "    'tools': out,",
+        "    'keyfree_agent_check': keyfree_agent_check,",
         "}))",
     ]
 )
@@ -1713,6 +1760,17 @@ def _release_build_context(context_dir: Path, expected_identity: tuple[int, ...]
     return True
 
 
+def _image_check_source_payloads() -> dict[str, bytes]:
+    root = Path(__file__).parent.parent
+    payloads: dict[str, bytes] = {}
+    for name, (relative, size, digest) in IMAGE_CHECK_SOURCE_PINS.items():
+        body = held_unaliased_bytes(root / relative, max_bytes=MAX_SMALL_SOURCE_BYTES)
+        if len(body) != size or sha256_hex(body) != digest:
+            raise ImageBuildError("IMAGE_CHECK_SOURCE_MISMATCH", "Pinned image-check source differs")
+        payloads[name] = body
+    return payloads
+
+
 def _stage_build_context(
     work_root: Path,
     run_id_suffix: str,
@@ -1743,6 +1801,8 @@ def _stage_build_context(
             raise ImageBuildError("BUILD_CONTEXT_MODE_INVALID", "Build context directory must have mode 0700")
         _write_context_file(context_dir, "Dockerfile", EXPECTED_DOCKERFILE_TEXT.encode("utf-8"))
         _write_context_file(context_dir, FEDORA_CERT_CONTEXT_FILENAME, cert_bytes)
+        for name, body in _image_check_source_payloads().items():
+            _write_context_file(context_dir, name, body)
         if notice_manifest_bytes is not None:
             _write_context_file(context_dir, SUPPLEMENTAL_NOTICE_CONTEXT_FILENAME, notice_manifest_bytes)
         for fname, payload in sorted(archive_payloads.items()):
@@ -1787,6 +1847,11 @@ def _verify_staged_context(
         or set(os.listdir(context_dir)) != ALLOWED_CONTEXT_FILENAMES
     ):
         raise ImageBuildError("CONTEXT_STATE_CHANGED", "Build context directory identity, mode, or inventory changed")
+    for name, source in _image_check_source_payloads().items():
+        staged = context_dir / name
+        if (stat.S_IMODE(os.lstat(staged).st_mode) != 0o600
+                or held_unaliased_bytes(staged, max_bytes=MAX_SMALL_SOURCE_BYTES) != source):
+            raise ImageBuildError("CONTEXT_STATE_CHANGED", "Staged image-check source or mode changed")
     dockerfile_path = context_dir / "Dockerfile"
     if (
         stat.S_IMODE(os.lstat(dockerfile_path).st_mode) != 0o600
@@ -2070,6 +2135,7 @@ class BoundedDockerSubprocessEngine:
             tools=inspected,
             step_receipt=rec,
             supplemental_notice_pins_sha256=pins_sha,
+            keyfree_agent_check=payload.get("keyfree_agent_check"),
         )
 
     def remove_container(self, plan: BuildCommandPlan) -> bool:
@@ -2253,6 +2319,35 @@ def _verify_and_remove_owned_image(
         )
 
 
+def _verify_keyfree_agent_check(value: Any) -> dict[str, Any]:
+    expected = {
+        "schema": IMAGE_CHECK_SCHEMA, "status": "passed", "phase": "COMPLETE", "code": "NONE",
+        "worker_uid": WORKER_RUNTIME_UID, "worker_gid": WORKER_RUNTIME_GID,
+        "agent_source_sha256": IMAGE_CHECK_SOURCE_PINS["owned_gpg_agent.py"][2],
+        "agent_started_and_live": True, "agent_cleanup_confirmed": True,
+        "custody_retained": False, "fresh_state_disposal": "owned-container-teardown",
+        "signing_credentials_used": False, "production_authority": False,
+    }
+    valid = type(value) is dict and set(value) == set(expected)
+    if valid:
+        valid = all(type(value[key]) is type(item) for key, item in expected.items())
+    if not valid:
+        raise ImageBuildError("KEYFREE_AGENT_REPORT_INVALID", "Missing or malformed key-free agent check")
+    if value == expected:
+        return dict(value)
+    invariant_fields = ("schema", "worker_uid", "worker_gid", "agent_source_sha256",
+                        "fresh_state_disposal", "signing_credentials_used", "production_authority")
+    if (all(value[k] == expected[k] for k in invariant_fields)
+            and value["status"] == "failed-closed"
+            and value["phase"] in {"PREFLIGHT", "SOURCE", "WORKSPACE", "START", "LIVE", "CLOSE"}
+            and value["code"] in KEYFREE_AGENT_CODES):
+        suffix = "_CLOSE_UNCONFIRMED" if value["custody_retained"] else ""
+        raise ImageBuildError("KEYFREE_AGENT_" + value["code"] + suffix,
+                              "Key-free agent check refused; container disposal is separate",
+                              custody_retained=value["custody_retained"])
+    raise ImageBuildError("KEYFREE_AGENT_REPORT_INVALID", "Key-free agent check did not prove startup and close")
+
+
 def _verify_inspection_report(
     manifest: AdmissionManifest,
     expected_image_id: str,
@@ -2274,6 +2369,7 @@ def _verify_inspection_report(
             "IMAGE_LAYOUT_INVALID",
             "Built image failed python, staging-cleanup, workspace-owner, or supplemental-notice check",
         )
+    _verify_keyfree_agent_check(report.keyfree_agent_check)
     if set(report.tools) != set(REQUIRED_TOOL_PATHS):
         raise ImageBuildError("TOOL_DIGEST_MISMATCH", "Inspected tool set does not match required tools")
     digests: dict[str, str] = {}
@@ -2491,6 +2587,7 @@ def execute_signing_image_build(
         tool_digests=tool_digests,
         tool_bytes=tool_bytes,
         tool_versions=tool_versions,
+        keyfree_agent_check=dict(report.keyfree_agent_check),
         step_receipts=tuple(steps),
         context_cleaned=context_cleaned,
         custody_retained=False,
@@ -2537,6 +2634,7 @@ def to_host_controller_image_kwargs(result: ImageBuildResult) -> dict[str, str]:
     ):
         raise ImageBuildError("CUSTODY_RETAINED_REFUSAL", "Cannot bind image when cleanup custody is retained")
     require_local_image_id(result.image_id)
+    _verify_keyfree_agent_check(result.keyfree_agent_check)
     if set(result.tool_digests) != set(REQUIRED_TOOL_PATHS):
         raise ImageBuildError("TOOL_DIGEST_MISMATCH", "Result is missing required verified tool digests")
     for tname in REQUIRED_TOOL_PATHS:

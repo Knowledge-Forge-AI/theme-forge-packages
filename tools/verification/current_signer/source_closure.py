@@ -47,6 +47,7 @@ REQUIRED_CURRENT_SIGNER_LEAVES = frozenset({
     "publication_github_api.py", "retained_publication.py", "secret_frame_transport.py",
     "client_artifact_input.py", "package_client_qualification.py", "current_release_command_binding.py",
     "runtime_workflow_bridge.py", "signing_image_build.py", "runtime_input_intake.py",
+    "keyfree_agent_image_check.py", "container_process_entry.py",
 })
 
 REQUIRED_B3_LEAVES = frozenset({
