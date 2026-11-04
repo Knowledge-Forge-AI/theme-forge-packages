@@ -115,9 +115,9 @@ class RuntimeOperationTests(unittest.TestCase):
 
 
 class WorkerRuntimeBoundaryTests(base._WorkerFixture):
-    def failing_runtime(self, phase):
+    def failing_runtime(self, phase, code="COMMAND_FAILED"):
         def runner(*args, **kwargs):
-            raise runtime.ProtectedSigningError("COMMAND_FAILED", base.TEXT_CANARY)
+            raise runtime.ProtectedSigningError(code, base.TEXT_CANARY)
         obj = runtime.ProtectedSigningRuntime(runner=runner)
         obj._agent = types.SimpleNamespace(require_live=lambda: None)
         def execute(this, *args, **kwargs):
@@ -138,7 +138,7 @@ class WorkerRuntimeBoundaryTests(base._WorkerFixture):
                 self.assertEqual(rc, 2)
                 self.assertEqual(doc["error_code"], "WITHHELD_POST_FRAME")
                 self.assertEqual(doc["post_frame_diagnostic"]["step"], label)
-                self.assertEqual(doc["post_frame_diagnostic"]["code"], "UNCLASSIFIED")
+                self.assertEqual(doc["post_frame_diagnostic"]["code"], "COMMAND_FAILED")
                 parsed = base.hc._parse_untrusted_post_frame_worker_stderr(text.encode("ascii"))
                 self.assertEqual(parsed["step"], label)
                 self.assertEqual(parsed["record"], "VALID")
@@ -191,6 +191,28 @@ class WorkerRuntimeBoundaryTests(base._WorkerFixture):
             out = self._sign(runtime=obj, overrides={"protected_signing_runtime": runtime})
             self.assertEqual(out.tracker.step, marker)
             self.assertEqual(base.sw._post_frame_diagnostic(out.tracker, out.error)["code"], "UNCLASSIFIED")
+
+
+    def test_nine_runtime_error_codes_cross_only_as_fixed_untrusted_labels(self):
+        codes = ("COMMAND_FAILED", "COMMAND_TIMEOUT", "COMMAND_OUTPUT_LIMIT",
+                 "OUTPUT_INVENTORY", "REPOSITORY_METADATA", "PACKAGE_MUTATED",
+                 "AGENT_CONSUMER_LIFECYCLE", "COMMAND_CLEANUP", "AGENT_REQUIRED")
+        for code in codes:
+            with self.subTest(code=code):
+                out = self._flow(runtime=self.failing_runtime("rpm-metadata-create", code),
+                                 overrides={"protected_signing_runtime": runtime})
+                rc, text = base._run_worker_main(out.error)
+                self.assertEqual(rc, 2)
+                doc = json.loads(text)
+                self.assertEqual(doc["post_frame_diagnostic"]["code"], code)
+                parsed = base.hc._parse_untrusted_post_frame_worker_stderr(text.encode("ascii"))
+                self.assertEqual(parsed["code"], code)
+                self.assertEqual(parsed["step"], "RUNTIME_RPM_METADATA_CREATE")
+                self.assertIs(parsed["untrusted_worker_claim"], True)
+                self.assertEqual(out.lease.close_calls, 0)
+                self.assertEqual(bytes(out.buffers["key"]), bytes(len(base.KEY_CANARY)))
+                self.assertEqual(bytes(out.buffers["phrase"]), bytes(len(base.PHRASE_CANARY)))
+                base._assert_no_canary(self, text)
 
 
 if __name__ == "__main__":

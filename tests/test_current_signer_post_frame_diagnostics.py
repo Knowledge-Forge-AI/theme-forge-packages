@@ -906,8 +906,8 @@ class SourceLevelTests(unittest.TestCase):
         self.assertEqual(sw._POST_FRAME_STEPS, hc._POST_FRAME_WORKER_STEPS)
         self.assertEqual(sw._POST_FRAME_CODES, hc._POST_FRAME_WORKER_CODES)
         self.assertEqual(sw.POST_FRAME_DIAGNOSTIC_SCHEMA, hc._WORKER_POST_FRAME_DIAGNOSTIC_SCHEMA)
-        self.assertEqual(len(sw._POST_FRAME_REFUSAL_CODES), 43)
-        self.assertEqual(len(sw._POST_FRAME_CODES), 61)
+        self.assertEqual(len(sw._POST_FRAME_REFUSAL_CODES), 52)
+        self.assertEqual(len(sw._POST_FRAME_CODES), 70)
         self.assertEqual(len(sw._POST_FRAME_EXCEPTION_LABELS), len({label for _c, label in sw._POST_FRAME_EXCEPTION_LABELS}))
         for label in sw._POST_FRAME_CODES | sw._POST_FRAME_STEPS | hc._POST_FRAME_RECORD_STATES:
             self.assertRegex(label, r"^[A-Z0-9_]{3,64}$")
@@ -926,7 +926,8 @@ class SourceLevelTests(unittest.TestCase):
         start = worker_text.index("_POST_FRAME_REFUSAL_CODES = frozenset({")
         worker_outside = worker_text[:start] + worker_text[worker_text.index("})", start):]
         other_text = "".join(
-            (_SIGNER_DIR / name).read_text(encoding="utf-8") for name in ("signer_protocol_io.py", "source_closure.py")
+            (_SIGNER_DIR / name).read_text(encoding="utf-8") for name in ("signer_protocol_io.py", "source_closure.py",
+                "protected_signing_runtime.py", "repository_metadata_assembly.py")
         )
         for code in sw._POST_FRAME_REFUSAL_CODES:
             self.assertTrue(

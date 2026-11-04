@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-04T16:18:10.981Z",
+  "generatedAt": "2026-11-04T16:34:46.996Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "e0a158b4740acde6be7c3b119d080dd7e83c026e249606c0928874ed4f1ee3c5",
+  "generationOverlayManifestSha256": "2ce2303d0729ceabfc6a3d624c6087fedb1956dd138af5200fabf244b95d258a",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "e0a158b4740acde6be7c3b119d080dd7e83c026e249606c0928874ed4f1ee3c5",
+  "treeManifestSha256": "2ce2303d0729ceabfc6a3d624c6087fedb1956dd138af5200fabf244b95d258a",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -50,7 +50,7 @@
     {
       "path": ".github/workflows/probe-current-rpm-metadata.yml",
       "bytes": 2750,
-      "sha256": "6bb510c26731fb64e6928d0314f6557f16ff68a1687b9b489b4586239145005f"
+      "sha256": "dd9327f40caf1dad5fb071ffdcbc661856ffd2447f52c3283469bebb2c18c4df"
     },
     {
       "path": ".github/workflows/probe-current-signer-c6-apt.yml",
@@ -70,12 +70,12 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "413c1aec4784421aa34a293241f0c2dc7d74670469b97b6e11b2b698fa51bdf0"
+      "sha256": "96c46c3ea81d4efc5a0464a230061e655c5cd69539cdef5090718a21e68994f2"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8426,
-      "sha256": "288d33e112706fcc60cf1ada4a4847e92a76eb092071a05c864169a3b7d81b7b"
+      "sha256": "4cfc948dde8c2f0f586d4897c91996badf5fd4e69c2d663e51cff7cb495e73e9"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -439,13 +439,13 @@
     },
     {
       "path": "tests/test_current_signer_post_frame_diagnostics.py",
-      "bytes": 49302,
-      "sha256": "3058adc4252c411545a3aa0a12528da047367aeabbd6e44be237a1e29bba5ad5"
+      "bytes": 49385,
+      "sha256": "8ed869df2b7aeb32dc581ee45686029f5e155f3bb127cfa9f6a257ee2499a528"
     },
     {
       "path": "tests/test_current_signer_runtime_operations.py",
-      "bytes": 10309,
-      "sha256": "b33cca108da4cdcf05cc477085a4a90882e41b7f8b1f3e5fe65d1c7ce1c810e1"
+      "bytes": 11701,
+      "sha256": "51d3416f9f2ee4297a859ffde6faa79e33e6dc9ce17c7ce68530ba357d514bb2"
     },
     {
       "path": "tests/test_github_transport_telemetry.py",
@@ -685,7 +685,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 97101,
-      "sha256": "b6fc42f4e37d3b41aad9da0e0b52aa43f6139447cce73c8be1cac407091df159"
+      "sha256": "47eff591c37504f9b12520876293dd3251539c4328cd7d5ca45e40d55bbeb4c6"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -740,7 +740,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 6262,
-      "sha256": "da64e33ef2c48ac738b3cd9949baaa3c1f28f6c47b8c665861f1ab59cee84479"
+      "sha256": "be9f081a98b10a5c8b554d799e66ffa3bff6f8ab92817d73da773378559311fd"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -839,8 +839,8 @@
     },
     {
       "path": "tools/verification/current_signer/signer_host_controller.py",
-      "bytes": 65231,
-      "sha256": "50ad3bd1fc4a6683f9265bf90b4c54d1865b1ff58ec0f0d8034710f7d84132b1"
+      "bytes": 65455,
+      "sha256": "523485dcc16e06edfde9784787b40b09b15eebcd9405b888d1ab6e2df88660cd"
     },
     {
       "path": "tools/verification/current_signer/signer_protocol_io.py",
@@ -849,8 +849,8 @@
     },
     {
       "path": "tools/verification/current_signer/signer_worker.py",
-      "bytes": 30109,
-      "sha256": "660ce06c689cb4f844b28fa3e2118d800ca6f2f0a7bce056a257d59f41725ec5"
+      "bytes": 30333,
+      "sha256": "21a02b4f416f578df8a80c83d49ef13d8fff79f3b4cf2f300e85f986891d8e6c"
     },
     {
       "path": "tools/verification/current_signer/signing_image_build.py",
@@ -1025,7 +1025,7 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "2a856e23b4974a580b192c1009c7fad98113804de7374d97cd44a44495fbd4d4"
+      "sha256": "91044bc61a8077e87887510e61a6ea0872248c5ba2f4b621a07f87a0bfeb8e02"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
@@ -1120,7 +1120,7 @@
     {
       "path": "tools/verification/rpm_metadata_probe/entry.py",
       "bytes": 8990,
-      "sha256": "574460c3c5107c1f27356859d238948f13111bc5868877faa657465dc8cbdfe5"
+      "sha256": "b97eda8fa7a39280589a411360a7fd29210f6a50a2dbee2ec1594521fb74d18e"
     },
     {
       "path": "tools/verification/rpm_metadata_probe/inputs.json",
@@ -1130,7 +1130,7 @@
     {
       "path": "tools/verification/rpm_metadata_probe/manifest.json",
       "bytes": 609,
-      "sha256": "6a6284692104f824a566b5bda9836d6c2ce09685da8fe6ee598afac4840b0eed"
+      "sha256": "39f4d7f0cf91bcdb4c3f3c5f3de1ee7d88dc612b38da90dd5cbe69a2603262be"
     },
     {
       "path": "tools/verification/rpm_metadata_probe/metadata_core.py",
@@ -1140,7 +1140,7 @@
     {
       "path": "tools/verification/rpm_metadata_probe/probe_host.py",
       "bytes": 14622,
-      "sha256": "e5b3f34d01784162f29470ebd23060a0671383001f93f09a36cc5687e01eb193"
+      "sha256": "0a41e20e545a70c4c42772a10828524c9e88f6fceca901aca248f796dee60c09"
     },
     {
       "path": "tools/verification/rpm_metadata_probe/probe_inputs.py",
