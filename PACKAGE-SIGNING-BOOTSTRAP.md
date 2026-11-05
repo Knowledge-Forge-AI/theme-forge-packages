@@ -157,7 +157,7 @@ rm -rf "$GNUPGHOME"
    - Name: `PACKAGE_SIGNING_KEY`
      - Value: The complete ASCII-armored content of `ci-signing-subkey.asc`.
    - Name: `PACKAGE_SIGNING_PASSPHRASE`
-     - Value: The distinct CI-only passphrase configured for the signing subkey during attended re-protection in Step 7. (MANDATORY: The `publish.yml` workflow strictly requires this secret to unlock the subkey when signing RPM packages, RPM `repomd.xml`, and Pacman databases; workflow fails closed immediately if unset or empty).
+     - Value: The distinct CI-only passphrase configured for the signing subkey during attended re-protection in Step 7. (MANDATORY: The protected `qualify-current-signer.yml` workflow requires this secret for the existing CI subkey when signing package and repository metadata. The manual `publish.yml` workflow admits the retained qualified bytes and deploys them; it does not read signing secrets).
 4. Under **Deployment protection rules**, enable **Required reviewers** to prevent automated or unauthorized releases.
 
 ---
