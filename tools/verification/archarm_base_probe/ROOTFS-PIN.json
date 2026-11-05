@@ -1,0 +1,146 @@
+{
+  "schema": "task.ArchARM-base-input-pin.v1",
+  "rootfsUrl": "https://fl.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
+  "rootfsBytes": 829367415,
+  "rootfsSha256": "42a4eeaa038994ffd31fa173256ef2f0ef511358eeb41b9ea1f8626391b9b319",
+  "signatureBytes": 566,
+  "signatureSha256": "0157d8cd6261c85205931c766b754d6d56112b28800666fb64add1de192ebe11",
+  "publicKeySha256": "4e4202772328674af68f90f675e077d192337fc8ced15cddcd35875a9de5b5f9",
+  "publicKeyFingerprint": "68B3537F39A313B3E574D06777193F152BDBE6A6",
+  "members": 49104,
+  "declaredBytes": 2112939831,
+  "literalEscapes": [
+    {
+      "path": "usr/lib/systemd/system/system-systemd\\x2dveritysetup.slice",
+      "size": 463,
+      "mode": 420,
+      "sha256": "1c6d548fc0c321cc8360fa294daaa15e62307a9c396a7d7de0cdfbe438591267"
+    },
+    {
+      "path": "usr/lib/systemd/system/system-systemd\\x2dcryptsetup.slice",
+      "size": 468,
+      "mode": 420,
+      "sha256": "68dc6e85631e077f2bc751352459823844911b93b7ba2afd95d96c893222bb50"
+    },
+    {
+      "path": "usr/lib/systemd/system/system-systemd\\x2dmute\\x2dconsole.slice",
+      "size": 509,
+      "mode": 420,
+      "sha256": "7a5b305d1145f1260f03f1e592f8561ca40aff6e884f1534189ef75e4ac1ba14"
+    }
+  ],
+  "setIdMembers": [
+    {
+      "path": "usr/bin/chfn",
+      "type": "0",
+      "mode": 2541,
+      "size": 133336
+    },
+    {
+      "path": "usr/bin/chage",
+      "type": "0",
+      "mode": 2541,
+      "size": 142040
+    },
+    {
+      "path": "usr/bin/mount",
+      "type": "0",
+      "mode": 2541,
+      "size": 133336
+    },
+    {
+      "path": "usr/bin/newgrp",
+      "type": "0",
+      "mode": 2541,
+      "size": 67800
+    },
+    {
+      "path": "usr/bin/chsh",
+      "type": "0",
+      "mode": 2541,
+      "size": 67800
+    },
+    {
+      "path": "usr/bin/passwd",
+      "type": "0",
+      "mode": 2541,
+      "size": 142248
+    },
+    {
+      "path": "usr/bin/write",
+      "type": "0",
+      "mode": 1517,
+      "size": 67800
+    },
+    {
+      "path": "usr/bin/wall",
+      "type": "0",
+      "mode": 1517,
+      "size": 67800
+    },
+    {
+      "path": "usr/bin/ksu",
+      "type": "0",
+      "mode": 2541,
+      "size": 67720
+    },
+    {
+      "path": "usr/bin/gpasswd",
+      "type": "0",
+      "mode": 2541,
+      "size": 137448
+    },
+    {
+      "path": "usr/bin/umount",
+      "type": "0",
+      "mode": 2541,
+      "size": 133336
+    },
+    {
+      "path": "usr/bin/unix_chkpwd",
+      "type": "0",
+      "mode": 3565,
+      "size": 67536
+    },
+    {
+      "path": "usr/bin/su",
+      "type": "0",
+      "mode": 2541,
+      "size": 133336
+    },
+    {
+      "path": "usr/lib/dbus-daemon-launch-helper",
+      "type": "0",
+      "mode": 2120,
+      "size": 152400
+    },
+    {
+      "path": "usr/lib/ssh/ssh-keysign",
+      "type": "0",
+      "mode": 2505,
+      "size": 526784
+    },
+    {
+      "path": "var/log/journal",
+      "type": "5",
+      "mode": 1517,
+      "size": 0
+    },
+    {
+      "path": "var/lib/libuuid",
+      "type": "5",
+      "mode": 1533,
+      "size": 0
+    },
+    {
+      "path": "var/lib/tpm2-tss/system/keystore",
+      "type": "5",
+      "mode": 1533,
+      "size": 0
+    }
+  ],
+  "rootDirectoryHeaders": 0,
+  "literalEscapeLinks": [],
+  "declaredBytesCorrection": "Original broad audit skipped three refused unit names before totaling; this complete total includes their 1440 bytes.",
+  "publicKeyBytes": 3857
+}
