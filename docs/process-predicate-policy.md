@@ -9,7 +9,11 @@ failure. That partial result does not establish full native acceptance,
 product qualification or publication. Any hosted invocation remains a
 parent-controlled public-CI action using the exact guarded route. Current
 `validate.yml` retains its complete native-three jobs but is manual-only during
-this stage. Current `publish.yml` remains the permissions-empty manual refusal.
+this stage. Current `publish.yml` separately provides manual retained-artifact
+admission and protected Pages deployment, with permissions-empty workflow
+defaults and job-scoped read/deployment permissions. It requires original
+same-source signing/client and GUI runs and the existing github-pages review.
+This predicate approval grants no deployment or signing authority.
 Historical default generation is unchanged.
 
 The separate manual `probe-current-process-predicate.yml` targets the public
