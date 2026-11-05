@@ -13,6 +13,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -206,7 +207,7 @@ class FakeHost:
                 return (1, b"\n") if image_id is None else (0, f"{image_id}|linux|arm64\n".encode())
             assert len(args) == 3
             image_id = self._image(args[2])
-            return (1, b"[]\n") if image_id is None else (0, b'[{"Id":"x"}]\n')
+            return (1, b"[]\n") if image_id is None else (0, b'[\n    {"Id":"x"}\n]\n')
         if cmd == "image" and args[1] == "rm":
             assert args[2] == "--no-prune" and len(args) == 4, args
             tag = args[3]
@@ -222,7 +223,7 @@ class FakeHost:
                 doc = self._container(args[4])
                 return (1, b"\n") if doc is None else (0, (json.dumps(doc) + "\n").encode())
             assert len(args) == 3
-            return (1, b"[]\n") if self._container(args[2]) is None else (0, b'[{"Id":"x"}]\n')
+            return (1, b"[]\n") if self._container(args[2]) is None else (0, b'[\n    {"Id":"x"}\n]\n')
         if cmd == "container" and args[1] == "stop":
             assert args[2:4] == ["--time", "10"]
             doc = self._container(args[4])
@@ -791,6 +792,46 @@ class ContainerReadback(TempCase):
             P.verify_container(doc, exp, "X")
 
 
+class PresenceReadback(unittest.TestCase):
+    def test_v2_schema_and_installer_labels_match_script(self):
+        self.assertEqual(P.RESULT_SCHEMA, "tf.archarm-key-free-runtime-probe.v2")
+        self.assertEqual(set(re.findall(r"\bfail ([a-z_]+)\b", P.INSTALL_SCRIPT)),
+                         set(P.INSTALL_FAILURES))
+        self.assertNotIn("INSTALL_HOOKS", P.REFUSALS)
+
+    def check(self, code, output):
+        calls = []
+        def docker(args, **kwargs):
+            calls.append((args, kwargs))
+            return code, output
+        result = P.presence(docker, "container", "owned-fixture")
+        self.assertEqual(calls, [(["container", "inspect", "owned-fixture"],
+                                  {"limit": P.PRESENCE_LIMIT})])
+        return result
+
+    def test_indented_and_compact_single_object(self):
+        for output in (b'[{"Id":"x"}]\n', b'[\n    {"Id":"x"}\n]\n'):
+            with self.subTest(output=output):
+                self.assertTrue(self.check(0, output))
+
+    def test_only_nonzero_empty_array_establishes_absence(self):
+        for output in (b"[]\n", b"[ \n ]\n"):
+            with self.subTest(output=output):
+                self.assertFalse(self.check(1, output))
+        with self.assertRaises(P.Refusal):
+            self.check(0, b"[]\n")
+
+    def test_invalid_or_ambiguous_readback_is_refused(self):
+        for code, output in ((0, b"{}"), (0, b"[{}"), (0, b"[{},{}]"),
+                             (0, b"[null]"), (0, b"null"), (0, b"[true]"),
+                             (1, b"[{}]"), (2, b"[]"), (0, b"[{}] trailing"),
+                             (0, b"\xff")):
+            with self.subTest(code=code, output=output):
+                with self.assertRaises(P.Refusal) as caught:
+                    self.check(code, output)
+                self.assertEqual(str(caught.exception), "DOCKER_READBACK")
+
+
 class FlowCase(TempCase):
     def setUp(self):
         super().setUp()
@@ -987,6 +1028,42 @@ class FailureFlows(FlowCase):
         self.assertEqual(result["refusal"], "INSTALL_OUTPUT")
         self.assertNotIn("raw pacman", json.dumps(result))
         self.assert_clean(result)
+
+    def test_each_hook_refusal_preserves_failure_and_cleans_indented_readback(self):
+        for label in ("hooks_schemas", "hooks_pixbuf", "hooks_immodules", "hooks_mime",
+                      "hooks_icons", "hooks_fonts"):
+            with self.subTest(label=label):
+                self.host.outputs["installer"] = (
+                    1, tokens("TFI", ["inputs", "keyring", "pacman", "delta"], label))
+                result = self.run_probe()
+                self.assertEqual(result["refusal"], "INSTALL_" + label.upper())
+                self.assertEqual(result["status"], "fail")
+                self.assertTrue(result["flags"]["pacmanSignedInstall"])
+                self.assertTrue(result["flags"]["packageDeltaExact"])
+                self.assertFalse(result["flags"]["hookStateMatchesInputs"])
+                self.assertFalse(result["flags"]["derivedImageCommitted"])
+                self.assertFalse(any(a[0] == "commit" for a in self.host.docker_args()))
+                self.assert_clean(result)
+
+    def test_malformed_existing_presence_preserves_owned_resources(self):
+        original = self.host._docker
+        def malformed(args):
+            code, output = original(args)
+            if (len(args) == 3 and args[:2] == ["container", "inspect"]
+                    and code == 0):
+                return 0, b"[{}] trailing"
+            return code, output
+        self.host._docker = malformed
+        self.host.outputs["installer"] = (
+            1, tokens("TFI", ["inputs", "keyring", "pacman", "delta"], "hooks_pixbuf"))
+        result = self.run_probe()
+        self.assertEqual(result["refusal"], "INSTALL_HOOKS_PIXBUF")
+        self.assertFalse(result["cleanupComplete"])
+        self.assertIn(self.names.installer, self.host.containers)
+        self.assertIn(self.names.base_tag, self.host.images)
+        self.assertTrue(self.work.exists())
+        self.assertFalse(any(a[:2] in (["container", "rm"], ["image", "rm"])
+                             for a in self.host.docker_args()))
 
     def test_installer_nonzero_without_token(self):
         self.host.outputs["installer"] = (1, tokens("TFI", ["inputs"]))

@@ -73,7 +73,7 @@ require = BASE.require
 # --------------------------------------------------------------------------
 # Fixed proposal constants (not inputs).
 # --------------------------------------------------------------------------
-RESULT_SCHEMA = "tf.archarm-key-free-runtime-probe.v1"
+RESULT_SCHEMA = "tf.archarm-key-free-runtime-probe.v2"
 PACKAGE_PIN_SCHEMA = "tf.archarm-runtime-package-pins.v1"
 FINGERPRINT = "68B3537F39A313B3E574D06777193F152BDBE6A6"
 ROOT_NAMES = ("fakeroot", "python", "nodejs-lts-jod", "gtk3", "webkit2gtk-4.1", "xorg-server-xvfb")
@@ -217,10 +217,16 @@ test -z "$(LC_ALL=C comm -23 "$T/before" "$T/after")" || fail base_changed
 test "$(LC_ALL=C comm -13 "$T/before" "$T/after" | wc -l)" -eq 139 || fail delta
 pacman --config "$C" -Q fakeroot python nodejs-lts-jod gtk3 webkit2gtk-4.1 xorg-server-xvfb || fail delta
 mark delta
-for f in /usr/share/glib-2.0/schemas/gschemas.compiled /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache /usr/lib/gtk-3.0/3.0.0/immodules.cache /usr/share/mime/mime.cache /usr/share/icons/hicolor/icon-theme.cache; do
-  test -s "$f" || fail hooks
-done
-test -n "$(ls -A /var/cache/fontconfig)" || fail hooks
+test -s /usr/share/glib-2.0/schemas/gschemas.compiled || fail hooks_schemas
+if compgen -G '/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.so' >/dev/null; then
+  test -s /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache || fail hooks_pixbuf
+else
+  test ! -e /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache || fail hooks_pixbuf
+fi
+test -s /usr/lib/gtk-3.0/3.0.0/immodules.cache || fail hooks_immodules
+test -s /usr/share/mime/mime.cache || fail hooks_mime
+test -s /usr/share/icons/hicolor/icon-theme.cache || fail hooks_icons
+test -n "$(ls -A /var/cache/fontconfig)" || fail hooks_fonts
 mark hooks
 case "$(getcap /usr/lib/gstreamer-1.0/gst-ptp-helper)" in
   *' cap_net_bind_service,cap_net_admin=ep') ;;
@@ -377,7 +383,9 @@ RUNTIME_CMD = ("/usr/bin/bash", "-c", RUNTIME_SCRIPT)
 
 INSTALL_STAGES = ("inputs", "keyring", "pacman", "delta", "hooks", "ptpcaps", "done")
 INSTALL_FAILURES = ("identity", "inputs", "keyring", "pacman_query", "chroot", "pacman_exit",
-                    "pacman_error", "base_changed", "delta", "hooks", "ptpcaps")
+                    "pacman_error", "base_changed", "delta", "hooks_schemas",
+                    "hooks_pixbuf", "hooks_immodules", "hooks_mime", "hooks_icons",
+                    "hooks_fonts", "ptpcaps")
 RUNTIME_STAGES = ("nocaps", "readonly", "network", "python", "node", "fakeroot", "makepkg",
                   "zstd", "pkginfo", "pacman_parse", "repo_add", "xvfb", "gtk", "webkit", "done")
 RUNTIME_FAILURES = ("identity", "caps", "readonly", "network", "python", "node", "fakeroot",
@@ -385,7 +393,7 @@ RUNTIME_FAILURES = ("identity", "caps", "readonly", "network", "python", "node",
                     "webkit")
 INSTALL_FLAGS = {"inputs": "installerInputsVisible", "keyring": "publicKeyringReady",
                  "pacman": "pacmanSignedInstall", "delta": "packageDeltaExact",
-                 "hooks": "hookOutputsPresent", "ptpcaps": "ptpHelperFileCapsSetInInstaller",
+                 "hooks": "hookStateMatchesInputs", "ptpcaps": "ptpHelperFileCapsSetInInstaller",
                  "done": "installerCompleted"}
 RUNTIME_FLAGS = {"nocaps": "nonrootNoCapabilities", "readonly": "readonlyRootTmpfsOnly",
                  "network": "networkIsolated", "python": "python3149Stdlib",
@@ -940,9 +948,14 @@ def _parse_id(output, pattern, label):
 
 def presence(docker, kind, ref):
     code, out = docker([kind, "inspect", ref], limit=PRESENCE_LIMIT)
-    if code == 1 and out.strip() == b"[]":
+    try:
+        documents = json.loads(out.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        raise Refusal("DOCKER_READBACK") from None
+    if code == 1 and documents == []:
         return False
-    require(code == 0 and out.lstrip().startswith(b"[{"), "DOCKER_READBACK")
+    require(code == 0 and isinstance(documents, list) and len(documents) == 1
+            and isinstance(documents[0], dict), "DOCKER_READBACK")
     return True
 
 

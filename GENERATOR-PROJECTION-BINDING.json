@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T07:14:43.292Z",
+  "generatedAt": "2026-11-05T09:45:56.825Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "7c7761443f256005427c561c29dc0c9b756377a2cda4c8b0eaffd38b2c0766f6",
+  "generationOverlayManifestSha256": "a880bc67deb9c29603caa9f1006117273b2910573b23fc35916534e1f76d28a5",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "7c7761443f256005427c561c29dc0c9b756377a2cda4c8b0eaffd38b2c0766f6",
+  "treeManifestSha256": "a880bc67deb9c29603caa9f1006117273b2910573b23fc35916534e1f76d28a5",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -439,8 +439,8 @@
     },
     {
       "path": "tests/test_archarm_runtime_probe.py",
-      "bytes": 55920,
-      "sha256": "3fe3dbe0c068b48373d7e78b7451dece6478cd4d92f07b2d459672d020618a32"
+      "bytes": 59820,
+      "sha256": "1276b08147f9a0749f75c02567f32abf4957993cc39f83a5399704ffa04ce09a"
     },
     {
       "path": "tests/test_container_distribution_intake_probe.py",
@@ -624,8 +624,8 @@
     },
     {
       "path": "tools/verification/archarm_runtime_probe/archarm_runtime_probe.py",
-      "bytes": 64782,
-      "sha256": "c21e57bb89b760427deb4563d3cac5af88c59a78947e6b511e4c0210e3e2c3b5"
+      "bytes": 65403,
+      "sha256": "f975b783fd6f10fdced613d1618dd290ae67ff1c23eb4770f809c477cf13cdfc"
     },
     {
       "path": "tools/verification/archarm_runtime_probe/PACKAGE-PINS.json",
@@ -634,8 +634,8 @@
     },
     {
       "path": "tools/verification/archarm_runtime_probe/README.md",
-      "bytes": 14614,
-      "sha256": "998eaf8fa9761a90aea2ee6759a6b819a86b8bec9a4f03547a6b699babbe5e62"
+      "bytes": 15899,
+      "sha256": "6a733396c4f729ffba4e183e1cc919febee87574c89b0ec4d4b33222c2d90967"
     },
     {
       "path": "tools/verification/b3/b3_fixture_entrypoint.py",
