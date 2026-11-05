@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T21:39:21.724Z",
+  "generatedAt": "2026-11-05T21:45:16.737Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "e84f2027c380ce4c796815fb9bd167eec33e620476668a2504b0a004c8cb0b0e",
+  "generationOverlayManifestSha256": "d6a242dd071b3cea0f23da891b393179bf836ce2636dfb850b4b9d6db77e1c93",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "e84f2027c380ce4c796815fb9bd167eec33e620476668a2504b0a004c8cb0b0e",
+  "treeManifestSha256": "d6a242dd071b3cea0f23da891b393179bf836ce2636dfb850b4b9d6db77e1c93",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -179,8 +179,8 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 8625,
-      "sha256": "7384376d001aab85e306f7a6c7e1f33dbd2a5266925e329d5fb1cad5a280528e"
+      "bytes": 8863,
+      "sha256": "e20e98606d0199cf931c2796c0c5ca09e140de1361cd7cdfc48304dd502bf118"
     },
     {
       "path": "docs/current-full-signer-policy.md",
@@ -249,8 +249,8 @@
     },
     {
       "path": "PACKAGE-SIGNING-BOOTSTRAP.md",
-      "bytes": 13886,
-      "sha256": "04ac488f38d7cf44638ad195ac7446b020b5638cc321334bdb83e947ea32a50d"
+      "bytes": 13956,
+      "sha256": "44d4f3489583dd19f54e16a49d41e197e95f5ef2c2a0e686f8d47b16af700fdd"
     },
     {
       "path": "packages/nebular-fusion.nix",
@@ -274,8 +274,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 8837,
-      "sha256": "5e064244764cc31ebd6fce2a12d3094e813a9d9baa245fa662f8fbb89d81589f"
+      "bytes": 9120,
+      "sha256": "2a16d1e415e0b364e1c4699c33384ce5180e26ca61b3768a20e73765d112e95a"
     },
     {
       "path": "release-lock.json",
@@ -474,8 +474,8 @@
     },
     {
       "path": "tests/test_current_signer_bootstrap.py",
-      "bytes": 6510,
-      "sha256": "18275e14d2e5297077e7c92b4aca3729c5df76d37dc1d0c4577fe77c6835e4dc"
+      "bytes": 6562,
+      "sha256": "d2d2feaa0493d8399c7a954041adadeb2220ef98d4708e616f86c06ccc337c01"
     },
     {
       "path": "tests/test_current_signer_cleanup_observations.py",

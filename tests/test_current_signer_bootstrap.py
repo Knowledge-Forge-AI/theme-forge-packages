@@ -114,7 +114,7 @@ class IsolatedBootstrapTests(unittest.TestCase):
     def test_isolation_source_pins_match_the_real_entry_sources(self):
         pins = assignment(ROOT / ISOLATION, 'PRODUCTION_PINS')
         self.assertIsInstance(pins, ast.Dict)
-        for relative in [IMPORTER, QUALIFY]:
+        for relative in [IMPORTER, QUALIFY, Path('tools/verification/current-rs9-inputs.json')]:
             with self.subTest(path=str(relative)):
                 matches = [ast.literal_eval(value) for key, value in zip(pins.keys, pins.values)
                            if isinstance(key, ast.Constant) and key.value == str(relative)]
