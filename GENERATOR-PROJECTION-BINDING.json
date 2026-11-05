@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T00:02:56.416Z",
+  "generatedAt": "2026-11-05T00:53:05.976Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "9c95186006bc829c8948aae7832589f16af1093932e433cd92f84da3ca000f48",
+  "generationOverlayManifestSha256": "e55929807bab8b20e3c532f126f5c5accc6128628420f32815ae65f28a459566",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "9c95186006bc829c8948aae7832589f16af1093932e433cd92f84da3ca000f48",
+  "treeManifestSha256": "e55929807bab8b20e3c532f126f5c5accc6128628420f32815ae65f28a459566",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 236,
+  "totalFiles": 239,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -41,6 +41,11 @@
       "path": ".github/workflows/probe-current-b3-lifecycle.yml",
       "bytes": 8363,
       "sha256": "f0806c82f546932fd332e1e361c8cc9c13a7e2b9393d819742aedd06ee68f66e"
+    },
+    {
+      "path": ".github/workflows/probe-current-distribution-intake.yml",
+      "bytes": 2421,
+      "sha256": "6075b416140d5635b7864575830d0cc43cda15801b32348bcdcc8e24af8f72e8"
     },
     {
       "path": ".github/workflows/probe-current-process-predicate.yml",
@@ -416,6 +421,11 @@
       "path": "tests/p-native-gui-fixtures.mjs",
       "bytes": 3141,
       "sha256": "db7a6a5c25e9ce0eefaa59b81dd7e34afd18b34d176dd46cd750c9937d0d0715"
+    },
+    {
+      "path": "tests/test_current_distribution_intake_probe.py",
+      "bytes": 13864,
+      "sha256": "a1a837158eb92c53f06244184dd98d76cfac5674cf24bb350dc119eb397ad137"
     },
     {
       "path": "tests/test_current_import_routing_origins.py",
@@ -1116,6 +1126,11 @@
       "path": "tools/verification/preflight-signing-key.mjs",
       "bytes": 17951,
       "sha256": "b22da9b717400c53b320dde0d59a93d3525cd2ec68e6f91b6e6777f44e1ec2bf"
+    },
+    {
+      "path": "tools/verification/probe_current_distribution_intake.py",
+      "bytes": 14965,
+      "sha256": "0712929f7ee4d16b74acc170a90373a0c096dc62b42818949f7aa4e3d9f3e3a0"
     },
     {
       "path": "tools/verification/projection-identity.mjs",
