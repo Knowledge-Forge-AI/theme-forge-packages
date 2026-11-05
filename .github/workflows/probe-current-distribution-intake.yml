@@ -1,0 +1,54 @@
+name: Current Distribution Key-Free Intake Observation
+# Preparation only until a bounded owner disposition permits invocation.
+# Host collector observation: no signer image, signing environment or secrets.
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  intake:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout exact probe source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: probe
+          persist-credentials: false
+      - name: Check pure disclosure and cleanup contracts
+        run: /usr/bin/python3 -I -B probe/tests/test_current_distribution_intake_probe.py
+      - name: Checkout frozen baseline P descriptor
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 3783fff1376b5698dcce6fbbae903fba12580cc9
+          path: p
+          persist-credentials: false
+      - name: Checkout frozen original R source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: Knowledge-Forge-AI/release-starport-9
+          ref: 42942b2d0f60059102c3baf43c5045e1ff42da7e
+          path: r
+          persist-credentials: false
+      - name: Observe the unchanged collector and revalidation predicates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -m 0700 "$RUNNER_TEMP/tf-keyfree-intake-result-$GITHUB_RUN_ID"
+          /usr/bin/python3 -I -B probe/tools/verification/probe_current_distribution_intake.py \
+            --p-root "$GITHUB_WORKSPACE/p" --r-root "$GITHUB_WORKSPACE/r" \
+            --result-out "$RUNNER_TEMP/tf-keyfree-intake-result-$GITHUB_RUN_ID/RESULT.json" >/dev/null 2>&1
+      - name: Retain only the closed diagnostic result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keyfree-distribution-intake-${{ github.run_id }}
+          path: ${{ runner.temp }}/tf-keyfree-intake-result-${{ github.run_id }}/RESULT.json
+          if-no-files-found: warn
+          retention-days: 7
