@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T00:53:05.976Z",
+  "generatedAt": "2026-11-05T01:43:44.968Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "e55929807bab8b20e3c532f126f5c5accc6128628420f32815ae65f28a459566",
+  "generationOverlayManifestSha256": "3a74e89b4329d17ec27738fa1b567b769c3c85983a2e726c9c447092928fd978",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "e55929807bab8b20e3c532f126f5c5accc6128628420f32815ae65f28a459566",
+  "treeManifestSha256": "3a74e89b4329d17ec27738fa1b567b769c3c85983a2e726c9c447092928fd978",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 239,
+  "totalFiles": 241,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -44,8 +44,8 @@
     },
     {
       "path": ".github/workflows/probe-current-distribution-intake.yml",
-      "bytes": 2421,
-      "sha256": "6075b416140d5635b7864575830d0cc43cda15801b32348bcdcc8e24af8f72e8"
+      "bytes": 2780,
+      "sha256": "e6933b1e3c518b0d91f82d4652264abd5339f84608633993e73e644b8afca346"
     },
     {
       "path": ".github/workflows/probe-current-process-predicate.yml",
@@ -421,6 +421,11 @@
       "path": "tests/p-native-gui-fixtures.mjs",
       "bytes": 3141,
       "sha256": "db7a6a5c25e9ce0eefaa59b81dd7e34afd18b34d176dd46cd750c9937d0d0715"
+    },
+    {
+      "path": "tests/test_container_distribution_intake_probe.py",
+      "bytes": 15613,
+      "sha256": "389e390ba2b9fe3ee477e2ca3f23753fcee91baa628b579fe582f27c1e1c66e0"
     },
     {
       "path": "tests/test_current_distribution_intake_probe.py",
@@ -1126,6 +1131,11 @@
       "path": "tools/verification/preflight-signing-key.mjs",
       "bytes": 17951,
       "sha256": "b22da9b717400c53b320dde0d59a93d3525cd2ec68e6f91b6e6777f44e1ec2bf"
+    },
+    {
+      "path": "tools/verification/probe_container_distribution_intake.py",
+      "bytes": 17039,
+      "sha256": "bb30659af4ecb64ffe09acfc1f3f3f17aebe15ef74c648c6c6f204f19952a4a1"
     },
     {
       "path": "tools/verification/probe_current_distribution_intake.py",
