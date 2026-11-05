@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T15:54:30.631Z",
+  "generatedAt": "2026-11-05T20:57:24.625Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "9ed11f4b9047c77d54d8cdc1abd1f0324797387faa407d50aa6176c90e2f03ed",
+  "generationOverlayManifestSha256": "e8c873626534d50273f6a67c62e3ad8ba2edfb70faf69d467384ae5e735a94d5",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "9ed11f4b9047c77d54d8cdc1abd1f0324797387faa407d50aa6176c90e2f03ed",
+  "treeManifestSha256": "e8c873626534d50273f6a67c62e3ad8ba2edfb70faf69d467384ae5e735a94d5",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -1109,8 +1109,8 @@
     },
     {
       "path": "tools/verification/current-rs9-inputs.json",
-      "bytes": 1215,
-      "sha256": "972fc30c36a5c351bb38cf792c2b4f6d0732f8d0355d4fb0d81b80fce744a665"
+      "bytes": 1222,
+      "sha256": "51426805c96ba867fc227f6674e938162599a2ba60e3155c8a7919c4fe3240ba"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
@@ -1125,12 +1125,12 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "442d225eb1d8c6f1d09d5264cc9151c40eb91c0d2e92a606241590e45d1db3e0"
+      "sha256": "6861aea6546302adcbe19c8b8a0bba7dc9fbb801dd31df95972346653bb3b5ba"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
       "bytes": 59556,
-      "sha256": "1517004b729a3b1332bd6c3b723e408a87f7bf23689e8dc47b329205a8add770"
+      "sha256": "63ad082d01403301cad0ecf4acdf414545928c0d60c7c02eff3c22fc0c82411c"
     },
     {
       "path": "tools/verification/p-command-probes.mjs",
