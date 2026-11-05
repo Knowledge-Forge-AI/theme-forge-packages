@@ -6,20 +6,20 @@
   "publication_authority": false,
   "rs9": {
     "repository": "Knowledge-Forge-AI/release-starport-9",
-    "source_commit": "42942b2d0f60059102c3baf43c5045e1ff42da7e",
-    "source_tree": "d10cfd5d3a07f7bc16f8729964c9f789ad1792be",
-    "run_id": 41935969366,
+    "source_commit": "f67156da4048bcd5d82ac43948d3f6ba587299d3",
+    "source_tree": "ac32e2fa16ed892e4090c730aece99e5da13730a",
+    "run_id": 42102401793,
     "workflow_path": ".github/workflows/rs9-current-distribution-tests.yml",
-    "workflow_sha256": "376b13ccf8ac9ddee3210f60d622ebb65ad63087676f00fe4556a034703c695c",
-    "contract_sha256": "f606fd883e1592b8a627660b16620a71627be9cd094eb77f20dc2688166da033",
-    "builder_source_sha256": "3c2c84f84591605feae5c682cf00dc718a3cdd0d4c30a880785fe568353d38a7",
-    "configuration_sha256": "71d12701441c866a8f6206462d22d2a086ff9f5de98298dc269ad5bded37233b",
-    "release_ingestion_sha256": "774f8af224db146ab9c039a703ef25cca2d8e8facf9fa7172f1c1de859fef8d0",
+    "workflow_sha256": "bb3b767813be55820d4d6f2bebe97c9e6014f9bf5f9377693107d360bb2825e5",
+    "contract_sha256": "990f7be08ba9818b3a72d4663a3d8f57e6e333afc658e13eee4ab576162c1502",
+    "builder_source_sha256": "73f55b8f8326f801fe90c0af42eecd66d02dd27402b0f556df24a460c3892469",
+    "configuration_sha256": "2f6112f1ba14d73fe7888beb8b23064430e42e89491f18eaeebf18ab0bedf39d",
+    "release_ingestion_sha256": "358e87839fb8c4bafb8081b2ebfff22e4cac27e76d201c3d19af67aeba689bd7",
     "generation": "theme-forge-current-202610",
     "qualification_scope": "current-distribution-only",
     "event": "push",
     "ref": "refs/heads/main",
     "attempt": 1,
-    "not_before": "2026-11-04T23:43:30+00:00"
+    "not_before": "2026-11-05T20:19:12.094289+00:00"
   }
 }
