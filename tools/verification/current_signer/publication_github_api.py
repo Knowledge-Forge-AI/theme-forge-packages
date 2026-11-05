@@ -106,6 +106,7 @@ class RunSpec:
 
 QUALIFICATION = RunSpec("QUALIFICATION", "qualify-current-signer.yml", frozenset({
     "qualify-current-signer", "apt-amd64", "apt-arm64", "dnf-x86_64", "dnf-aarch64", "pacman-x86_64",
+    "pacman-aarch64",
 }))
 GUI_VALIDATION = RunSpec("GUI", "validate.yml", frozenset({
     "P native Nix x86_64-linux (candidate only)",

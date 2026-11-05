@@ -48,7 +48,7 @@ class BoundaryTests(unittest.TestCase):
      self.assertEqual(got.exception.code,"JOB_ROOT_CHANGED");self.assertEqual(seen,[]);return
     with self.assertRaises(StopBeforeNative):
      if lane=="pacman":
-      metadata._pacman_repository(rt,{"inert.pkg.tar.zst":b"PUBLIC INERT FIXTURE","inert.pkg.tar.zst.sig":b"PUBLIC INERT SIGNATURE"},home,work,staging,root,b"unused")
+      metadata._pacman_repository(rt,{"inert.pkg.tar.zst":b"PUBLIC INERT FIXTURE","inert.pkg.tar.zst.sig":b"PUBLIC INERT SIGNATURE"},home,work,staging,root,b"unused",arch="x86_64")
      else:
       metadata._rpm_repository(rt,lane,{"inert.rpm":b"PUBLIC INERT FIXTURE"},home,work,staging,root,b"unused")
     self.assertEqual(len(seen),1)

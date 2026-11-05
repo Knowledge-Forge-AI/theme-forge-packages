@@ -44,14 +44,16 @@ APT_DIST = "dists/" + routing.APT_DISTRIBUTION
 INRELEASE, RELEASE_GPG = APT_DIST + "/InRelease", APT_DIST + "/Release.gpg"
 APT_BY_HASH = APT_DIST + "/by-hash/SHA256/"
 RPM_ARCHES = metadata.RPM_ARCHITECTURES
-PACMAN_BASE = "arch/" + metadata.PACMAN_ARCHITECTURE
+PACMAN_ARCHES = metadata.PACMAN_ARCHITECTURES
+PACMAN_BASES = {arch: "arch/" + arch for arch in PACMAN_ARCHES}
+PACMAN_BASE = PACMAN_BASES[metadata.PACMAN_ARCHITECTURE]  # established x86_64 name, unchanged
 PACMAN_ARCHIVES = (metadata.PACMAN_DATABASE, metadata.PACMAN_FILES)
 # Deliberate export of the committed P public key; path mirrors the P source path.
 PUBLIC_KEY_PATH = "keys/knowledge-forge-ai-packages.asc"
 SIGNED_KINDS = ("apt-inrelease", "apt-release-gpg", "rpm-package", "rpm-metadata",
                 "pacman-package", "pacman-database")
 _MARKER = {"deb": "all", "rpm": "noarch", "pacman": "any"}
-_NATIVE_ARCHES = {"deb": ("amd64", "arm64"), "rpm": RPM_ARCHES, "pacman": (metadata.PACMAN_ARCHITECTURE,)}
+_NATIVE_ARCHES = {"deb": ("amd64", "arm64"), "rpm": RPM_ARCHES, "pacman": PACMAN_ARCHES}
 _PURE = frozenset({"theme-forge-stellar-loom", "theme-forge-solar-sail"})
 _ROW_KEYS = frozenset({"family", "product", "name", "version", "architecture", "sha256", "size",
                        "origins", "destinations"})
@@ -298,6 +300,46 @@ def _signature(data: bytes, *, armored: bool, limit: int) -> bytes:
     return data
 
 
+def _pacman_linkage(rows, unsigned: Mapping[str, bytes], take) -> tuple[dict, list]:
+    """Each arch/<arch>: its own native rows plus the SAME any bytes+signature.
+
+    Every database/files index is bound to exactly that architecture's package
+    set; the any package is one held original, published byte-identically with
+    one identical signature in every repository.
+    """
+    if any(row["architecture"] not in {*PACMAN_ARCHES, "any"} for row in rows):
+        fail("PACMAN_LINKAGE", "Pacman row architecture is foreign")
+    companions, signed, shared = {}, [], {}
+    for arch in PACMAN_ARCHES:
+        base = PACMAN_BASES[arch]
+        selected = [row for row in rows if row["architecture"] in (arch, "any")]
+        if not any(row["architecture"] == arch for row in selected):
+            fail("PACMAN_LINKAGE", "Pacman repository has no native package rows")
+        known, identities = {}, {}
+        for row in selected:
+            relative = f"{base}/{row['name']}"
+            package = take(relative)
+            if package != unsigned[f"{row['name']}@unsigned/pacman/{row['name']}"]:
+                fail("PACMAN_LINKAGE", "Published pacman package differs from its original")
+            sig = _signature(take(relative + ".sig"), armored=False, limit=metadata.MAX_PACKAGE_SIGNATURE_BYTES)
+            if row["architecture"] == "any" and shared.setdefault(row["name"], (package, sig)) != (package, sig):
+                fail("PACMAN_LINKAGE", "Reused any pacman bytes or signature differ between architectures")
+            companions[relative] = package
+            signed.append(SignedObject("packages", relative + ".sig", "pacman-package", package, sig))
+            known[row["name"]] = (sha(package), len(package), sig)
+            identities[row["name"]] = _pacman_identity(row["name"], row["product"], row["version"],
+                                                       row["architecture"])
+        for archive, alias in zip(PACMAN_ARCHIVES, metadata.PACMAN_ALIASES):
+            data, sig = take(f"{base}/{archive}"), take(f"{base}/{archive}.sig")
+            _pacman_archive(data, files=archive == metadata.PACMAN_FILES, known=known, identities=identities)
+            if take(f"{base}/{alias}") != data or take(f"{base}/{alias}.sig") != sig:
+                fail("PACMAN_LINKAGE", "Pacman alias is not an exact regular copy")
+            companions.update({f"{base}/{archive}": data, f"{base}/{alias}": data, f"{base}/{alias}.sig": sig})
+            signed.append(SignedObject("packages", f"{base}/{archive}.sig", "pacman-database", data,
+                                       _signature(sig, armored=False, limit=metadata.MAX_PACKAGE_SIGNATURE_BYTES)))
+    return companions, signed
+
+
 def plan_public_repository(stage: Mapping[str, bytes], output: Mapping[str, bytes]) -> PublicPlan:
     """Exact inventory and linkage plan; refuses unknown, missing or mutated entries."""
     rows, anchor = _routing_rows(stage)
@@ -360,26 +402,9 @@ def plan_public_repository(stage: Mapping[str, bytes], output: Mapping[str, byte
         asc = _signature(take(prefix + "repodata/repomd.xml.asc"), armored=True, limit=metadata.MAX_SIGNATURE_BYTES)
         signed.append(SignedObject("packages", prefix + "repodata/repomd.xml.asc", "rpm-metadata",
                                    repodata["repodata/repomd.xml"], asc))
-    known, identities = {}, {}
-    for row in by_family["pacman"]:
-        relative = f"{PACMAN_BASE}/{row['name']}"
-        package = take(relative)
-        if package != unsigned[f"{row['name']}@unsigned/pacman/{row['name']}"]:
-            fail("PACMAN_LINKAGE", "Published pacman package differs from its original")
-        sig = _signature(take(relative + ".sig"), armored=False, limit=metadata.MAX_PACKAGE_SIGNATURE_BYTES)
-        companions[relative] = package
-        signed.append(SignedObject("packages", relative + ".sig", "pacman-package", package, sig))
-        known[row["name"]] = (sha(package), len(package), sig)
-        identities[row["name"]] = _pacman_identity(row["name"], row["product"], row["version"], row["architecture"])
-    for archive, alias in zip(PACMAN_ARCHIVES, metadata.PACMAN_ALIASES):
-        data, sig = take(f"{PACMAN_BASE}/{archive}"), take(f"{PACMAN_BASE}/{archive}.sig")
-        _pacman_archive(data, files=archive == metadata.PACMAN_FILES, known=known, identities=identities)
-        if take(f"{PACMAN_BASE}/{alias}") != data or take(f"{PACMAN_BASE}/{alias}.sig") != sig:
-            fail("PACMAN_LINKAGE", "Pacman alias is not an exact regular copy")
-        companions.update({f"{PACMAN_BASE}/{archive}": data, f"{PACMAN_BASE}/{alias}": data,
-                           f"{PACMAN_BASE}/{alias}.sig": sig})
-        signed.append(SignedObject("packages", f"{PACMAN_BASE}/{archive}.sig", "pacman-database", data,
-                                   _signature(sig, armored=False, limit=metadata.MAX_PACKAGE_SIGNATURE_BYTES)))
+    pacman_companions, pacman_signed = _pacman_linkage(by_family["pacman"], unsigned, take)
+    companions.update(pacman_companions)
+    signed += pacman_signed
     deploy = [obj.deploy_path for obj in signed]
     if len(set(deploy)) != len(deploy) or set(deploy) & set(companions):
         fail("OUTPUT_INVENTORY", "Signed and companion paths overlap")
