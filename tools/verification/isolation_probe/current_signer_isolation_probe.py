@@ -68,7 +68,7 @@ LEAF_MANIFEST_REL_PATH = "tools/verification/current_signer/leaf-manifest.json"
 PINNED_LEAF_MANIFEST_SHA256 = "e57178c38056fe0a95abd1d77ffc81b6eb12733d16eca8951d86470da31acead"
 PRODUCTION_PINS = {
     "tools/verification/current_signer/leaf-manifest.json": PINNED_LEAF_MANIFEST_SHA256,
-    "tools/verification/current_import_routing.py": "d132737e4dcece3f7e6056437620e7ff2f500ca771b2c3c28c3e9fbf37828597",
+    "tools/verification/current_import_routing.py": "9568b345c6f54cf129bd826265b1a7d8fabb3e20d1a78cdc0d3ce78d4dd148e5",
     ".github/workflows/qualify-current-signer.yml": "80e1ea6c5a3dd9b097c487322cb086a2652b7b8be5aa58b176137fe2485b4230",
     "tools/verification/current-rs9-inputs.json": "51426805c96ba867fc227f6674e938162599a2ba60e3155c8a7919c4fe3240ba",
 }

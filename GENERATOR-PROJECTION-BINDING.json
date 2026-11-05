@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T20:57:24.625Z",
+  "generatedAt": "2026-11-05T21:39:21.724Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "e8c873626534d50273f6a67c62e3ad8ba2edfb70faf69d467384ae5e735a94d5",
+  "generationOverlayManifestSha256": "e84f2027c380ce4c796815fb9bd167eec33e620476668a2504b0a004c8cb0b0e",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "e8c873626534d50273f6a67c62e3ad8ba2edfb70faf69d467384ae5e735a94d5",
+  "treeManifestSha256": "e84f2027c380ce4c796815fb9bd167eec33e620476668a2504b0a004c8cb0b0e",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 256,
+  "totalFiles": 257,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -85,7 +85,7 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "14b0627bc7a4f8e8eb9a92349489724cadbd0c9a9875ff38f819cc53588f7cfb"
+      "sha256": "53b817cf0403d542812fcdc1905e923faa2013d7ecf40c89f8a8dc61246a04bd"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
@@ -209,8 +209,8 @@
     },
     {
       "path": "docs/process-predicate-policy.md",
-      "bytes": 12542,
-      "sha256": "9f57b45e20e434954b75082961a8da32023bf01511da5a097ae1d27651ce86a5"
+      "bytes": 12834,
+      "sha256": "dbafafe14658f05064d523b8b2c0804a7f8148e9e4320cd46610450afa3a0734"
     },
     {
       "path": "flake.lock",
@@ -224,8 +224,8 @@
     },
     {
       "path": "INSTALL.md",
-      "bytes": 4861,
-      "sha256": "1cf45f8fe3884658e2cf778bdf16e4c209a16a26cd755ccfcf98ebc79bf56c64"
+      "bytes": 5153,
+      "sha256": "5b22e1d69e656e15474655107ccae46bba17daa4b8e36a093d32bbc4c0d15ac4"
     },
     {
       "path": "keys/KEY-METADATA.json",
@@ -471,6 +471,11 @@
       "path": "tests/test_current_signer_archarm_client.py",
       "bytes": 47158,
       "sha256": "fb050592f8cef99651171b1720c626889008d54bf9936ae26af8b059760e728a"
+    },
+    {
+      "path": "tests/test_current_signer_bootstrap.py",
+      "bytes": 6510,
+      "sha256": "18275e14d2e5297077e7c92b4aca3729c5df76d37dc1d0c4577fe77c6835e4dc"
     },
     {
       "path": "tests/test_current_signer_cleanup_observations.py",
@@ -785,7 +790,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 98604,
-      "sha256": "d132737e4dcece3f7e6056437620e7ff2f500ca771b2c3c28c3e9fbf37828597"
+      "sha256": "9568b345c6f54cf129bd826265b1a7d8fabb3e20d1a78cdc0d3ce78d4dd148e5"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -1125,7 +1130,7 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "6861aea6546302adcbe19c8b8a0bba7dc9fbb801dd31df95972346653bb3b5ba"
+      "sha256": "facd03ee944d9afb6d878bf857379b3c3ccd031579dbc81710bd886b3c0a3ca3"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
