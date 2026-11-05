@@ -1,6 +1,7 @@
 # ArchARM key-free native runtime/SDK probe — PROPOSAL, NOT ADMITTED
 
-Status: source prepared for review only. The native workflow has not been run.
+Status: v2 correction prepared for review only. One prior v1 native diagnostic
+run failed; this correction has not been run natively.
 Pure callback validation is recorded separately and does not prove native acceptance. Adopting it, running it on hosted infrastructure, or relying on
 it for any decision needs a separate owner decision. This source does not grant
 or imply any authorization.
@@ -150,13 +151,21 @@ refuses any other output.
 
 - The pacman hooks are expected to create these in the **new image only**:
   - `gschemas.compiled`
-  - gdk-pixbuf `loaders.cache`
+  - gdk-pixbuf `loaders.cache`, only when external loader modules are installed
   - GTK3 `immodules.cache`
   - `mime.cache`
   - hicolor `icon-theme.cache`
   - fontconfig caches
 
-  The installer checks that they exist. It checks presence only, not freshness.
+  The installer checks presence, not freshness. The pinned base and all 139
+  packages contain no external gdk-pixbuf loader modules, so their path-triggered
+  cache hook does not run. In that case the installer requires the cache to be
+  absent; with external modules it requires a nonempty cache. The aggregate
+  flag is `hookStateMatchesInputs`.
+
+  Each of the six checks
+  has a fixed refusal label (`hooks_schemas`, `hooks_pixbuf`, `hooks_immodules`,
+  `hooks_mime`, `hooks_icons`, `hooks_fonts`); failure still stops before commit.
 - The GStreamer `.INSTALL` script applies `cap_net_bind_service,cap_net_admin=ep`
   to `usr/lib/gstreamer-1.0/gst-ptp-helper`. The
   `ptpHelperFileCapsSetInInstaller` flag means the xattr is present in the
@@ -172,7 +181,14 @@ refuses any other output.
 
 ## Result (artifact) policy
 
-The artifact is the closed `result.json` only, kept for 7 days. It contains:
+The artifact is the closed `result.json` only, kept for 7 days.
+
+The schema is `tf.archarm-key-free-runtime-probe.v2`. Compared with v1, the
+aggregate hook flag is now `hookStateMatchesInputs`, and the six distinct hook
+refusals replace the generic `INSTALL_HOOKS`. Original v1 results remain tied to
+their original source and are not accepted by the v2 validator.
+
+It contains:
 
 - source SHA, run ID and attempt;
 - rootfs, rootfs-pin, package-pin and public-key digests, plus the fingerprint;
@@ -209,7 +225,12 @@ logs, archives, images, SDKs or source bundles.
   An image is removed only after its tag resolves to the recorded `sha256:` ID,
   using `docker image rm --no-prune <tag>`.
 - **Absence readback:** after removal the probe confirms the name or tag and the
-  ID are both gone.
+  ID are both gone. Presence accepts Docker's indented or compact JSON only as
+  one object in an array. Absence requires exit status 1 and an empty array;
+  malformed, ambiguous or inconsistent readbacks stop cleanup.
+  This retains the existing CLI absence convention: an exit-1 empty array does
+  not independently distinguish a missing object from every daemon lookup
+  error. This probe does not establish a stronger absence guarantee.
 - **Never used:** `-f`/`--force`, `prune`, or removal by guessed identity.
 - **Workspace:** the work root is removed in two phases. A closed layout scan runs
   first; any unexpected entry aborts deletion. The base helper's
