@@ -1,0 +1,41 @@
+name: Current ArchARM Key-Free Base Probe
+
+# Prepared source only. One invocation requires the bounded owner disposition.
+# No signing environment, private key, package installation or publication.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  archarm-base:
+    if: github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: p
+          persist-credentials: false
+      - name: Check pure input and custody contracts
+        run: /usr/bin/python3 -I -B p/tests/test_archarm_base_probe.py
+      - name: Verify public rootfs and probe the native offline base
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          /usr/bin/python3 -I -B p/tools/verification/archarm_base_probe/archarm_base_probe.py \
+            --work "$RUNNER_TEMP/tf-archarm-base-$GITHUB_RUN_ID" \
+            --result "$RUNNER_TEMP/tf-archarm-base-result-$GITHUB_RUN_ID/RESULT.json"
+      - name: Retain the closed result only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: archarm-base-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/tf-archarm-base-result-${{ github.run_id }}/RESULT.json
+          if-no-files-found: error
+          retention-days: 7
