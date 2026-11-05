@@ -1,5 +1,7 @@
-"""Native package-client qualification for the five signed Linux lanes in Theme Forge.
+"""Native package-client qualification for the six signed Linux lanes in Theme Forge.
 Reuses RS9 client runner, container provisioning, specs, and `client_cycle`.
+The current-only pacman-aarch64 lane never provisions: it holds one source-bound
+rs9.archarm_sdk lease from the authenticated R checkout and passes that object.
 """
 from __future__ import annotations
 import os, sys  # noqa: E401
@@ -9,7 +11,7 @@ if __name__ == "__main__":  # explicit sibling bootstrap under python3 -I -B
     if sys.path[:1] != [_HERE]:
         sys.path.insert(0, _HERE)
 
-import argparse, hashlib, shutil, subprocess, uuid  # noqa: E401,E402
+import argparse, hashlib, importlib, re, shutil, stat, subprocess, uuid  # noqa: E401,E402
 from contextlib import contextmanager  # noqa: E402
 from dataclasses import dataclass, fields  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -49,7 +51,20 @@ LANE_SPECS: dict[str, LaneSpec] = {
     "dnf-x86_64": LaneSpec("dnf-x86_64", "dnf", "rpm", "x86_64", "x86_64", "x86_64-linux", "linux/amd64"),
     "dnf-aarch64": LaneSpec("dnf-aarch64", "dnf", "rpm", "aarch64", "aarch64", "aarch64-linux", "linux/arm64"),
     "pacman-x86_64": LaneSpec("pacman-x86_64", "pacman", "pacman", "x86_64", "x86_64", "x86_64-linux", "linux/amd64"),
+    "pacman-aarch64": LaneSpec("pacman-aarch64", "pacman", "pacman", "aarch64", "aarch64", "aarch64-linux", "linux/arm64"),
 }
+
+# Current-only ArchARM lane: exact qualified SDK lease, never the old registry provisioner.
+ARCHARM_LANE = "pacman-aarch64"
+ARCHARM_SDK_MODULE = "rs9.archarm_sdk"
+ARCHARM_SDK_REL_PATH = "src/rs9/archarm_sdk.py"
+ARCHARM_SDK_WORKSPACE = "archarm-sdk"
+ARCHARM_PROBE_OUTPUT = "archarm-probe-output"
+ARCHARM_SOURCE_KEYS = ("p_commit", "p_tree", "r_commit", "r_tree", "source_closure_sha256", "rs9_run")
+MAX_RUNNER_ID = 2147483647
+PROBE_OUTPUT_MAX_ENTRIES = 4096
+PROBE_OUTPUT_MAX_DEPTH = 16
+_SDK_IMAGE_RE = re.compile(r"(?:sha256:[0-9a-f]{64}|[a-z0-9][a-z0-9._/-]{0,127}(?::[A-Za-z0-9._-]{1,128})?)")
 
 
 def verify_native_linux_host(lane: str, *, uname_fn: Callable[[], Any] = os.uname) -> LaneSpec:
@@ -143,24 +158,76 @@ def adapt_production_dnf_spec(rpm_dir: Path, keys_dir: Path, arch: str) -> dict[
             or spec.get("refresh") != [*command_base(), "--refresh", "makecache"]
             or not all(callable(spec.get(k)) for k in ("install", "remove", "query"))):
         refuse("DNF_SPEC_SHAPE_UNRECOGNIZED")
+    # Project this architecture's signed tree into the unchanged guest trust URI.
+    # Downstream identity checks deliberately retain that exact URI contract.
+    spec["mounts"] = [
+        (str(rpm_dir / arch), f"{SERVER_ROOT}/rpm/fedora/43/{arch}", False),
+        expected_mounts[1],
+    ]
     return spec
 
 
-def adapt_production_pacman_spec(pacman_dir: Path, keys_dir: Path) -> dict[str, Any]:
-    """Narrowly adapt rs9.hosted_deb.pacman_spec literal fixture key filename to production."""
+def adapt_production_pacman_spec(pacman_dir: Path, keys_dir: Path, architecture: str = "x86_64") -> dict[str, Any]:
+    """Narrowly adapt rs9.hosted_deb.pacman_spec literal fixture key filename to production.
+
+    The default x86_64 call is unchanged. aarch64 uses the R pacman_spec
+    ``architecture`` keyword and must keep every shared command byte-identical.
+    """
     from rs9.hosted_deb import PACMAN_CONF, SERVER_ROOT, _printf_file, pacman_spec
+    if architecture not in ("x86_64", "aarch64"):
+        refuse("UNSUPPORTED_CLIENT_LANE")
     _read_checked_public_key(keys_dir / COMMITTED_PUBLIC_KEY_FILENAME)
-    spec = pacman_spec(pacman_dir, keys_dir, PRODUCTION_PRIMARY_FINGERPRINT)
-    expected_conf = ["[options]", "Architecture = x86_64", "SigLevel = Required DatabaseRequired", "[rs9]", f"Server = file://{SERVER_ROOT}/pacman/$arch"]
+    if architecture == "x86_64":
+        spec = pacman_spec(pacman_dir, keys_dir, PRODUCTION_PRIMARY_FINGERPRINT)
+    else:
+        from rs9.errors import ContractError
+        try:
+            spec = pacman_spec(pacman_dir, keys_dir, PRODUCTION_PRIMARY_FINGERPRINT, architecture=architecture)
+        except (ContractError, TypeError):
+            raise PublicationError("PACMAN_SPEC_SHAPE_UNRECOGNIZED") from None
+    expected_conf = ["[options]", f"Architecture = {architecture}", "SigLevel = Required DatabaseRequired", "[rs9]", f"Server = file://{SERVER_ROOT}/pacman/$arch"]
     expected_mounts = [(str(pacman_dir), f"{SERVER_ROOT}/pacman", False), (str(keys_dir), f"{SERVER_ROOT}/keys", False)]
     expected_cfg = [_printf_file(PACMAN_CONF, expected_conf), ["pacman-key", "--init"],
                     ["pacman-key", "--add", f"{SERVER_ROOT}/keys/{FIXTURE_ASC_FILENAME}"], ["pacman-key", "--lsign-key", PRODUCTION_PRIMARY_FINGERPRINT]]
     if (not isinstance(spec, dict) or spec.get("family") != "pacman" or spec.get("mounts") != expected_mounts
             or spec.get("configure") != expected_cfg or not all(callable(spec.get(k)) for k in ("install", "remove", "query"))):
         refuse("PACMAN_SPEC_SHAPE_UNRECOGNIZED")
-    spec["configure"] = [expected_cfg[0], expected_cfg[1], ["pacman-key", "--add", f"{SERVER_ROOT}/keys/{COMMITTED_PUBLIC_KEY_FILENAME}"], expected_cfg[3]]
+    # Keep the shared trust commands, but select the signed production database.
+    production_conf = [
+        "[knowledge-forge-ai]" if line == "[rs9]" else line for line in expected_conf
+    ]
+    spec["configure"] = [
+        _printf_file(PACMAN_CONF, production_conf), expected_cfg[1],
+        ["pacman-key", "--add", f"{SERVER_ROOT}/keys/{COMMITTED_PUBLIC_KEY_FILENAME}"],
+        expected_cfg[3],
+    ]
+    base = ["pacman", "--config", PACMAN_CONF]
+    if spec["install"]("RS9_PRODUCT") != [*base, "-S", "--noconfirm", "--needed", "rs9/RS9_PRODUCT"]:
+        refuse("PACMAN_SPEC_SHAPE_UNRECOGNIZED")
+    if architecture != "x86_64" and (
+            spec.get("refresh") != [*base, "-Sy", "--noconfirm"]
+            or spec["remove"]("RS9_PRODUCT") != [*base, "-R", "--noconfirm", "RS9_PRODUCT"]
+            or spec["query"]("RS9_PRODUCT") != ["pacman", "-Q", "RS9_PRODUCT"]):
+        # The new lane admits no bypass flag, refresh variant or removal shape change.
+        refuse("PACMAN_SPEC_SHAPE_UNRECOGNIZED")
+    spec["install"] = lambda package: [*base, "-S", "--noconfirm", "--needed", f"knowledge-forge-ai/{package}"]
     spec["public_fingerprint"], spec["expected_key_sha256"] = PRODUCTION_PRIMARY_FINGERPRINT, COMMITTED_PUBLIC_KEY_SHA256
     return spec
+
+
+def build_production_client_spec(staged_root: Path, lane_spec: LaneSpec) -> dict[str, Any]:
+    """Select the signed deployment directory for a DNF or Pacman client."""
+    keys = staged_root / "keys"
+    if lane_spec.family == "dnf":
+        return adapt_production_dnf_spec(staged_root / "rpm", keys, lane_spec.arch)
+    if lane_spec.family == "pacman":
+        if lane_spec.arch == "x86_64" and lane_spec.platform == "linux/amd64":
+            return adapt_production_pacman_spec(staged_root / "arch", keys)
+        if lane_spec == LANE_SPECS[ARCHARM_LANE]:
+            # Same signed deployment tree; pacman's $arch selects arch/aarch64.
+            return adapt_production_pacman_spec(staged_root / "arch", keys, architecture="aarch64")
+        refuse("UNSUPPORTED_CLIENT_LANE")
+    refuse("UNSUPPORTED_CLIENT_LANE")
 
 
 def build_production_apt_spec(apt_dir: Path, keyring_path: Path, arch: str, expected_gpg_sha256: str) -> dict[str, Any]:
@@ -213,6 +280,269 @@ def authenticate_p_command_contracts(p_root: Path) -> tuple[dict[str, Any], str]
     return commands, hashlib.sha256(raw).hexdigest()
 
 
+def archarm_runner_identity(
+    *, getuid: Callable[[], int] = os.getuid, getgid: Callable[[], int] = os.getgid,
+) -> tuple[int, int]:
+    """Actual nonroot runner numeric UID/GID, each 1..2147483647; never a name."""
+    uid, gid = getuid(), getgid()
+    if (type(uid) is not int or type(gid) is not int
+            or not 0 < uid <= MAX_RUNNER_ID or not 0 < gid <= MAX_RUNNER_ID):
+        refuse("ARCHARM_RUNNER_IDENTITY")
+    return uid, gid
+
+
+def _plain_context(value: Any, depth: int = 0) -> Any:
+    """Closed, comparable copy: nested str-keyed mappings of str/int leaves only."""
+    if isinstance(value, Mapping) and depth < 3:
+        if any(type(key) is not str for key in value):
+            refuse("ARCHARM_LEASE_CONTEXT")
+        return {key: _plain_context(value[key], depth + 1) for key in sorted(value)}
+    if type(value) in (str, int):
+        return value
+    refuse("ARCHARM_LEASE_CONTEXT")
+
+
+def archarm_lease_context(lane_spec: LaneSpec, admitted: Mapping[str, Any]) -> dict[str, Any]:
+    """Exact current-generation pacman/aarch64-linux context bound to the admitted source."""
+    if lane_spec != LANE_SPECS[ARCHARM_LANE]:
+        refuse("ARCHARM_LANE_CONTEXT")
+    try:
+        source = {key: admitted[key] for key in ARCHARM_SOURCE_KEYS}
+    except (KeyError, TypeError):
+        raise PublicationError("ARCHARM_SOURCE_IDENTITY") from None
+    if (any(type(source[k]) is not str or not gh.HEX40.fullmatch(source[k])
+            for k in ("p_commit", "p_tree", "r_commit", "r_tree"))
+            or type(source["source_closure_sha256"]) is not str
+            or not gh.HEX64.fullmatch(source["source_closure_sha256"])
+            or not gh.positive_int(source["rs9_run"])):
+        refuse("ARCHARM_SOURCE_IDENTITY")
+    return _plain_context({
+        "generation": gh.CURRENT_GENERATION, "family": "pacman", "system": "aarch64-linux",
+        "architecture": "aarch64", "platform": "linux/arm64", "lane": ARCHARM_LANE, "source": source,
+    })
+
+
+def archarm_sdk_context(source_context: Mapping[str, Any], qualification_run_id: int) -> dict[str, Any]:
+    """Join the held P source admission to the SDK's closed run/source API."""
+    if not gh.positive_int(qualification_run_id):
+        refuse("ARCHARM_SOURCE_IDENTITY")
+    if (source_context.get("generation") != gh.CURRENT_GENERATION
+            or source_context.get("lane") != ARCHARM_LANE
+            or source_context.get("family") != "pacman"
+            or source_context.get("system") != "aarch64-linux"):
+        refuse("ARCHARM_LANE_CONTEXT")
+    return {"generation": gh.CURRENT_GENERATION, "runId": str(qualification_run_id),
+            "runAttempt": 1, "sourceSha": source_context["source"]["p_commit"]}
+
+
+def load_archarm_sdk(r_root: Path) -> tuple[Callable[..., Any], type]:
+    """Import rs9.archarm_sdk only from the authenticated R checkout's own file."""
+    expected = Path(r_root) / ARCHARM_SDK_REL_PATH
+    try:
+        info = os.lstat(expected)
+    except OSError:
+        raise PublicationError("ARCHARM_SDK_UNAVAILABLE") from None
+    if not stat.S_ISREG(info.st_mode):
+        refuse("ARCHARM_SDK_IDENTITY")
+    try:
+        module = importlib.import_module(ARCHARM_SDK_MODULE)
+    except ImportError:
+        raise PublicationError("ARCHARM_SDK_UNAVAILABLE") from None
+    mod_file = getattr(module, "__file__", None)
+    if (getattr(module, "__name__", None) != ARCHARM_SDK_MODULE or not isinstance(mod_file, str)
+            or os.path.realpath(mod_file) != os.path.realpath(expected)):
+        refuse("ARCHARM_SDK_IDENTITY")
+    acquire, lease_type = getattr(module, "acquire_sdk", None), getattr(module, "ArchArmSDK", None)
+    if not callable(acquire) or not isinstance(lease_type, type):
+        refuse("ARCHARM_SDK_API")
+    return acquire, lease_type
+
+
+def verify_archarm_lease(lease: Any, lease_type: type, *, context: Mapping[str, Any], uid: int, gid: int) -> None:
+    """Accept only the exact typed lease that the authenticated SDK returned for this context."""
+    if type(lease) is not lease_type:
+        refuse("ARCHARM_LEASE_FORGED")
+    lease_context = getattr(lease, "context", None)
+    if not isinstance(lease_context, Mapping) or _plain_context(lease_context) != _plain_context(context):
+        refuse("ARCHARM_LEASE_CONTEXT")
+    image, lease_uid, lease_gid = (getattr(lease, k, None) for k in ("image", "uid", "gid"))
+    if (getattr(lease, "platform", None) != "linux/arm64" or type(image) is not str
+            or not _SDK_IMAGE_RE.fullmatch(image) or type(lease_uid) is not int or type(lease_gid) is not int
+            or lease_uid != uid or lease_gid != gid):
+        refuse("ARCHARM_LEASE_IDENTITY")
+    if not callable(getattr(lease, "client", None)):
+        refuse("ARCHARM_LEASE_API")
+
+
+def _owned_safe(info: os.stat_result, uid: int, gid: int) -> None:
+    if info.st_uid != uid or info.st_gid != gid:
+        refuse("PROBE_OUTPUT_OWNER")
+    if info.st_mode & (stat.S_ISUID | stat.S_ISGID):
+        refuse("PROBE_OUTPUT_SETID")
+    if info.st_mode & stat.S_IWOTH:
+        refuse("PROBE_OUTPUT_WORLD_WRITABLE")
+
+
+def create_probe_output_root(work_dir: Path, *, uid: int, gid: int) -> Path:
+    """One fresh exclusive 0700 tree; the only writable host path offered to the client."""
+    root = Path(work_dir) / ARCHARM_PROBE_OUTPUT
+    try:
+        os.mkdir(root, 0o700)
+        info = os.lstat(root)
+    except OSError:
+        raise PublicationError("PROBE_OUTPUT_ROOT") from None
+    if not stat.S_ISDIR(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o700:
+        refuse("PROBE_OUTPUT_ROOT")
+    _owned_safe(info, uid, gid)
+    return root
+
+
+_IDENTITY = lambda s: (s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_gid)  # noqa: E731
+_FILE_IDENTITY = lambda s: (*_IDENTITY(s), s.st_size, s.st_mtime_ns, s.st_nlink)  # noqa: E731
+_DIR_FLAGS = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+_FILE_FLAGS = os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_CLOEXEC", 0)
+
+
+def verify_probe_output_tree(root: Path, *, uid: int, gid: int) -> dict[str, int]:
+    """Post-quiescence custody check of untrusted probe output; returns counts only.
+
+    lstat + no-follow held descriptors; expected numeric owner; rejects symlinks,
+    setuid/setgid, world-writable, hard-linked, special or changing entries. No
+    name or byte from the tree is retained; this check confers no qualification.
+    """
+    counts = {"directories": 0, "files": 0, "bytes": 0}
+
+    def walk(dir_fd: int, depth: int) -> None:
+        for name in sorted(os.listdir(dir_fd)):
+            if counts["directories"] + counts["files"] >= PROBE_OUTPUT_MAX_ENTRIES:
+                refuse("PROBE_OUTPUT_BOUNDS")
+            info = os.stat(name, dir_fd=dir_fd, follow_symlinks=False)
+            if stat.S_ISLNK(info.st_mode):
+                refuse("PROBE_OUTPUT_SYMLINK")
+            _owned_safe(info, uid, gid)
+            if stat.S_ISDIR(info.st_mode):
+                if depth >= PROBE_OUTPUT_MAX_DEPTH:
+                    refuse("PROBE_OUTPUT_BOUNDS")
+                fd = os.open(name, _DIR_FLAGS, dir_fd=dir_fd)
+                try:
+                    if _IDENTITY(os.fstat(fd)) != _IDENTITY(info):
+                        refuse("PROBE_OUTPUT_UNSTABLE")
+                    counts["directories"] += 1
+                    walk(fd, depth + 1)
+                    if _IDENTITY(os.fstat(fd)) != _IDENTITY(info):
+                        refuse("PROBE_OUTPUT_UNSTABLE")
+                finally:
+                    os.close(fd)
+            elif stat.S_ISREG(info.st_mode):
+                if info.st_nlink != 1:
+                    refuse("PROBE_OUTPUT_LINKED")
+                fd = os.open(name, _FILE_FLAGS, dir_fd=dir_fd)
+                try:
+                    if _FILE_IDENTITY(os.fstat(fd)) != _FILE_IDENTITY(info):
+                        refuse("PROBE_OUTPUT_UNSTABLE")
+                finally:
+                    os.close(fd)
+                counts["files"] += 1
+                counts["bytes"] += info.st_size
+            else:
+                refuse("PROBE_OUTPUT_SPECIAL")
+
+    try:
+        top = os.lstat(root)
+        if not stat.S_ISDIR(top.st_mode):
+            refuse("PROBE_OUTPUT_ROOT")
+        _owned_safe(top, uid, gid)
+        root_fd = os.open(root, _DIR_FLAGS)
+        try:
+            if _IDENTITY(os.fstat(root_fd)) != _IDENTITY(top):
+                refuse("PROBE_OUTPUT_UNSTABLE")
+            walk(root_fd, 0)
+            if _IDENTITY(os.fstat(root_fd)) != _IDENTITY(top):
+                refuse("PROBE_OUTPUT_UNSTABLE")
+        finally:
+            os.close(root_fd)
+    except OSError:
+        raise PublicationError("PROBE_OUTPUT_UNREADABLE") from None
+    return counts
+
+
+class ArchArmLeaseHold:
+    """Holds the one real SDK lease for a pacman-aarch64 lane run.
+
+    The lease is obtained only through load_archarm_sdk(r_root); no caller,
+    CLI option or serialized mapping can supply it. Cleanup is the lease's own
+    identity-bound non-forced close; P never force-removes lease resources.
+    """
+
+    def __init__(self) -> None:
+        self.cm: Any = None
+        self.lease: Any = None
+        self.entered = False
+        self.verified = False
+        self.uid: int | None = None
+        self.gid: int | None = None
+        self.context: dict[str, Any] | None = None
+        self.probe_output: Path | None = None
+        self.probe_counts: dict[str, int] | None = None
+        self.cleanup: str | None = None
+
+    def open(self, *, host: Any, lane_spec: LaneSpec, admitted: Mapping[str, Any], r_root: Path, work_dir: Path) -> Any:
+        uid, gid = archarm_runner_identity()
+        source_context = archarm_lease_context(lane_spec, admitted)
+        context = archarm_sdk_context(source_context, admitted.get("qualification_run_id"))
+        acquire, lease_type = load_archarm_sdk(r_root)
+        self.uid, self.gid, self.context = uid, gid, context
+        self.probe_output = create_probe_output_root(work_dir, uid=uid, gid=gid)
+        cm = acquire(host=host, workspace=Path(work_dir) / ARCHARM_SDK_WORKSPACE,
+                     context=_plain_context(context), uid=uid, gid=gid)
+        if not callable(getattr(cm, "__enter__", None)) or not callable(getattr(cm, "__exit__", None)):
+            refuse("ARCHARM_SDK_API")
+        self.cm = cm
+        lease = cm.__enter__()
+        self.entered = True
+        verify_archarm_lease(lease, lease_type, context=context, uid=uid, gid=gid)
+        self.lease, self.verified = lease, True
+        return lease
+
+    def close(self) -> str | None:
+        """None when nothing was acquired; acquisition that never completed is unproven."""
+        if self.cm is None:
+            self.cleanup = None
+        elif not self.entered:
+            self.cleanup = "failed"
+        else:
+            try:
+                self.cm.__exit__(None, None, None)
+                self.cleanup = "complete"
+            except Exception:
+                self.cleanup = "failed"
+        return self.cleanup
+
+    def custody_row(self, lane: str) -> dict[str, Any] | None:
+        """Ingest probe output only after the lease closed its writers cleanly."""
+        if self.probe_output is None or self.uid is None or self.gid is None:
+            return None
+        name = f"client.{lane}.probe-output-custody"
+        if self.cleanup != "complete" or not self.verified:
+            return {"name": name, "status": "fail", "reason": "writers-not-quiesced"}
+        try:
+            self.probe_counts = verify_probe_output_tree(self.probe_output, uid=self.uid, gid=self.gid)
+        except PublicationError as error:
+            return {"name": name, "status": "fail", "reason": error.code}
+        return {"name": name, "status": "pass"}
+
+
+def _forced_or_pruning_docker(argv: Sequence[str]) -> bool:
+    if len(argv) < 2 or argv[0] != "docker":
+        return False
+    verb = list(argv[1:3])
+    removal = argv[1] in ("rm", "rmi") or (
+        len(verb) == 2 and verb[0] in ("container", "image") and verb[1] in ("rm", "remove", "prune"))
+    pruning = "prune" in verb or (argv[1] == "system" and "prune" in argv[2:3])
+    forced = any(a in ("-f", "--force") or a.startswith("--force=") for a in argv[2:])
+    return pruning or (removal and forced)
+
+
 def _validate_client_env_map(env_map: Mapping[str, str], *, strict_allowlist: bool = False) -> None:
     if cai.signing_or_gpg_env_present(env_map) or any(
         key in cai._TOKEN_ENV_NAMES or key.startswith(_FORBIDDEN_CLIENT_ENV_PREFIXES)
@@ -234,9 +564,12 @@ def _scoped_os_environ(env_map: Mapping[str, str]) -> Iterator[None]:
 
 class IsolatedClientRunner:
     """Wraps a CommandRunner with a restoring os.environ guard and container/image custody tracking."""
-    def __init__(self, inner: Any, base_env: Mapping[str, str]) -> None:
+    def __init__(self, inner: Any, base_env: Mapping[str, str], *, lease_custody: bool = False) -> None:
         _validate_client_env_map(base_env, strict_allowlist=True)
         self.inner, self._base_env = inner, dict(base_env)
+        # Lease custody: the SDK lease owns identity-bound, non-forced cleanup of
+        # its containers/images; any forced or pruning removal is refused here.
+        self.lease_custody = lease_custody is True
         self.active_containers: set[str] = set()
         self.failed_removals: set[str] = set()
         self.failed_image_removals: set[str] = set()
@@ -260,6 +593,11 @@ class IsolatedClientRunner:
         merged = dict(self._base_env)
         if env:
             _validate_client_env_map(env); merged.update(env)
+        if self.lease_custody:
+            if _forced_or_pruning_docker(argv):
+                refuse("ARCHARM_FORCED_CLEANUP")
+            with _scoped_os_environ(merged):
+                return self.inner.run(argv, cwd=cwd, env=merged)
         cname: str | None = None
         if len(argv) >= 3 and argv[:2] == ["docker", "run"] and "--rm" not in argv:
             if "--name" in argv and argv.index("--name") + 1 < len(argv):
@@ -301,6 +639,8 @@ def required_gate_names_for_lane(lane_spec: LaneSpec) -> list[str]:
                          *([f"{label}.burst-native-addon-target", f"{label}.burst-native-addon-load"] if product == "theme-forge-stellar-burst" else []),
                          *([f"{label}.native-closure"] if product == NATIVE_PRODUCT else []),
                          f"{label}.uninstall", f"{label}.inventory", f"{label}.cleanup"))
+    if lane_spec == LANE_SPECS[ARCHARM_LANE]:
+        expected.append(f"{prefix}.probe-output-custody")
     return [*expected, "burst-native-addon-target", "burst-native-addon-load"]
 
 
@@ -347,7 +687,10 @@ def qualify_lane(
     burst_record, nix_contract_sha256 = derive_burst_record_from_p_contract(p_root, lane_spec.system)
     _, cmd_contract_sha256 = authenticate_p_command_contracts(p_root)
     targets_doc, targets_raw = _read_checked_json(r_root / "operators/live1/targets.json", "TARGETS_SCHEMA")
-    isolated = IsolatedClientRunner(inner_runner or SubprocessRunner(), base_env)
+    archarm = lane_spec == LANE_SPECS[ARCHARM_LANE]
+    archarm_hold = ArchArmLeaseHold() if archarm else None
+    lease_kwargs: dict[str, Any] = {}
+    isolated = IsolatedClientRunner(inner_runner or SubprocessRunner(), base_env, lease_custody=archarm)
     host = RecordingRunner(isolated)
     prep_rows, provisioned_tags, cleanup_results, cycle_rows = [], [], [], []
     binding_work = work_dir / "command-binding"
@@ -377,7 +720,8 @@ def qualify_lane(
                     or _read_checked_raw(r_root / "operators/live1/targets.json", "TARGETS_SCHEMA") != targets_raw
                 ):
                     refuse("SOURCE_STATE_CHANGED")
-                pins = resolve_targets(targets_doc, runner=pin_runner or isolated.pin_subprocess_run, verify_source_pins=True)
+                # The ARM SDK carries its own frozen public inputs; old registry pins are never resolved for it.
+                pins = None if archarm else resolve_targets(targets_doc, runner=pin_runner or isolated.pin_subprocess_run, verify_source_pins=True)
                 tag = f"tf-client-{lane_spec.lane}:{uuid.uuid4().hex[:8]}"
                 if lane_spec.family == "apt":
                     env = prepare_environment(host, lane_spec.arch, pins, recorder=prep_rows)
@@ -393,15 +737,21 @@ def qualify_lane(
                     env = provision_native("rpm", lane_spec.system, pins, runner=host)
                     provisioned_tags.append(tag); rt_ev = prepare_client(host, env, arch=lane_spec.arch, system=lane_spec.system, tag=tag)
                     client_image = verify_client_image(host, tag, rt_ev, environment=env, arch=lane_spec.arch, system=lane_spec.system)
-                    spec = adapt_production_dnf_spec(staged_root / "rpm", staged_root / "keys", lane_spec.arch)
+                    spec = build_production_client_spec(staged_root, lane_spec)
+                elif archarm:
+                    spec = build_production_client_spec(staged_root, lane_spec)
+                    lease = archarm_hold.open(host=host, lane_spec=lane_spec, admitted=admitted, r_root=r_root, work_dir=work_dir)
+                    client_image = lease.image
+                    lease_kwargs = {"sdk_lease": lease, "burst_scratch": archarm_hold.probe_output}
                 else:
                     env = provision_native("pacman", "x86_64-linux", pins, runner=host); provisioned_tags.append(tag)
                     provision_image(host, "pacman", env["image_ref"], "linux/amd64", tag, [*env["preprovisioned_packages"], "python", "xorg-server-xvfb", "dbus"], recorder=prep_rows, substage_prefix="client-")
-                    client_image, spec = tag, adapt_production_pacman_spec(staged_root / "pacman", staged_root / "keys")
+                    client_image, spec = tag, build_production_client_spec(staged_root, lane_spec)
                 rows, _ = client_cycle(
                     host, spec, image=client_image, platform=lane_spec.platform, products=REQUIRED_PRODUCTS,
                     repository=r_root, prefix=f"client.{lane_spec.lane}", smoke=None, system=lane_spec.system,
-                    burst_record=burst_record, burst_scratch=work_dir / "burst-scratch", generation=gh.CURRENT_GENERATION,
+                    burst_record=burst_record, generation=gh.CURRENT_GENERATION,
+                    **({"burst_scratch": work_dir / "burst-scratch"} if not archarm else lease_kwargs),
                 )
                 cycle_rows.extend((*rows, *burst_client_gates(rows)))
             except (PublicationError, ContractError, NativePrerequisiteUnavailable, sc.ClosureError, OSError, ValueError, KeyError, TypeError) as err:
@@ -412,8 +762,18 @@ def qualify_lane(
                 cycle_rows.append({"name": f"client.{lane_spec.lane}.setup", "status": status, "reason": reason})
         finally:
             intake_token = None
+            lease_kwargs = {}
             if binding_work.exists():
                 shutil.rmtree(binding_work, ignore_errors=True)
+            if archarm_hold is not None:
+                # Close the lease first (strict, identity-bound, never forced); only
+                # then are probe-output writers quiesced and the tree inspected.
+                lease_cleanup = archarm_hold.close()
+                if lease_cleanup is not None:
+                    cleanup_results.append(lease_cleanup)
+                custody = archarm_hold.custody_row(lane_spec.lane)
+                if custody is not None:
+                    cycle_rows.append(custody)
             for cname in sorted(isolated.active_containers | isolated.failed_removals):
                 try:
                     res = _cleanup_step(host, prep_rows, ["docker", "rm", "-f", cname], "container-cleanup")
@@ -433,7 +793,9 @@ def qualify_lane(
                     isolated.failed_image_removals.add(img_tag)
                 cleanup_results.append(res)
     scratch_lingering = 1 if binding_work.exists() else 0
-    orphan_count = isolated.retained_custody_count + scratch_lingering
+    # An unproven lease close is retained until disposable VM teardown.
+    lease_retained = 1 if archarm_hold is not None and archarm_hold.cleanup == "failed" else 0
+    orphan_count = isolated.retained_custody_count + scratch_lingering + lease_retained
     retained_custody = len(gh._RETAINED_CHILDREN) + orphan_count
     cleanup_ok = all(res == "complete" for res in cleanup_results) and retained_custody == 0
     real_commands = bool(
@@ -444,6 +806,7 @@ def qualify_lane(
         and isinstance(isolated.inner, SubprocessRunner)
         and isinstance(capture_client, PublicClient)
         and command_binding.get("status") == "bound"
+        and (archarm_hold is None or archarm_hold.verified)
     )
     overall, visible_gates, counts = evaluate_lane_gates(
         cycle_rows, required_names=required_gate_names_for_lane(lane_spec),
@@ -464,6 +827,12 @@ def qualify_lane(
         "gui_separately_qualified_by_validate_workflow": True, "all_commands_executed": real_commands,
         "cleanup_complete": cleanup_ok, "retained_custody_count": retained_custody,
         "gate_counts": counts, "gates": visible_gates, "receipt_count": len(host.receipts),
+        **({"archarm_sdk": {
+            "route": ARCHARM_SDK_MODULE, "lease_verified": archarm_hold.verified,
+            "lease_cleanup": archarm_hold.cleanup, "registry_provisioner_used": False,
+            "context": {k: v for k, v in (archarm_hold.context or {}).items() if k != "source"},
+            "probe_output_counts": archarm_hold.probe_counts,
+        }} if archarm_hold is not None else {}),
     }
 
 

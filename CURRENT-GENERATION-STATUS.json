@@ -11,7 +11,7 @@
     "Review and promote bounded canonical generator/input patch.",
     "Integrate RS9 qualified unsigned native packages into existing protected signer and Pages deployer with key continuity.",
     "Bind exact native-three Nix qualification receipts and qualified Nix source/ref publication; this Nix gate is independent of the APT, DNF and pacman RS9 bridge and protected-repository signing gates.",
-    "Bind exact Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64 qualification receipts for their separate OS-channel gates.",
+    "Bind exact Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64/aarch64 qualification receipts for their separate OS-channel gates.",
     "Regenerate binding after production public key preservation/bootstrap and final bridge integration."
   ],
   "historicalTemplates": [
@@ -103,5 +103,17 @@
     "secretOrRawOutputRetention": false,
     "signingAcceptance": false,
     "publicationAuthority": false
+  },
+  "aarch64PacmanProductRuntime": {
+    "status": "isolated-source-prepared-not-adopted",
+    "operatingPolicy": "owner-approved-for-isolated-implementation",
+    "qualifiedPriorSdkProbe": 42033829642,
+    "qualifiedPriorSource": "bfa1a8a83c328e623692c467b84aeaf81cf546bd",
+    "newSourceNativeQualified": false,
+    "canonicalAnyConstructor": "pacman/x86_64-linux in same original campaign",
+    "newClient": "pacman-aarch64",
+    "hostedCampaignsAuthorized": 0,
+    "signingAuthorized": false,
+    "publicationAuthorized": false
   }
 }

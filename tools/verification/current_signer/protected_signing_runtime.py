@@ -115,6 +115,30 @@ _RPM_VERIFY_MAX_LINES = 64
 # Held live APT Release member (relative to the APT root); the shared signing
 # helper writes it beside InRelease and Release.gpg.
 _LIVE_APT_RELEASE = "dists/resolute/Release"
+# Live Pacman repositories arch/<arch>. Ownership: the global
+# CHANNEL_ARCHITECTURES["pacman"] stays x86_64-only, so the legacy raw route
+# (validate_unsigned_objects) refuses native aarch64 before any path/material
+# read. Only the sealed live intake (_live_object_shapes) admits these native
+# Pacman architectures, and this tuple also routes live outputs. An "any"
+# package is signed once and its identical bytes/signature are registered
+# under every listed repository.
+LIVE_PACMAN_ARCHITECTURES = ("x86_64", "aarch64")
+_LEGACY_PACMAN_ARCHITECTURES = ("any", "x86_64")
+
+
+def _pacman_output_directories(root: Path, architecture: str, *, live: bool) -> tuple[Path, ...]:
+    """Ordered output directories for one signed Pacman package (pure path selection)."""
+    if not live:
+        # Legacy raw route keeps its established single pacman/x86_64 layout and
+        # never routes any other architecture.
+        if architecture not in _LEGACY_PACMAN_ARCHITECTURES:
+            raise ProtectedSigningError("ARCHITECTURE", "Unsupported legacy Pacman architecture")
+        return (root / "pacman" / "x86_64",)
+    if architecture == "any":
+        return tuple(root / "arch" / arch for arch in LIVE_PACMAN_ARCHITECTURES)
+    if architecture not in LIVE_PACMAN_ARCHITECTURES:
+        raise ProtectedSigningError("ARCHITECTURE", "Unsupported live Pacman repository architecture")
+    return (root / "arch" / architecture,)
 _SECRET_TOPOLOGY_OPTIONS = (
     "--with-colons", "--fixed-list-mode", "--with-secret",
     "--with-fingerprint", "--with-fingerprint", "--list-secret-keys",
@@ -839,7 +863,9 @@ def _live_object_shapes(objects: tuple[UnsignedObject, ...], origin: str) -> tup
             raise ProtectedSigningError("CHANNEL", "Unsupported live channel")
         if obj.product not in CURRENT_VERSIONS or obj.version != CURRENT_VERSIONS[obj.product]:
             raise ProtectedSigningError("VERSION", "Unsupported live product/version")
-        allowed = CHANNEL_ARCHITECTURES[obj.channel]
+        # Live-only native Pacman admission; the global legacy set stays x86_64.
+        allowed = (LIVE_PACMAN_ARCHITECTURES if obj.channel == "pacman"
+                   else CHANNEL_ARCHITECTURES[obj.channel])
         special = {"apt": "all", "pacman": "any"}.get(obj.channel)
         if obj.architecture not in allowed and not (obj.product in pure and obj.architecture == special):
             raise ProtectedSigningError("ARCHITECTURE", "Unsupported live package architecture")
@@ -1235,6 +1261,29 @@ class ProtectedSigningRuntime:
                 raise ProtectedSigningError("PACKAGE_MUTATED", "Output identity changed during assembly")
             self._output_files[path] = (identity, _sha256(data), len(data))
 
+    def _sign_pacman_object(self, obj, name, original, stage, *, staging, home, work, output_root, passphrase):
+        """One Pacman package: sign/verify once, check bytes, register outputs, return its row.
+
+        Called only from the _execute_checked loop with the staged held bytes.
+        Live routing is selected by the active lease (the same state that guards
+        _write_output); "any" is held/signed once and the same registered
+        bytes+signature are copied to every live arch/<arch> repository.
+        """
+        signature = staging / (stage.name + ".sig")
+        self._pacman_sign(stage, signature, home, work, passphrase)
+        self._pacman_verify(stage, signature, home, work)
+        observed = _read_regular_unpinned(stage, "signed Pacman input")
+        if observed != original:
+            raise ProtectedSigningError("PACKAGE_MUTATED", "Pacman package bytes changed during signing")
+        directories = _pacman_output_directories(output_root, obj.architecture,
+                                                 live=self._active_live_lease is not None)
+        signature_bytes = _read_regular_unpinned(signature, "Pacman signature")
+        for directory in directories:
+            self._write_output("pacman-output", directory / stage.name, observed, "Pacman package output")
+            self._write_output("signature-output", directory / signature.name, signature_bytes, "Pacman signature output")
+        return {"channel": "pacman", "product": obj.product, "architecture": obj.architecture,
+                "name": name, "package_sha256": _sha256(observed)}
+
     @staticmethod
     def _output_identity(info):
         return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink,
@@ -1480,20 +1529,10 @@ class ProtectedSigningRuntime:
                             results.append({"channel": "rpm", "product": obj.product, "architecture": obj.architecture,
                                             "name": name, "preservation": preservation, "rpm_verification": rpm_verification})
                         else:
-                            signature = staging.path / (stage.name + ".sig")
-                            self._pacman_sign(stage, signature, home.path, work.path, bytes(passphrase_secret))
-                            self._pacman_verify(stage, signature, home.path, work.path)
-                            observed = _read_regular_unpinned(stage, "signed Pacman input")
-                            if observed != original:
-                                raise ProtectedSigningError("PACKAGE_MUTATED", "Pacman package bytes changed during signing")
-                            archive = "x86_64" if obj.architecture == "any" else obj.architecture
-                            # Live route publishes the established arch/x86_64 layout.
-                            family = "arch" if lease is not None else "pacman"
-                            self._write_output("pacman-output", output.path / family / archive / stage.name, observed, "Pacman package output")
-                            signature_bytes = _read_regular_unpinned(signature, "Pacman signature")
-                            self._write_output("signature-output", output.path / family / archive / signature.name, signature_bytes, "Pacman signature output")
-                            results.append({"channel": "pacman", "product": obj.product, "architecture": obj.architecture,
-                                            "name": name, "package_sha256": _sha256(observed)})
+                            results.append(self._sign_pacman_object(
+                                obj, name, original, stage, staging=staging.path, home=home.path,
+                                work=work.path, output_root=output.path, passphrase=bytes(passphrase_secret),
+                            ))
                     if lease is not None:
                         self._assemble_live_apt_tree(
                             lease, results, home.path, work.path, staging.path, output, bytes(passphrase_secret),
@@ -1583,7 +1622,7 @@ class ProtectedSigningRuntime:
         Inside the same agent/key-import lifetime this route also assembles the
         complete held APT tree at output/apt and signs its held Release, then
         (proposed S3) creates, signs and status-verifies RPM repodata at
-        rpm/<arch> and the pacman database at arch/x86_64. Result objects stay
+        rpm/<arch> and the pacman databases at arch/x86_64 and arch/aarch64. Result objects stay
         the package rows only; nothing here admits repository trust.
         """
         self._require_idle()

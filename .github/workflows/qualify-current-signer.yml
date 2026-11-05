@@ -33,7 +33,7 @@ jobs:
       - name: Authenticate source and plan exact R coordinates
         id: plan
         env:
-          LEAF_MANIFEST_SHA256: "3519f2adf02b3a156a4feae5f146281655effa084fa6a3e5637cf9bf707ff01d"
+          LEAF_MANIFEST_SHA256: "e57178c38056fe0a95abd1d77ffc81b6eb12733d16eca8951d86470da31acead"
         run: |
           set -euo pipefail
           /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-runtime plan \
@@ -126,6 +126,8 @@ jobs:
             runner: ubuntu-24.04-arm
           - lane: pacman-x86_64
             runner: ubuntu-24.04
+          - lane: pacman-aarch64
+            runner: ubuntu-24.04-arm
     defaults:
       run:
         shell: bash

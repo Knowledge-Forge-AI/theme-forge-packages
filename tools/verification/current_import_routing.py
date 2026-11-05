@@ -137,11 +137,11 @@ SOURCE_FILES = frozenset({"release-lock.json", "flake.nix", "flake.lock", "packa
     "tools/verification/verify-publication-provenance.mjs",
     "tools/verification/current_import_routing.py", "tools/verification/current-rs9-inputs.json"})
 SYSTEMS = {"deb": {"amd64", "arm64"}, "rpm": {"x86_64-linux", "aarch64-linux"},
-           "pacman": {"x86_64-linux"}}
+           "pacman": {"x86_64-linux", "aarch64-linux"}}
 MODULE_ENTRY = "tools/verification/current_import_routing.py"
 ARCH_SYSTEM = {"deb": {"amd64": "amd64", "arm64": "arm64"},
                "rpm": {"x86_64": "x86_64-linux", "aarch64": "aarch64-linux"},
-               "pacman": {"x86_64": "x86_64-linux"}}
+               "pacman": {"x86_64": "x86_64-linux", "aarch64": "aarch64-linux"}}
 MAX_PACKAGE = 512 * 1024 * 1024
 APT_DISTRIBUTION = "resolute"
 APT_COMPONENTS = ("main",)
@@ -398,7 +398,7 @@ def _plan_inputs(inventory, collection):
         if not bodies or any(body != bodies[0] for body in bodies):
             fail("Duplicate origins differ")
         arch = row["architecture"]
-        allowed = {"deb": {"all", "amd64", "arm64"}, "rpm": {"noarch", "x86_64", "aarch64"}, "pacman": {"any", "x86_64"}}
+        allowed = {"deb": {"all", "amd64", "arm64"}, "rpm": {"noarch", "x86_64", "aarch64"}, "pacman": {"any", "x86_64", "aarch64"}}
         if architectures.setdefault((family, product, arch), name) != name:
             fail("Same product architecture has differing package versions/revisions")
         if arch not in allowed[family]:
@@ -415,6 +415,26 @@ def _plan_inputs(inventory, collection):
             identity = (name, row["sha256"], row["size"])
             if independent.setdefault((family, product), identity) != identity:
                 fail("Architecture-independent package differs")
+        if family == "pacman" and arch == "any":
+            # The freshly admitted R facade validated original provider/custody
+            # joins. Select bytes only from x64 construction custody; ARM paths
+            # are exact reuse witnesses and may never act as constructors.
+            canonical_bodies = []
+            for origin, body in zip(row["origins"], bodies):
+                parts = Path(origin["path"]).parts
+                if origin["system"] == "x86_64-linux":
+                    if (origin["artifact"] != "candidate-pacman-x86_64-linux"
+                            or not ((len(parts) == 4 and parts[:3] == ("objects", "lane-work", "unsigned"))
+                                    or (len(parts) == 5 and parts[:4] == ("objects", "lane-work", "unsigned-custody", "files")))):
+                        fail("Canonical any constructor path differs")
+                    canonical_bodies.append(body)
+                elif (origin["artifact"] != "candidate-pacman-aarch64-linux"
+                        or len(parts) != 5
+                        or parts[:4] != ("objects", "lane-work", "canonical-any", "files")):
+                    fail("ARM any replica cannot be a second constructor")
+            if not canonical_bodies or any(body != canonical_bodies[0] for body in canonical_bodies):
+                fail("Exactly one canonical any construction source required")
+            bodies[0] = canonical_bodies[0]
         if family == "deb":
             control = parse_deb_control(bodies[0])
             if (control["Package"], control["Version"], control["Architecture"]) != (product, name.split("_")[1], arch):
@@ -1495,7 +1515,7 @@ def fresh_signing_inputs(config, production, collection, stage, *, release_date,
                     or not isinstance(row["destinations"], list) or not 1 <= len(row["destinations"]) <= 2):
                 fail("Live signing object differs")
             family, arch, name = row["family"], row["architecture"], row["name"]
-            allowed = {"deb": {"all", "amd64", "arm64"}, "rpm": {"noarch", "x86_64", "aarch64"}, "pacman": {"any", "x86_64"}}
+            allowed = {"deb": {"all", "amd64", "arm64"}, "rpm": {"noarch", "x86_64", "aarch64"}, "pacman": {"any", "x86_64", "aarch64"}}
             if arch not in allowed[family]:
                 fail("Live package architecture differs")
             pure = row["product"] in {"theme-forge-stellar-loom", "theme-forge-solar-sail"}

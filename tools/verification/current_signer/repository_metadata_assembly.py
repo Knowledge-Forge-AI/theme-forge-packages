@@ -29,7 +29,10 @@ import protected_signing_runtime as _rt
 from current_protected_signing import ProtectedSigningError, _sha256
 
 REPOSITORY_NAME = "knowledge-forge-ai"
-RPM_ARCHITECTURES, PACMAN_ARCHITECTURE = ("x86_64", "aarch64"), "x86_64"
+RPM_ARCHITECTURES, PACMAN_ARCHITECTURES = ("x86_64", "aarch64"), _rt.LIVE_PACMAN_ARCHITECTURES
+# x86_64 keeps the established scratch leaf "pacman"; not a _pacman_repository default.
+PACMAN_ARCHITECTURE = PACMAN_ARCHITECTURES[0]
+PACMAN_SUFFIX = ".pkg.tar.zst"
 CREATEREPO_FLAGS = ("--general-compress-type", "gz", "--no-database", "-s", "sha256")
 REPO_ADD_FLAGS = ("--nocolor", "--include-sigs")
 PACMAN_DATABASE, PACMAN_FILES = REPOSITORY_NAME + ".db.tar.gz", REPOSITORY_NAME + ".files.tar.gz"
@@ -379,19 +382,82 @@ def _rpm_repository(runtime, arch, packages, home, work, staging, root, passphra
     return written
 
 
-def _pacman_repository(runtime, inputs, home, work, staging, root, passphrase) -> set[Path]:
-    repo = _rt._new_owned_directory(staging / f"pacman-repository-{PACMAN_ARCHITECTURE}",
+def _pacman_filename_architecture(name) -> str:
+    """Trailing <arch> of <pkgname>-<pkgver>-<pkgrel>-<arch>.pkg.tar.zst; never trusted alone."""
+    stem = name[:-len(PACMAN_SUFFIX)] if type(name) is str and name.endswith(PACMAN_SUFFIX) else ""
+    rest, _, arch = stem.rpartition("-")
+    if not rest or not arch:
+        _fail("REPOSITORY_METADATA", "Pacman package filename has no architecture")
+    return arch
+
+
+def _pacman_architecture_sets(pacman_rows) -> dict[str, tuple[str, ...]]:
+    """Exact per-repository package names: own native rows plus every shared any row.
+
+    Each repository needs native rows; every native product must exist for every
+    architecture; any products are never native; filenames must name their row
+    architecture. Refusals are pre-filesystem grammar failures.
+    """
+    native, shared, identities = {arch: {} for arch in PACMAN_ARCHITECTURES}, {}, set()
+    for row in pacman_rows:
+        arch, name, product = row.get("architecture"), row.get("name"), row.get("product")
+        if (type(product) is not str or (product, arch) in identities
+                or _pacman_filename_architecture(name) != arch
+                or any(name in names.values() for names in (*native.values(), shared))):
+            _fail("REPOSITORY_METADATA", "Pacman package row identity is not exact")
+        identities.add((product, arch))
+        if arch == "any":
+            shared[product] = name
+        elif arch in native:
+            native[arch][product] = name
+        else:
+            _fail("REPOSITORY_METADATA", "Pacman package row architecture is foreign")
+    products = {frozenset(names) for names in native.values()}
+    if len(products) != 1 or not next(iter(products)) or set(shared) & next(iter(products)):
+        _fail("REPOSITORY_METADATA", "Each pacman architecture requires the same native products")
+    return {arch: tuple(sorted({*native[arch].values(), *shared.values()})) for arch in PACMAN_ARCHITECTURES}
+
+
+def _paired_any(pacman: dict[str, dict[str, bytes]], any_names) -> None:
+    """One any package/signature is reused byte-for-byte in every repository."""
+    for name in any_names:
+        for relative in (name, name + ".sig"):
+            if len({pacman[arch][relative] for arch in PACMAN_ARCHITECTURES}) != 1:
+                _fail("PACKAGE_MUTATED", "Reused any pacman bytes or signature differ between architectures")
+
+
+def _pacman_inputs_for(arch, inputs) -> list[str]:
+    """Closed package/signature pairs with no other repository's native package.
+
+    Exact filename grammar and the per-architecture set are already enforced by
+    _pacman_architecture_sets/_registered before this; this is defense in depth.
+    """
+    if arch not in PACMAN_ARCHITECTURES:
+        _fail("REPOSITORY_METADATA", "Pacman repository architecture is not supported")
+    packages = sorted(name for name in inputs if not name.endswith(".sig"))
+    foreign = set(PACMAN_ARCHITECTURES) - {arch}
+    if (not packages or set(inputs) != {*packages, *(name + ".sig" for name in packages)}
+            or any(name.removesuffix(PACMAN_SUFFIX).rpartition("-")[2] in foreign for name in packages)):
+        _fail("OUTPUT_INVENTORY", "Pacman repository inputs differ from its architecture package set")
+    return packages
+
+
+def _pacman_repository(runtime, inputs, home, work, staging, root, passphrase, *, arch: str) -> set[Path]:
+    # arch is required: every caller names its repository; there is no default.
+    packages = _pacman_inputs_for(arch, inputs)
+    repo = _rt._new_owned_directory(staging / f"pacman-repository-{arch}",
                                     "private pacman repository").path
     for name in sorted(inputs):
         _rt._exclusive_write(repo / name, inputs[name], "private repository pacman input")
     staged = _snapshot(repo, ("",), expected=set(inputs))
     if {key: value[1] for key, value in staged.items()} != inputs:
         _fail("PACKAGE_MUTATED", "Private pacman input differs from its signed output")
-    packages = sorted(name for name in inputs if not name.endswith(".sig"))
+    # x86_64 keeps the established "pacman" scratch leaf; others are arch-suffixed.
+    scratch = "pacman" if arch == PACMAN_ARCHITECTURE else "pacman-" + arch
     with _rt._private_umask():
         runtime._run((_rt.NATIVE_REPO_ADD, *REPO_ADD_FLAGS, str(repo / PACMAN_DATABASE),
                       *(str(repo / name) for name in packages)),
-                     cwd=work, env=_metadata_tool_env(runtime, home, staging, "pacman"),
+                     cwd=work, env=_metadata_tool_env(runtime, home, staging, scratch),
                      stdin=b"", phase="pacman-database-create")
     outputs = {PACMAN_DATABASE, PACMAN_FILES, *PACMAN_ALIASES}
 
@@ -422,7 +488,7 @@ def _pacman_repository(runtime, inputs, home, work, staging, root, passphrase) -
         _verify(runtime, repo / archive, repo / signatures[-1], home, work, "pacman-database-verify",
                 "PACMAN_DATABASE_VERIFY_STATUS")
         current = _same(current, inventory(signatures), ())
-    base, written = root / "arch" / PACMAN_ARCHITECTURE, set()
+    base, written = root / "arch" / arch, set()
     for alias, target in PACMAN_ALIASES.items():
         for name, source in ((target, target), (target + ".sig", target + ".sig"),
                              (alias, target), (alias + ".sig", target + ".sig")):
@@ -441,8 +507,10 @@ def assemble_live_repository_metadata(runtime, lease, rows, *, home: Path, work:
     root = output.path
     rpm_rows = [row for row in rows if row.get("channel") == "rpm"]
     pacman_rows = [row for row in rows if row.get("channel") == "pacman"]
-    if not rpm_rows or not pacman_rows or any(row.get("architecture") not in {"x86_64", "any"} for row in pacman_rows):
+    if (not rpm_rows or not pacman_rows
+            or any(row.get("architecture") not in {*PACMAN_ARCHITECTURES, "any"} for row in pacman_rows)):
         _fail("REPOSITORY_METADATA", "Live RPM and pacman package rows are required")
+    pacman_sets = _pacman_architecture_sets(pacman_rows)
     rpm = {}
     for arch in RPM_ARCHITECTURES:
         names = sorted(row["name"] for row in rpm_rows if row.get("architecture") in {arch, "noarch"})
@@ -453,17 +521,21 @@ def assemble_live_repository_metadata(runtime, lease, rows, *, home: Path, work:
     if any(rpm["x86_64"][row["name"]] != rpm["aarch64"][row["name"]] for row in rpm_rows
            if row.get("architecture") == "noarch"):
         _fail("PACKAGE_MUTATED", "Reused noarch RPM bytes differ between architectures")
-    pacman_names = sorted(row["name"] for row in pacman_rows)
-    pacman = _registered(runtime, root / "arch" / PACMAN_ARCHITECTURE,
-                         [*pacman_names, *(name + ".sig" for name in pacman_names)])
-    if any(_sha256(pacman[row["name"]]) != row.get("package_sha256") for row in pacman_rows):
-        _fail("PACKAGE_MUTATED", "Pacman package output differs from its signed row")
+    digests = {row["name"]: row.get("package_sha256") for row in pacman_rows}
+    pacman = {}
+    for arch, names in pacman_sets.items():
+        pacman[arch] = _registered(runtime, root / "arch" / arch, [*names, *(name + ".sig" for name in names)])
+        if any(_sha256(pacman[arch][name]) != digests[name] for name in names):
+            _fail("PACKAGE_MUTATED", "Pacman package output differs from its signed row")
+    _paired_any(pacman, sorted(row["name"] for row in pacman_rows if row.get("architecture") == "any"))
+
     def published():
         return {path for path in runtime._output_files if {root / "rpm", root / "arch"} & set(path.parents)}
 
     before, written = published(), set()
     for arch in RPM_ARCHITECTURES:
         written |= _rpm_repository(runtime, arch, rpm[arch], home, work, staging, root, passphrase)
-    written |= _pacman_repository(runtime, pacman, home, work, staging, root, passphrase)
+    for arch in PACMAN_ARCHITECTURES:
+        written |= _pacman_repository(runtime, pacman[arch], home, work, staging, root, passphrase, arch=arch)
     if published() != before | written or before & written:
         _fail("OUTPUT_INVENTORY", "Registered repository metadata differs from the assembled set")

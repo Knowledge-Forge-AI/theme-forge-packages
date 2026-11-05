@@ -19,7 +19,7 @@ All four products, including Nebular Fusion GUI, are in scope for Homebrew, Nix,
 | Nix | x86_64-linux, aarch64-linux, aarch64-darwin | Published at nix-current-202610 from source0be1ef1f, which passed all three hosts in campaign41350364796; this successor projection requires fresh native-three qualification before promotion |
 | APT | Ubuntu 26.04 resolute; amd64, arm64 | Held pending RS9 unsigned-package bridge, key-preserving signing and repository URL evidence |
 | DNF | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
-| pacman | x86_64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
+| pacman | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
 | AUR | Deferred | Historical readiness recipes only; no current activation claim |
 
 Nebular Linux consumes the approximately 54 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
@@ -55,3 +55,4 @@ The [full-signer contract](docs/current-full-signer-policy.md#default-bridge-int
 The current signer can reach the private-frame phase while a failed worker remains opaque. The prepared diagnostic extension retains only one source-defined step/code record after the host has reached POST_FRAME and observed a nonzero worker exit. It marks the record as an untrusted worker claim. Existing handshake error fields stay WITHHELD_POST_FRAME; no exception text, raw stderr, private values or identifiers are retained. See [the full signer policy](docs/current-full-signer-policy.md). This source requires its owner policy disposition and fresh original source-bound qualification; it grants no signing, client or publication acceptance.
 
 The next diagnostic refinement is prepared after run41767909403 refused inside SIGNING_RUNTIME. It adds only closed last-requested runtime-operation steps, whose limits and privacy implications are described in the policy. It requires a distinct policy decision and fresh source-bound qualification. Existing signing identity and environment protections are preserved.
+\nAArch64 pacman product/client support is [prepared under the approved narrow operating policy](docs/current-pacman-aarch64-policy.md). Its new source requires fresh original native qualification and paired source adoption before publication.\n

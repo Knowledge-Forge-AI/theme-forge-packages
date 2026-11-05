@@ -95,7 +95,10 @@ class RoutingOriginContracts(unittest.TestCase):
                     origins = []
                     for system in sorted(systems):
                         artifact = f'candidate-{family}-{system}'
-                        for prefix in prefixes:
+                        selected_prefixes = (['canonical-any/files']
+                            if family == 'pacman' and arch == 'any' and system == 'aarch64-linux'
+                            else prefixes)
+                        for prefix in selected_prefixes:
                             relative = f'objects/lane-work/{prefix}/{name}'
                             path = self.root / artifact / relative
                             path.parent.mkdir(parents=True, exist_ok=True)
@@ -123,9 +126,9 @@ class RoutingOriginContracts(unittest.TestCase):
         before = copy.deepcopy(self.inventory)
         plan = self.plan()
         self.assertEqual(self.inventory, before)
-        self.assertEqual(len(plan), 16)
+        self.assertEqual(len(plan), 18)
         self.assertEqual([row for row, _, _ in plan], before['binaries'])
-        self.assertEqual(sum(len(row['origins']) for row, _, _ in plan), 32)
+        self.assertEqual(sum(len(row['origins']) for row, _, _ in plan), 38)
 
     def test_every_declared_copy_is_read(self):
         with patch.object(self.subject, 'held_bytes', wraps=self.subject.held_bytes) as read:
@@ -133,7 +136,50 @@ class RoutingOriginContracts(unittest.TestCase):
         expected = {self.root / o['artifact'] / o['path']
                     for row in self.inventory['binaries'] for o in row['origins']}
         self.assertEqual({Path(c.args[0]) for c in read.call_args_list}, expected)
-        self.assertEqual(len(read.call_args_list), 32)
+        self.assertEqual(len(read.call_args_list), 38)
+
+    def test_current_pacman_contains_native_arm_and_shared_any_origins(self):
+        rows = [r for r in self.inventory['binaries'] if r['family'] == 'pacman']
+        self.assertEqual(len(rows), 6)
+        for product in ('theme-forge-stellar-burst', 'theme-forge-nebular-fusion'):
+            self.assertEqual({r['architecture'] for r in rows if r['product'] == product},
+                             {'x86_64', 'aarch64'})
+        for product in ('theme-forge-stellar-loom', 'theme-forge-solar-sail'):
+            row = self.row('pacman', product)
+            self.assertEqual(row['architecture'], 'any')
+            self.assertEqual(len(row['origins']), 3)
+            self.assertEqual({o['system'] for o in row['origins']},
+                             {'x86_64-linux', 'aarch64-linux'})
+
+    def test_changed_arm_any_origin_refuses(self):
+        row = self.row('pacman', 'theme-forge-stellar-loom')
+        origins = [o for o in row['origins'] if o['system'] == 'aarch64-linux']
+        self.assertEqual(len(origins), 1)
+        for origin in origins:
+            with self.subTest(path=origin['path']):
+                path = self.root / origin['artifact'] / origin['path']
+                original = path.read_bytes()
+                try:
+                    path.write_bytes(b'changed ARM copy')
+                    self.refused('Original unsigned package changed')
+                finally:
+                    path.write_bytes(original)
+
+    def test_arm_any_bytes_cannot_claim_a_second_constructor_path(self):
+        row = self.row('pacman', 'theme-forge-stellar-loom')
+        origin = next(o for o in row['origins'] if o['system'] == 'aarch64-linux')
+        source = self.root / origin['artifact'] / origin['path']
+        body = source.read_bytes()
+        origin['path'] = 'objects/lane-work/unsigned/' + row['name']
+        target = self.root / origin['artifact'] / origin['path']
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(body)
+        self.refused('second constructor')
+
+    def test_missing_arm_any_origin_refuses(self):
+        row = self.row('pacman', 'theme-forge-stellar-loom')
+        row['origins'] = [o for o in row['origins'] if o['system'] != 'aarch64-linux']
+        self.refused()
 
     def test_repeated_origin_identity_refuses(self):
         row = self.inventory['binaries'][0]
@@ -160,7 +206,8 @@ class RoutingOriginContracts(unittest.TestCase):
 
     def test_symlink_custody_copy_refuses(self):
         row = self.row('pacman', 'theme-forge-solar-sail')
-        first, second = row['origins']
+        self.assertEqual(len(row['origins']), 3)
+        first, second = row['origins'][:2]
         target = self.root / first['artifact'] / first['path']
         path = self.root / second['artifact'] / second['path']
         path.unlink()
