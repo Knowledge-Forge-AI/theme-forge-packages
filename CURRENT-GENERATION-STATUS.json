@@ -115,5 +115,25 @@
     "hostedCampaignsAuthorized": 0,
     "signingAuthorized": false,
     "publicationAuthorized": false
+  },
+  "clientAdmissionPreparation": {
+    "status": "prepared-source-native-qualification-required",
+    "originalRun": 42126045888,
+    "originalSignerPassed": true,
+    "originalPublicInventoryFiles": 75,
+    "originalSignedPackageRows": 18,
+    "originalAptArm64Passed": true,
+    "failedClientAdmissionLanes": 5,
+    "nativeAggregateStateAtRefusal": "not-retained",
+    "proposedAggregateStates": [
+      "queued",
+      "in_progress"
+    ],
+    "explicitNullConclusionRequired": true,
+    "closedDiagnosticCodes": 8,
+    "finalCompletedSevenJobGateUnchanged": true,
+    "policy": "docs/current-client-admission-policy.md",
+    "publicationAuthority": false,
+    "preparationHostedRuns": 0
   }
 }

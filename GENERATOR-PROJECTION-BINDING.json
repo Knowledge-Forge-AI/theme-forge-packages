@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-05T22:47:54.505Z",
+  "generatedAt": "2026-11-06T00:23:44.716Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "c324a61b98c061cea2eab89f8dcd1d214b8524642db7bbe907984907effaa9ae",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "d2078c677d7867c91331a8f0d91b39caaf04d27bb69529be6477d3dc116c38cc",
-  "generationOverlayManifestSha256": "e8c7565f3f2c55d2bc96560b8419230bd527c44788467ce0e15a91592d7c5484",
+  "generationOverlayManifestSha256": "01812410432451629d2ae1bf6fb12f2f67bddb5d872e826d166cda013e2b0116",
   "packageMatrixSha256": "d1f0bead68f21c50b899eaf74bbb4f6b325986c515cf8802efa348bafaae885d",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "e8c7565f3f2c55d2bc96560b8419230bd527c44788467ce0e15a91592d7c5484",
+  "treeManifestSha256": "01812410432451629d2ae1bf6fb12f2f67bddb5d872e826d166cda013e2b0116",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 257,
+  "totalFiles": 259,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -85,12 +85,12 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "53b817cf0403d542812fcdc1905e923faa2013d7ecf40c89f8a8dc61246a04bd"
+      "sha256": "4365611e4d3b81e585e0af13cb932c803e5714a939eca11c9e8dfba41515b817"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8496,
-      "sha256": "80e1ea6c5a3dd9b097c487322cb086a2652b7b8be5aa58b176137fe2485b4230"
+      "sha256": "a9302c626bd57efefdd1613db8619c750cb2d57dbbf29c0f64561504f092d301"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -179,8 +179,13 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 8863,
-      "sha256": "e20e98606d0199cf931c2796c0c5ca09e140de1361cd7cdfc48304dd502bf118"
+      "bytes": 9558,
+      "sha256": "934313b720af5c51838da3f4a7b6f60ba872720b102216c27112e9290f7699eb"
+    },
+    {
+      "path": "docs/current-client-admission-policy.md",
+      "bytes": 4183,
+      "sha256": "6b12743f7f5843e46b93675355c5a1e3480cbc66a284623f348db9a63c708fea"
     },
     {
       "path": "docs/current-full-signer-policy.md",
@@ -274,8 +279,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 9120,
-      "sha256": "2a16d1e415e0b364e1c4699c33384ce5180e26ca61b3768a20e73765d112e95a"
+      "bytes": 9870,
+      "sha256": "c7c1221c24d6e1cc651b88c58e73234fcea8620342379ce2517b59cacd126cf6"
     },
     {
       "path": "release-lock.json",
@@ -486,6 +491,11 @@
       "path": "tests/test_current_signer_client_layout.py",
       "bytes": 11001,
       "sha256": "5c5596f7cfd5be6718fa65276b54cf33ee6adac4f47ea0a50a772489cf9ac6b2"
+    },
+    {
+      "path": "tests/test_current_signer_client_run_state.py",
+      "bytes": 12396,
+      "sha256": "ec1597a70359bc1a9baf74c18eede71fa41be6b746525be266f54e0de27c78ec"
     },
     {
       "path": "tests/test_current_signer_default_bridge.py",
@@ -790,7 +800,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 98604,
-      "sha256": "9568b345c6f54cf129bd826265b1a7d8fabb3e20d1a78cdc0d3ce78d4dd148e5"
+      "sha256": "a95c51e7954f36f006f9a70e5dc7894963302811e969fd9f72a8e492cae83e30"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -804,8 +814,8 @@
     },
     {
       "path": "tools/verification/current_signer/client_artifact_input.py",
-      "bytes": 21002,
-      "sha256": "2cb35cf923d1fdf5f31a04123fd2dc1df0d34142d06a9b0834ad036c74bc0336"
+      "bytes": 21831,
+      "sha256": "7e210fc4fc08b3f747796e43f60f4ea0bfaa522eafa846a995b8a2106e308538"
     },
     {
       "path": "tools/verification/current_signer/container_process_entry.py",
@@ -845,7 +855,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 6262,
-      "sha256": "e57178c38056fe0a95abd1d77ffc81b6eb12733d16eca8951d86470da31acead"
+      "sha256": "23db575592e95d92a28ec4bfb75cd329fa565ca6d7bf99011eebea4b23617e32"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -1130,7 +1140,7 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "fd341a63178b0cc2eca0e213efe0bee90d5df791893a8b4e2ebbc337bde5e0fd"
+      "sha256": "f0cda1e4bd02692b85815eb1b64bbda20c56755191f844aa1a5bcae7a896ba13"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
