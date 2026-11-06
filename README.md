@@ -56,3 +56,15 @@ The current signer can reach the private-frame phase while a failed worker remai
 
 The next diagnostic refinement is prepared after run41767909403 refused inside SIGNING_RUNTIME. It adds only closed last-requested runtime-operation steps, whose limits and privacy implications are described in the policy. It requires a distinct policy decision and fresh source-bound qualification. Existing signing identity and environment protections are preserved.
 \nAArch64 pacman product/client support is [prepared under the approved narrow operating policy](docs/current-pacman-aarch64-policy.md). Its new source requires fresh original native qualification and paired source adoption before publication.\n
+## Client admission correction preparation
+
+Original run 42126045888 passed its full signing job and ARM64 APT client,
+but five clients refused aggregate run admission during initial scheduling.
+The retained signed artifact's exact 75-file inventory and source-bound native
+verification/cleanup receipt passed validation. The run remains failed.
+
+The [client admission proposal](docs/current-client-admission-policy.md) permits
+only queued or in-progress aggregate state with an explicit null conclusion,
+retaining the successful-signer, active-client and final seven-job gates. Its
+fixed diagnostics and source are prepared for fresh native qualification under
+separate operator authority. The original API state and refusal cause remain unproved.

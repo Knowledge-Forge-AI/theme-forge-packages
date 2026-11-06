@@ -3,8 +3,9 @@
 Client qualification jobs execute downstream WITHIN the running
 `.github/workflows/qualify-current-signer.yml` workflow (`workflow_dispatch`,
 `refs/heads/main`, `run_attempt == 1`, exact `github.sha`). Unlike final Pages
-publication (`publication_github_api.admit_run`), the enclosing workflow run is
-still `in_progress` with `conclusion is None` while client jobs execute.
+publication (`publication_github_api.admit_run`), client intake accepts an
+enclosing run in `queued` or `in_progress` with an explicitly null conclusion.
+The exact caller lane must still be active and its upstream signer successful.
 """
 from __future__ import annotations
 
@@ -269,7 +270,7 @@ def authenticate_checkouts_and_descriptor(
 
 
 def admit_in_progress_qualification_run(api: gh.GhApiTransport, run_id: int, p_commit: str, lane: str) -> dict[str, Any]:
-    """Authenticate in-progress qualification workflow run and completed upstream signer job."""
+    """Authenticate a nonterminal qualification run and completed upstream signer job."""
     if not gh.positive_int(run_id) or type(p_commit) is not str or not gh.HEX40.fullmatch(p_commit) or lane not in ALLOWED_CLIENT_LANES:
         refuse("QUALIFICATION_RUN_REFERENCE")
     base = f"repos/{gh.REPOSITORY}/actions"
@@ -282,11 +283,28 @@ def admit_in_progress_qualification_run(api: gh.GhApiTransport, run_id: int, p_c
             and run.get("event") == "workflow_dispatch" and run.get("head_branch") == "main"
             and type(run.get("run_attempt")) is int and run["run_attempt"] == 1
             and run.get("previous_attempt_url") is None
-            and run.get("status") == "in_progress" and run.get("conclusion") is None
             and run.get("head_sha") == p_commit
             and gh._full_name(run.get("repository")) == gh.REPOSITORY
             and gh._full_name(run.get("head_repository")) == gh.REPOSITORY):
         refuse("QUALIFICATION_RUN_MISMATCH")
+    status = run.get("status")
+    if status not in ("queued", "in_progress"):
+        # Closed labels only: never retain provider strings or API payloads.
+        status_codes = {
+            "completed": "QUALIFICATION_RUN_STATUS_COMPLETED",
+            "waiting": "QUALIFICATION_RUN_STATUS_WAITING",
+            "pending": "QUALIFICATION_RUN_STATUS_PENDING",
+            "requested": "QUALIFICATION_RUN_STATUS_REQUESTED",
+            "action_required": "QUALIFICATION_RUN_STATUS_ACTION_REQUIRED",
+        }
+        code = "QUALIFICATION_RUN_STATUS_OTHER"
+        if type(status) is str:
+            code = status_codes.get(status, code)
+        refuse(code)
+    if "conclusion" not in run:
+        refuse("QUALIFICATION_RUN_CONCLUSION_ABSENT")
+    if run["conclusion"] is not None:
+        refuse("QUALIFICATION_RUN_CONCLUSION_NON_NULL")
     jobs = gh._collect_pages(api, f"{base}/runs/{run_id}/attempts/1/jobs", "jobs", "QUALIFICATION_JOBS")
     names = [job.get("name") for job in jobs]
     if any(type(name) is not str for name in names) or len(names) != len(set(names)) or not set(names).issubset(gh.QUALIFICATION.required_jobs):

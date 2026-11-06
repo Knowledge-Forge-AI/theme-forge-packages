@@ -19,7 +19,7 @@ import weakref
 from types import MappingProxyType
 
 # Acyclic root bootstrap: this importer is directly pinned by RS9.
-LEAF_MANIFEST_SHA256 = "e57178c38056fe0a95abd1d77ffc81b6eb12733d16eca8951d86470da31acead"
+LEAF_MANIFEST_SHA256 = "23db575592e95d92a28ec4bfb75cd329fa565ca6d7bf99011eebea4b23617e32"
 
 
 def _bootstrap_source_bytes(path, limit=2 * 1024 * 1024):

@@ -21,7 +21,7 @@
     "tools/verification/b3/test_prepare_isolated_global_config.py": "93439c303944f3d802d7640d352a26e94c14c1a7a6a42f5315bcca9a0d71874f",
     "tools/verification/current-command-contracts.json": "d3e150ea37d6e4d28bf9ee2d10167d74bc6c20ea9856340a05cb2a087b97beb7",
     "tools/verification/current_signer/apt_signature_adapter.py": "710e2858e98f42f7a61b2629a641fe5d6738a12a6e3ee608ce047d868691e8f8",
-    "tools/verification/current_signer/client_artifact_input.py": "2cb35cf923d1fdf5f31a04123fd2dc1df0d34142d06a9b0834ad036c74bc0336",
+    "tools/verification/current_signer/client_artifact_input.py": "7e210fc4fc08b3f747796e43f60f4ea0bfaa522eafa846a995b8a2106e308538",
     "tools/verification/current_signer/container_process_entry.py": "af66d8b10a44fee9532eed5509ba1fd6421bce88fd5b3933233e6b662fd6ce62",
     "tools/verification/current_signer/current_protected_signing.py": "c04d30b55ea9632c93512e4bb1271101cc7aff0f62dba6dfdb0222b4e7c5b041",
     "tools/verification/current_signer/current_release_command_binding.py": "54d1a4dc70382e910724324ccf532e9f71a98cd8a70b5b1f72422b0ffdb81efd",
