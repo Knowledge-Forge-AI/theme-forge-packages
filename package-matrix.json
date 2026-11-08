@@ -65,6 +65,7 @@
           "strategy": "binary archive wrapper preserving upstream executable bytes",
           "runtimeDependencies": [
             "gtk3",
+            "gdk-pixbuf",
             "glib",
             "webkitgtk_4_1",
             "libsoup_3",
@@ -74,7 +75,7 @@
             "zlib",
             "dbus"
           ],
-          "version": "0.7.1",
+          "version": "0.8.0",
           "archiveStrategy": "thin raw archives; Linux uses system WebKitGTK 4.1; portable archives excluded"
         }
       },
@@ -84,9 +85,10 @@
       "channel": "pacman",
       "repositoryId": "knowledge-forge-ai",
       "sigLevel": "Required DatabaseRequired TrustedOnly",
-      "serverUrl": "https://knowledge-forge-ai.github.io/theme-forge-packages/arch/x86_64",
+      "serverUrl": "https://tf.rs9.knowledge-forge.ai/arch/$arch",
       "architectures": [
-        "x86_64"
+        "x86_64",
+        "aarch64"
       ],
       "packages": {
         "theme-forge-stellar-burst": {
@@ -132,7 +134,8 @@
         },
         "theme-forge-nebular-fusion": {
           "arch": [
-            "x86_64"
+            "x86_64",
+            "aarch64"
           ],
           "depends": [
             "gtk3",
@@ -151,7 +154,7 @@
           "resourceDirInvariant": "../lib/theme-forge-nebular-fusion preserved relative to canonical bin",
           "desktopEntry": "/usr/share/applications/theme-forge-nebular-fusion.desktop",
           "icons": "/usr/share/icons/hicolor/*/apps/theme-forge-nebular-fusion.png",
-          "version": "0.7.1"
+          "version": "0.8.0"
         }
       },
       "status": "held_current_generation_acceptance"
@@ -159,10 +162,10 @@
     "dnf": {
       "channel": "dnf",
       "repositoryId": "knowledge-forge-ai",
-      "baseUrl": "https://knowledge-forge-ai.github.io/theme-forge-packages/rpm/$basearch",
+      "baseUrl": "https://tf.rs9.knowledge-forge.ai/rpm/$basearch",
       "gpgcheck": 1,
       "repoGpgcheck": 1,
-      "gpgkey": "https://knowledge-forge-ai.github.io/theme-forge-packages/keys/knowledge-forge-ai-packages.asc",
+      "gpgkey": "https://tf.rs9.knowledge-forge.ai/keys/knowledge-forge-ai-packages.asc",
       "supportedFamily": "Fedora 43",
       "architectures": [
         "x86_64",
@@ -227,7 +230,7 @@
             "tfnf"
           ],
           "desktopEntry": "/usr/share/applications/theme-forge-nebular-fusion.desktop",
-          "version": "0.7.1"
+          "version": "0.8.0"
         }
       },
       "status": "held_current_generation_acceptance"
@@ -295,7 +298,7 @@
           "gui": false
         },
         "theme-forge-nebular-fusion": {
-          "version": "0.7.1",
+          "version": "0.8.0",
           "binaries": [
             "tfnf"
           ],
@@ -338,7 +341,7 @@
           "gui": false
         },
         "theme-forge-nebular-fusion": {
-          "version": "0.7.1",
+          "version": "0.8.0",
           "binaries": [
             "tfnf"
           ],

@@ -54,7 +54,7 @@ PROMOTED_INPUT_SHA256: Mapping[str, str] = {
         "305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf"
     ),
     "tools/verification/b3/inputs/current_protected_signing.py": (
-        "c04d30b55ea9632c93512e4bb1271101cc7aff0f62dba6dfdb0222b4e7c5b041"
+        "ef7cd510414024c54c29e13dc462c356e251d8cb1de18db2a875fa62324fce36"
     ),
     "tools/verification/b3/inputs/signing_status_proof.py": (
         "1f7cef1c8c73d9979c3bb48d5b241dcf51aebc660a5a4fbc555ec7f3a463d5e9"

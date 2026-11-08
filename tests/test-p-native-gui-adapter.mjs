@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import {fixtureObserver} from "./p-native-gui-fixtures.mjs";
@@ -10,6 +10,7 @@ import {
   derivePinnedGuiHarness,
   materializeControllerClosure,
   materializeDerivedHarness,
+  UPSTREAM_GUI_IMPORTS,
   sha256,
 } from "../tools/verification/p-native-gui-adapter.mjs";
 import { parseControllerLine, validateContext, validateResponse } from "../tools/verification/p-native-gui-controller-bridge.mjs";
@@ -60,6 +61,14 @@ test("derives the Linux GUI transform without touching the pinned source", () =>
   assert(result.diff.includes("changes-json"));
   assert.equal(sha256(source), originalSha);
   assert.throws(() => derivePinnedGuiHarness(source, "0".repeat(64), binding), /pinned upstream source changed/);
+});
+
+test("refuses an unrewritten relative upstream import", () => {
+  const contaminated = Buffer.concat([source, Buffer.from('\nimport "./unexpected-helper.mjs";\n')]);
+  assert.throws(
+    () => derivePinnedGuiHarness(contaminated, sha256(contaminated), binding, "./stub-bridge.mjs", dirname(sourcePath)),
+    /unresolved relative imports: \.\/unexpected-helper\.mjs/,
+  );
 });
 
 test("materializes only regular derived closure files in a fresh directory", () => {
@@ -173,7 +182,8 @@ test("staged harness imports its authenticated upstream helpers outside checkout
       stableSha256:"8caa44844e3d3c77911f6909f128e1ea1178ae29acc6d37eb3c430324ec28811",
     });
     const result=materializeDerivedHarness({sourcePath,outputDir,expectedOriginalSha256:sha256(source),binding});
-    assert.equal(result.upstreamImports.length,4);
+    assert.deepEqual(result.upstreamImports.map(item=>item.name), UPSTREAM_GUI_IMPORTS);
+    assert.equal(result.upstreamImports.length,7);
     assert(result.upstreamImports.every(item=>item.sourceUrl.startsWith("file:")&&item.sha256.length===64));
     const imported=await import(pathToFileURL(result.target).href);
     assert.equal(typeof imported.runSmoke,"function");

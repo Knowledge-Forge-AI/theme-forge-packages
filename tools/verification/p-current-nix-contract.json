@@ -9,31 +9,105 @@
     "aarch64-darwin"
   ],
   "nebularSource": {
-    "commit": "f2c527ee6f3cbd53fd44e095d5355ca7f5c7519a",
-    "tree": "6e3561855f6ee0093fb709488ad976b69bf501d2",
+    "profile": "nebular080",
+    "version": "0.8.0",
+    "commit": "516f5a7d8a449946a0246ea23d37991f586dfc2c",
+    "tree": "907163a09d2995c9080074294db54c54af626563",
+    "sourceCiRun": 42418673471,
+    "nativeCiRun": 42418673472,
+    "sourceArchiveSha256": "9eb30214158d1bfaf2d7d4c2b5311ed43e02a26e455239b1873abb11353c63b6",
+    "sourceAuthoritySha256": "53dea0e5ca138616a94d351e2490f94aa34de74d2665fd62119034ca1fb58dcf",
+    "sourceManifestSha256": "8898ee256dcf60bb0793d23eb70e3c15bc1e623b9bea40a1785ec25d6c4ecb8d",
+    "verifierFileCount": 15,
     "files": {
-      "tools/native-rc-smoke.mjs": {
-        "sha256": "874355e36496884e55a6e4dae6986ecde817d20863bb3fe26d1b1b5a1d283e69",
-        "blob": "cbf6a2148c11ed1516ba5d7fc2d4dd32dee3ee9f",
-        "bytes": 30732
+      "package.json": {
+        "sha256": "64df6f25e3fee6d56d31afdeefa6da1fdb4ebdf7d79033195caecb6fb2ed6be9",
+        "blob": "1001d40761261042da55c19e02874deb0c0002b5",
+        "bytes": 1833
       },
-      "tools/sidecar-verify.mjs": {
-        "sha256": "fba7f292b3c01ed062f4727e0c22912bc269b6ca76fca8328fb5329c098aac77",
-        "blob": "a456da327097d26bec9a41fdfaf288af57f38657",
-        "bytes": 1906
+      "tools/build-inputs.mjs": {
+        "sha256": "cdb80c1a9742a8632a5eb9284d970669714340daf809c0368095658e38c65154",
+        "blob": "2415e54e5f06cbb3b4a19cb713037238a07d5895",
+        "bytes": 16400
+      },
+      "tools/build-settings.mjs": {
+        "sha256": "f7578fccf935e14aee190a2de4378a986a182b038e41b261f3f9355e33449cd0",
+        "blob": "87b69b40534ef60f1895bdd866ce7e74fa581dae",
+        "bytes": 24182
+      },
+      "tools/candidate-provenance.mjs": {
+        "sha256": "20244b6765d6e7d0ee5fd86452096a4546f189103b0acb9f065c4a1479c23155",
+        "blob": "129b0da16329d07697daab619f8fdbc5690f72fa",
+        "bytes": 15484
+      },
+      "tools/darwin-linkage-validator.mjs": {
+        "sha256": "67073d25aa00bc6c8086e8d10a2bd7302cc46c6416894bcba553880edf83f0f9",
+        "blob": "3ca8ede088162f10d922b9cbec1d091daa052c33",
+        "bytes": 7678
+      },
+      "tools/fs-snapshot.mjs": {
+        "sha256": "30ad6c3f0394126a7d3e5534507fe46c78c34946edd15bd5c91b36e2b36df351",
+        "blob": "841cfecd874517d0c619cf9a3866c2697e12ecd6",
+        "bytes": 13794
+      },
+      "tools/native-launcher.mjs": {
+        "sha256": "3595cfaf0a2f1ac51a48862dc5f6aa842db6d3431a62159bcb93cb0abc812f2d",
+        "blob": "9c84fff880957edcb98925bbaea941fc0f7e66fe",
+        "bytes": 7193
+      },
+      "tools/native-rc-package.mjs": {
+        "sha256": "0ef948c2f9f45a9343586288681ae5ed6f6527b85912a52bd8c37aa50e3682c6",
+        "blob": "570d4d2b6cee8551bb0d77417e54ee4a0d308ca8",
+        "bytes": 33102
+      },
+      "tools/native-rc-smoke.mjs": {
+        "sha256": "ee2a26e00522f27d49550d3931cdd25e0f9956a0786d487f9af89755cf8bff39",
+        "blob": "4adeae77bb147cf7969054695a8af6dfeb335736",
+        "bytes": 65040
+      },
+      "tools/native-runtime.mjs": {
+        "sha256": "a9d6c8e885b9db41877c5d2d79efe48f2e47daf791e0f1ad1ca06636d37d962e",
+        "blob": "333192471147289f232bd915c6813ae23b39f1bb",
+        "bytes": 118749
+      },
+      "tools/node-runtime-authority.mjs": {
+        "sha256": "5495e291131a963c3e9bc9730aacb108d770954ce88f397e0f4a3c9ce768635e",
+        "blob": "dfb5fb377c66463ec54ba81c87d1424857548436",
+        "bytes": 37973
+      },
+      "tools/platform-targets.mjs": {
+        "sha256": "35321c7e888038210589612873136c96bf697789f6f4e90918442faa41e13aec",
+        "blob": "ebe518bbf27856c496541bca46bf13066805a606",
+        "bytes": 7292
       },
       "tools/sidecar-common.mjs": {
         "sha256": "e0ca4d4a4bba4abd756f1399e31a768a20873eefb6c50ac26a75adddccc1978c",
         "blob": "a79812c8b47bb9a0a34c341261c49f7c1060d12e",
         "bytes": 81902
       },
-      "tools/platform-targets.mjs": {
-        "sha256": "35321c7e888038210589612873136c96bf697789f6f4e90918442faa41e13aec",
-        "blob": "ebe518bbf27856c496541bca46bf13066805a606",
-        "bytes": 7292
+      "tools/sidecar-verify.mjs": {
+        "sha256": "fba7f292b3c01ed062f4727e0c22912bc269b6ca76fca8328fb5329c098aac77",
+        "blob": "a456da327097d26bec9a41fdfaf288af57f38657",
+        "bytes": 1906
+      },
+      "tools/appearance-matrix-prep1/generate.mjs": {
+        "sha256": "2472f6ede72c17152d51410146d126251a26821815111b6c1b214308484ad67d",
+        "blob": "34f4072cf61c7f7d49b4120684f7f5379bf60b0c",
+        "bytes": 17120
       }
     },
-    "integrityBasis": "Exact current Git commit/tree and clean tracked-worktree readback authenticate tracked imports. Individual smoke/verifier pins are additional checks, not an enumerated import closure."
+    "replayModules": [
+      "appearance-matrix-prep1/generate.mjs",
+      "candidate-provenance.mjs",
+      "fs-snapshot.mjs",
+      "native-launcher.mjs",
+      "native-rc-package.mjs",
+      "native-rc-smoke.mjs",
+      "native-runtime.mjs",
+      "platform-targets.mjs"
+    ],
+    "supportMember": "package.json",
+    "integrityBasis": "Authenticated v0.8.0 source-manifest/replay profile: exact commit/tree, source archive, authority, manifest, 15 authenticated members (8 reachable replay modules plus package.json and 6 non-replay verifier members). The v0.7.1 four-file row is historical evidence only and is not an active 0.8.0 import closure."
   },
   "burstNative": {
     "x86_64-linux": {

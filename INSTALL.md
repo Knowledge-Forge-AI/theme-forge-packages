@@ -7,7 +7,7 @@ This projection binds the current upstream releases. Current signed repository p
 | theme-forge-stellar-burst | 0.7.0 | tfsb, tfsb-studio-service |
 | theme-forge-stellar-loom | 0.5.0 | tfsl, tfsl-batch |
 | theme-forge-solar-sail | 0.3.0 | tfss |
-| theme-forge-nebular-fusion | 0.7.1 | tfnf |
+| theme-forge-nebular-fusion | 0.8.0 | tfnf |
 
 ## Channel targets and installation status
 
@@ -16,13 +16,13 @@ All four products, including Nebular Fusion GUI, are in scope for Homebrew, Nix,
 | Channel | Target | Current installation status |
 | --- | --- | --- |
 | Homebrew | Knowledge-Forge-AI/tap; support determined by its own receipts | Separate current Homebrew work; no acceptance claimed here |
-| Nix | x86_64-linux, aarch64-linux, aarch64-darwin | Current input mapping prepared; evaluation, builds and native acceptance not run |
+| Nix | x86_64-linux, aarch64-linux, aarch64-darwin (macOS 13.3+) | Upstream Nebular 0.8.0 source bound for this candidate; published qualified reference remains nix-current-202610 for the prior package set; no new P ref is published for this successor; evaluation, builds, native-three and consumer acceptance not run |
 | APT | Ubuntu 26.04 resolute; amd64, arm64 | Held pending RS9 unsigned-package bridge, key-preserving signing and repository URL evidence |
 | DNF | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
 | pacman | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
 | AUR | Deferred | Historical readiness recipes only; no current activation claim |
 
-Nebular Linux consumes the approximately 54 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
+Nebular Linux consumes approximately 57 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
 
 ## Installation after acceptance
 

@@ -15,6 +15,26 @@ import { validateObserverInputs } from "./p-native-gui-controller-bridge.mjs";
 export const GUI_ADAPTER_SCHEMA = "theme-forge.p-native-gui-adapter.v1";
 export const GUI_TRANSFORM = "p-linux-gui-controller-v1";
 export const GUI_CONTEXT_SCHEMA = "theme-forge.p-native-gui-context.v1";
+// The 0.8.0 smoke harness imports five leaves directly and reaches two more
+// authenticated helpers transitively. Keep the complete seven-member import
+// set explicit so a derived harness never leaves a relative import pointing
+// back into its fresh output directory.
+export const UPSTREAM_GUI_IMPORTS = Object.freeze([
+  "fs-snapshot.mjs",
+  "native-launcher.mjs",
+  "native-rc-package.mjs",
+  "native-runtime.mjs",
+  "appearance-matrix-prep1/generate.mjs",
+  "candidate-provenance.mjs",
+  "platform-targets.mjs",
+]);
+const DIRECT_UPSTREAM_GUI_IMPORTS = new Set([
+  "fs-snapshot.mjs",
+  "native-launcher.mjs",
+  "native-rc-package.mjs",
+  "native-runtime.mjs",
+  "appearance-matrix-prep1/generate.mjs",
+]);
 
 export const ANCHORS = Object.freeze({
   importPrefix: "#!/usr/bin/env node\n",
@@ -170,15 +190,31 @@ export function derivePinnedGuiHarness(originalBytes, expectedOriginalSha256, bi
   const upstreamImports = [];
   if (upstreamToolsDirectory !== null) {
     requirePath(upstreamToolsDirectory, "authenticated upstream tools directory");
-    for (const name of ["fs-snapshot.mjs", "native-launcher.mjs", "native-rc-package.mjs", "native-runtime.mjs"]) {
+    for (const name of UPSTREAM_GUI_IMPORTS) {
       const imported = join(upstreamToolsDirectory, name);
       const info = lstatSync(imported);
       assert(info.isFile() && !info.isSymbolicLink(), "upstream helper must be a regular tracked source");
       const bytes = readFileSync(imported);
       const sourceUrl = pathToFileURL(imported).href;
-      replaceTracked(`authenticated import ${name}`, `from "./${name}";`, `from ${JSON.stringify(sourceUrl)};`);
+      const sourceSpecifier = `from "./${name}";`;
+      const occurrences = adapted.split(sourceSpecifier).length - 1;
+      if (DIRECT_UPSTREAM_GUI_IMPORTS.has(name)) {
+        replaceTracked(`authenticated import ${name}`, sourceSpecifier, `from ${JSON.stringify(sourceUrl)};`);
+      } else {
+        // candidate-provenance and platform-targets are imported by the
+        // authenticated direct leaves. They remain relative to those source
+        // files, but still belong to the closed seven-member source record.
+        assert.equal(occurrences, 0, `transitive authenticated import ${name} unexpectedly became direct`);
+      }
       upstreamImports.push({ name, path: imported, bytes: bytes.length, sha256: sha256(bytes), sourceUrl });
     }
+  }
+  if (upstreamToolsDirectory !== null) {
+    const unresolvedRelativeImports = [...adapted.matchAll(/(?:from\s+|import\s*(?:\(\s*|\s+))["'](\.[^"']*)["']/g)]
+      .map((match) => match[1])
+      .filter((specifier) => specifier !== bridgeSpecifier);
+    assert.equal(unresolvedRelativeImports.length, 0,
+      `derived harness contains unresolved relative imports: ${unresolvedRelativeImports.join(",")}`);
   }
   const changed = changedLines(original, adapted);
   assert(changed.length > 0, "GUI transform must change source");
@@ -247,6 +283,10 @@ export function materializeControllerClosure({ outputDir, bridgeSource, controll
 
 export function materializeDerivedHarness({ sourcePath, outputDir, expectedOriginalSha256, binding, bridgeSpecifier }) {
   const originalBytes = readFileSync(sourcePath);
+  // The authenticated upstream tools directory is the source checkout's
+  // sibling `tools/` tree. The derived harness itself lives in outputDir;
+  // every upstream import is rewritten to an absolute authenticated source
+  // URL before the target is materialized.
   const derived = derivePinnedGuiHarness(originalBytes, expectedOriginalSha256, binding, bridgeSpecifier, dirname(sourcePath));
   mkdirSync(outputDir, { recursive: true, mode: 0o700 });
   const target = join(outputDir, "native-rc-smoke.p-native-gui.mjs");

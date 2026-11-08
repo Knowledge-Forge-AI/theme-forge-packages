@@ -16,7 +16,7 @@ test("derived runSmoke executes real spawn-boundary scope with an inert bridge o
   const sourcePath=process.env.NEBULAR_SMOKE_SOURCE,coreFixture=process.env.NEBULAR_CORE_FIXTURE;
   assert(sourcePath&&coreFixture,"authenticated smoke source and core fixture must be selected");
   const original=readFileSync(sourcePath),sourceSha=sha256(original);
-  assert.equal(sourceSha,"874355e36496884e55a6e4dae6986ecde817d20863bb3fe26d1b1b5a1d283e69");
+  assert.equal(sourceSha,"ee2a26e00522f27d49550d3931cdd25e0f9956a0786d487f9af89755cf8bff39");
   const temporary=realpathSync(mkdtempSync(join(tmpdir(),"p-gui-derived-boundary-")));
   const home=join(temporary,"owner-home"),temp=join(temporary,"owner-temp"),checkout=join(temporary,"fixture-checkout");
   for(const path of [home,temp,checkout])mkdirSync(path,{mode:0o700});

@@ -47,7 +47,7 @@ jobs:
           python3 -I -B tools/verification/b3/test_prepare_isolated_global_config.py
           python3 -I -B tools/verification/b3/probe_current_signer_c6_gpg.py \
             --authenticate-stage1 \
-            --expected-probe-sha256 b580a0adff2ba3eb3f5d22b76b2b40bbe0ce1f2d9da478780caa6b22722957a1 \
+            --expected-probe-sha256 cbd0cf1fe3902ff1720a1162cbe8fc0bdb7aa00dab20830fab6529a3233acd45 \
             --expected-tests-sha256 0dc5a41fa948c322169d5d97115f80ee9b8847ecf1f4d7c80a6cd684e62dd397 \
             --repo-root "$PWD" \
             --out "$evidence_dir/c6-gpg-stage1-authentication.json"
@@ -91,7 +91,7 @@ jobs:
           evidence_dir="$RUNNER_TEMP/p-c6-gpg-probe-evidence"
           python3 -I -B tools/verification/b3/probe_current_signer_c6_gpg.py \
             --emit-stdin-frame \
-            --expected-probe-sha256 b580a0adff2ba3eb3f5d22b76b2b40bbe0ce1f2d9da478780caa6b22722957a1 \
+            --expected-probe-sha256 cbd0cf1fe3902ff1720a1162cbe8fc0bdb7aa00dab20830fab6529a3233acd45 \
             --availability-out "$evidence_dir/c6-gpg-secret-availability.json" | \
           docker run --rm -i \
             --name "$B3_CONTAINER_NAME" \
@@ -126,7 +126,7 @@ jobs:
               probe_rc=0
               /usr/bin/python3 -I -B /workspace/tools/verification/b3/probe_current_signer_c6_gpg.py \
                 --execute-native \
-                --expected-probe-sha256 b580a0adff2ba3eb3f5d22b76b2b40bbe0ce1f2d9da478780caa6b22722957a1 \
+                --expected-probe-sha256 cbd0cf1fe3902ff1720a1162cbe8fc0bdb7aa00dab20830fab6529a3233acd45 \
                 --expected-tests-sha256 0dc5a41fa948c322169d5d97115f80ee9b8847ecf1f4d7c80a6cd684e62dd397 \
                 --repo-root /workspace \
                 --facts /tmp/tf-b3-stage2-facts.json \

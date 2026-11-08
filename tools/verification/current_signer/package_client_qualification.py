@@ -36,7 +36,7 @@ P_COMMAND_CONTRACT_SCHEMA = "rs9.command-contracts.v1alpha1"
 CLIENT_EVIDENCE_SCHEMA = "tf.current-signer-package-client-evidence.v1"
 EXPECTED_PRODUCT_VERSIONS = {
     "theme-forge-stellar-burst": "0.7.0", "theme-forge-stellar-loom": "0.5.0",
-    "theme-forge-solar-sail": "0.3.0", "theme-forge-nebular-fusion": "0.7.1",
+    "theme-forge-solar-sail": "0.3.0", "theme-forge-nebular-fusion": "0.8.0",
 }
 _FORBIDDEN_CLIENT_ENV_PREFIXES = ("GIT_", "GITHUB_", "ACTIONS_", "RUNNER_")
 

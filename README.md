@@ -1,13 +1,13 @@
 # Theme Forge current-four distribution preparation
 
-This projection binds the current upstream releases. Current signed repository publication remains held. The Nix-only release [nix-current-202610](https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/nix-current-202610) publishes exact qualified source0be1ef1fa4ca7e7269dbcc120c167ce78bd7a8ad. This successor preparation requires its own fresh native qualification. See [CURRENT-GENERATION-STATUS.json](CURRENT-GENERATION-STATUS.json). It is a review candidate. Current validate.yml retains the own-native-three jobs with manual dispatch only during the predicate preparation stage; current publish.yml provides manual retained-artifact admission and protected Pages deployment. Production publication remains held pending accepted same-source signing/client and GUI evidence and the attended environment review.
+This projection binds the current upstream releases. Current signed repository publication remains held. The Nix-only release [nix-current-202610](https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/nix-current-202610) publishes the exact qualified prior source `0be1ef1fa4ca7e7269dbcc120c167ce78bd7a8ad`, including the prior Nebular `0.7.1` package line. This successor preparation binds upstream Nebular `v0.8.0` separately and requires its own fresh native qualification. See [CURRENT-GENERATION-STATUS.json](CURRENT-GENERATION-STATUS.json). It is a review candidate. Current validate.yml retains the own-native-three jobs with manual dispatch only during the predicate preparation stage; current publish.yml provides manual retained-artifact admission and protected Pages deployment. Production publication remains held pending accepted same-source signing/client and GUI evidence and the attended environment review.
 
 | Product | Upstream version | Commands |
 | --- | --- | --- |
 | theme-forge-stellar-burst | 0.7.0 | tfsb, tfsb-studio-service |
 | theme-forge-stellar-loom | 0.5.0 | tfsl, tfsl-batch |
 | theme-forge-solar-sail | 0.3.0 | tfss |
-| theme-forge-nebular-fusion | 0.7.1 | tfnf |
+| theme-forge-nebular-fusion | 0.8.0 | tfnf |
 
 ## Channel targets and installation status
 
@@ -16,19 +16,19 @@ All four products, including Nebular Fusion GUI, are in scope for Homebrew, Nix,
 | Channel | Target | Current installation status |
 | --- | --- | --- |
 | Homebrew | Knowledge-Forge-AI/tap; support determined by its own receipts | Separate current Homebrew work; no acceptance claimed here |
-| Nix | x86_64-linux, aarch64-linux, aarch64-darwin | Published at nix-current-202610 from source0be1ef1f, which passed all three hosts in campaign41350364796; this successor projection requires fresh native-three qualification before promotion |
+| Nix | x86_64-linux, aarch64-linux, aarch64-darwin (macOS 13.3+) | Published at nix-current-202610 from prior source0be1ef1f, which passed all three hosts in campaign41350364796; this upstream 0.8.0 successor requires fresh native-three qualification before promotion |
 | APT | Ubuntu 26.04 resolute; amd64, arm64 | Held pending RS9 unsigned-package bridge, key-preserving signing and repository URL evidence |
 | DNF | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
 | pacman | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
 | AUR | Deferred | Historical readiness recipes only; no current activation claim |
 
-Nebular Linux consumes the approximately 54 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
+Nebular Linux consumes approximately 57 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
 
 ## Installation after acceptance
 
 Do not use historical repository commands as proof that these current versions are published. Before adding current native install commands, bind the qualified unsigned RS9 output, production key continuity, signed repository metadata, exact publication receipt and a native consumer installation receipt. The APT repository URL and Signed-By identity remain unset until that bridge exists.
 
-The published qualified Nix reference is github:Knowledge-Forge-AI/theme-forge-packages/nix-current-202610. Its package attributes are `theme-forge-stellar-burst`, `theme-forge-stellar-loom`, `theme-forge-solar-sail` and `theme-forge-nebular-fusion` in `github:Knowledge-Forge-AI/theme-forge-packages`. The accepted source is pinned by that release tag; later proposed source changes require their own native qualification.
+The published qualified Nix reference remains `github:Knowledge-Forge-AI/theme-forge-packages/nix-current-202610`, with its prior package set and Nebular `0.7.1` source; it is not a qualification of this upstream Nebular `0.8.0` successor. After the reviewed Nix mapping is promoted and native-three acceptance passes, the package attributes will remain `theme-forge-stellar-burst`, `theme-forge-stellar-loom`, `theme-forge-solar-sail` and `theme-forge-nebular-fusion` in `github:Knowledge-Forge-AI/theme-forge-packages`; the accepted `0.8.0` source/ref must then be bound to the qualified projection. Later proposed source changes require their own native qualification.
 
 Nix has its own acceptance path: all three native Nix hosts, the exact qualified source/ref publication, and the corresponding hosted acceptance must pass together for Nix promotion. This is independent of the APT, DNF and pacman RS9 bridge and protected-repository signing gates.
 
