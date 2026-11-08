@@ -37,7 +37,7 @@ assert Path(LINKAGE.__file__).resolve() == (SIGNER / "public_repository_linkage.
 X86, ARM = "x86_64", "aarch64"
 BURST, NEBULAR = "theme-forge-stellar-burst", "theme-forge-nebular-fusion"
 LOOM, SOLAR = "theme-forge-stellar-loom", "theme-forge-solar-sail"
-VERSIONS = {BURST: "0.7.0", NEBULAR: "0.7.1", LOOM: "0.5.0", SOLAR: "0.3.0"}
+VERSIONS = {BURST: "0.7.0", NEBULAR: "0.8.0", LOOM: "0.5.0", SOLAR: "0.3.0"}
 ORIGIN = "inert-fixture-origin"
 PASSPHRASE = b"INERT FIXTURE"  # not a secret; no key or agent is ever created
 DB, FILES = metadata.PACMAN_DATABASE, metadata.PACMAN_FILES

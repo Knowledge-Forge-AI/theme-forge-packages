@@ -47,7 +47,7 @@ jobs:
           python3 -I -B tools/verification/b3/test_prepare_isolated_global_config.py
           python3 -I -B tools/verification/b3/probe_current_signer_c6_apt.py \
             --authenticate-stage1 \
-            --expected-probe-sha256 73f8324981c78894972e3a71538f3f755eba131248a3def01a56ed15a7fe9801 \
+              --expected-probe-sha256 658577d982636279870333fbc61e3e40a26417f59e351354245649bad6626ab6 \
             --expected-tests-sha256 da292b8a85eb8d82f4b5a6141f5cfeaac5778bb86845da8e7e1a8e167794b8b0 \
             --repo-root "$PWD" \
             --out "$evidence_dir/c6-apt-stage1-authentication.json"
@@ -91,7 +91,7 @@ jobs:
           evidence_dir="$RUNNER_TEMP/p-c6-apt-probe-evidence"
           python3 -I -B tools/verification/b3/probe_current_signer_c6_apt.py \
             --emit-stdin-frame \
-            --expected-probe-sha256 73f8324981c78894972e3a71538f3f755eba131248a3def01a56ed15a7fe9801 \
+              --expected-probe-sha256 658577d982636279870333fbc61e3e40a26417f59e351354245649bad6626ab6 \
             --expected-tests-sha256 da292b8a85eb8d82f4b5a6141f5cfeaac5778bb86845da8e7e1a8e167794b8b0 \
             --repo-root "$PWD" \
             --availability-out "$evidence_dir/c6-apt-secret-availability.json" | \
@@ -128,7 +128,7 @@ jobs:
               probe_rc=0
               /usr/bin/python3 -I -B /workspace/tools/verification/b3/probe_current_signer_c6_apt.py \
                 --execute-native \
-                --expected-probe-sha256 73f8324981c78894972e3a71538f3f755eba131248a3def01a56ed15a7fe9801 \
+              --expected-probe-sha256 658577d982636279870333fbc61e3e40a26417f59e351354245649bad6626ab6 \
                 --expected-tests-sha256 da292b8a85eb8d82f4b5a6141f5cfeaac5778bb86845da8e7e1a8e167794b8b0 \
                 --repo-root /workspace \
                 --facts /tmp/tf-b3-stage2-facts.json \

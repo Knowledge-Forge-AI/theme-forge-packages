@@ -32,7 +32,7 @@ from protected_signing_runtime import ProtectedSigningRuntime
 
 SCHEMA = "tf.current-signer-c6-apt-probe-receipt.v1"
 STAGE1_SCHEMA = "tf.current-signer-c6-apt-stage1.v1"
-COMMON_SOURCE_SHA256 = "b580a0adff2ba3eb3f5d22b76b2b40bbe0ce1f2d9da478780caa6b22722957a1"
+COMMON_SOURCE_SHA256 = "cbd0cf1fe3902ff1720a1162cbe8fc0bdb7aa00dab20830fab6529a3233acd45"
 COMMON_TESTS_SHA256 = "0dc5a41fa948c322169d5d97115f80ee9b8847ecf1f4d7c80a6cd684e62dd397"
 APT_SOURCE_SHA256 = "710e2858e98f42f7a61b2629a641fe5d6738a12a6e3ee608ce047d868691e8f8"
 RELEASE_BYTES = (

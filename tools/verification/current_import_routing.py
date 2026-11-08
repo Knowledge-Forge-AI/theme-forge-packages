@@ -19,7 +19,7 @@ import weakref
 from types import MappingProxyType
 
 # Acyclic root bootstrap: this importer is directly pinned by RS9.
-LEAF_MANIFEST_SHA256 = "23db575592e95d92a28ec4bfb75cd329fa565ca6d7bf99011eebea4b23617e32"
+LEAF_MANIFEST_SHA256 = "59dcd62f4871ff1f90941c9c4ef225f7d27eb956f9d9b171e856f5f871d2f9f0"
 
 
 def _bootstrap_source_bytes(path, limit=2 * 1024 * 1024):
@@ -129,7 +129,7 @@ from rs9.repo_apt import AptRepositoryCandidate, parse_deb_control, validate_apt
 from rs9.scratch import canonical, physical_directory
 
 VERSIONS = {"theme-forge-stellar-burst": "0.7.0", "theme-forge-stellar-loom": "0.5.0",
-            "theme-forge-solar-sail": "0.3.0", "theme-forge-nebular-fusion": "0.7.1"}
+            "theme-forge-solar-sail": "0.3.0", "theme-forge-nebular-fusion": "0.8.0"}
 KEY_SHA256 = "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95"
 SOURCE_FILES = frozenset({"release-lock.json", "flake.nix", "flake.lock", "package-matrix.json",
     "keys/knowledge-forge-ai-packages.asc", ".github/workflows/publish.yml",

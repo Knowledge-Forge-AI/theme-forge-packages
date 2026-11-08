@@ -29,7 +29,7 @@ CURRENT_VERSIONS = {
     "theme-forge-stellar-burst": "0.7.0",
     "theme-forge-stellar-loom": "0.5.0",
     "theme-forge-solar-sail": "0.3.0",
-    "theme-forge-nebular-fusion": "0.7.1",
+    "theme-forge-nebular-fusion": "0.8.0",
 }
 CHANNEL_ARCHITECTURES = {
     "apt": frozenset({"amd64", "arm64"}),

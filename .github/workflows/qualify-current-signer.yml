@@ -33,7 +33,7 @@ jobs:
       - name: Authenticate source and plan exact R coordinates
         id: plan
         env:
-          LEAF_MANIFEST_SHA256: "23db575592e95d92a28ec4bfb75cd329fa565ca6d7bf99011eebea4b23617e32"
+          LEAF_MANIFEST_SHA256: "59dcd62f4871ff1f90941c9c4ef225f7d27eb956f9d9b171e856f5f871d2f9f0"
         run: |
           set -euo pipefail
           /usr/bin/python3 -I -B p/tools/verification/current_import_routing.py --current-signer-runtime plan \
