@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-08T15:44:03.504Z",
+  "generatedAt": "2026-11-09T16:11:02.827Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "1a9ebd428066dc20a7608c6eabc1c8a9c231866dc0562ba753adebbe305097a5",
+  "generationOverlayManifestSha256": "1b3ef0c2aafa154516bdfde18f25127fd5508c88d07f7b6b21d9c7ed06577154",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "1a9ebd428066dc20a7608c6eabc1c8a9c231866dc0562ba753adebbe305097a5",
+  "treeManifestSha256": "1b3ef0c2aafa154516bdfde18f25127fd5508c88d07f7b6b21d9c7ed06577154",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 259,
+  "totalFiles": 264,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -41,6 +41,11 @@
       "path": ".github/workflows/probe-current-archarm-base.yml",
       "bytes": 1647,
       "sha256": "e7ceceab1fe0b90e36b26935d733254bb82a855fad33d7787a545874c2ac6bcb"
+    },
+    {
+      "path": ".github/workflows/probe-current-archarm-runtime-successor-20261109.yml",
+      "bytes": 2179,
+      "sha256": "ada652d68d4ee9108f80469358729528b9ec83a09855badac1d20b544c01dd54"
     },
     {
       "path": ".github/workflows/probe-current-archarm-runtime.yml",
@@ -453,6 +458,11 @@
       "sha256": "2f015a8517c53af6a0626d2a908d1425e4fb29dd08dac5e354d36f0f42fd2967"
     },
     {
+      "path": "tests/test_archarm_runtime_probe_successor_20261109.py",
+      "bytes": 60334,
+      "sha256": "3aae60cda1a661c1f052f119df41f82fe7692d91836c0bd6ded68cb8ae6d13ae"
+    },
+    {
       "path": "tests/test_archarm_runtime_probe.py",
       "bytes": 59820,
       "sha256": "1276b08147f9a0749f75c02567f32abf4957993cc39f83a5399704ffa04ce09a"
@@ -661,6 +671,21 @@
       "path": "tools/verification/archarm_base_probe/ROOTFS-PIN.json",
       "bytes": 3408,
       "sha256": "0d92f648e1f9bc2ef29846b7f37d7fae99ccbb4adc6fd918d797c2ac9054edff"
+    },
+    {
+      "path": "tools/verification/archarm_runtime_probe_successor_20261109/archarm_runtime_probe.py",
+      "bytes": 65403,
+      "sha256": "4a08a35b6fb2cb3f1c88fa4329362676982f38281ea9c3be74eb5d6cb0b6f4cb"
+    },
+    {
+      "path": "tools/verification/archarm_runtime_probe_successor_20261109/PACKAGE-PINS.json",
+      "bytes": 78588,
+      "sha256": "a0896233d98b32fde260c6139321dfc64be4efa345585ee16bdbdd4ffdd2f207"
+    },
+    {
+      "path": "tools/verification/archarm_runtime_probe_successor_20261109/README.md",
+      "bytes": 16853,
+      "sha256": "f141c3386e1ea3807c6810919a32a4e857e8bc5a2b45e519bcb0b0b3516bc6de"
     },
     {
       "path": "tools/verification/archarm_runtime_probe/archarm_runtime_probe.py",
