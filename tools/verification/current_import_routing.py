@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
 from rs9.errors import ContractError
 from rs9.hosted_custody import source_tree_identity
-from rs9.qualified_distribution_inputs import SourceBoundConfiguration, qualified_theme_forge_packages_inputs
+from rs9.qualified_distribution_inputs import SourceBoundConfiguration, qualified_theme_forge_packages_inputs_080
 from rs9.repo_apt import AptRepositoryCandidate, parse_deb_control, validate_apt_repository
 from rs9.scratch import canonical, physical_directory
 
@@ -504,7 +504,7 @@ def prepare_unsigned(config, production, collection, stage, *, release_date, zip
            for root in source_roots):
         fail("Staging cannot mutate either source checkout")
     p_source = production.verify()
-    inventory = qualified_theme_forge_packages_inputs(config, collection, consumer_repository=production.root,
+    inventory = qualified_theme_forge_packages_inputs_080(config, collection, consumer_repository=production.root,
         consumer_commit=production.commit, consumer_tree=production.tree, zip_transport=zip_transport, timeout=timeout)
     if production.verify() != p_source:
         fail("P source changed during original-run admission")

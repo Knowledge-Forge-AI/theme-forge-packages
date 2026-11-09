@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-09T16:11:02.827Z",
+  "generatedAt": "2026-11-09T23:31:10.404Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "1b3ef0c2aafa154516bdfde18f25127fd5508c88d07f7b6b21d9c7ed06577154",
+  "generationOverlayManifestSha256": "bb18a7df2aa377e9e6b98b7dc5261b8f5f51bf2dfd7e13d47ffa95f6fafdf00f",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "1b3ef0c2aafa154516bdfde18f25127fd5508c88d07f7b6b21d9c7ed06577154",
+  "treeManifestSha256": "bb18a7df2aa377e9e6b98b7dc5261b8f5f51bf2dfd7e13d47ffa95f6fafdf00f",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -824,8 +824,8 @@
     },
     {
       "path": "tools/verification/current_import_routing.py",
-      "bytes": 98604,
-      "sha256": "a73d59caa9c7530c0463e4e96fab5d0d4861d2b3b91aa2cb55e310298c2c9dd8"
+      "bytes": 98612,
+      "sha256": "3e5a482117e702f69802385468e84b9bd41495c39be902a6f8acbf2574d23494"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -1150,7 +1150,7 @@
     {
       "path": "tools/verification/current-rs9-inputs.json",
       "bytes": 1222,
-      "sha256": "a1bb57f6ef1f739dfd05d611ec4cc92af897bd7b3128c6def9dc760a302ac772"
+      "sha256": "9c1162b54d18c54ea994adbee2c73d88814ab6b9276f1dab892e1037ae0939da"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
