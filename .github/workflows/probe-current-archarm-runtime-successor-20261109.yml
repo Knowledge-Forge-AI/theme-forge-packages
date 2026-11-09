@@ -1,0 +1,60 @@
+# PROPOSAL ONLY - NOT ADMITTED. Key-free native ArchARM runtime/SDK probe.
+# Manual dispatch on main, attempt 1 only. No secrets, no environment, no
+# publication, no R/Q/GUI product invocation. Uploads the closed result JSON only.
+#
+name: Probe successor ArchARM runtime 20261109 (proposal)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-current-archarm-runtime-successor-20261109
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: >-
+      github.repository == 'Knowledge-Forge-AI/theme-forge-packages'
+      && github.ref == 'refs/heads/main'
+      && github.run_attempt == '1'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout dispatched commit without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Pure controller tests (fake callbacks only)
+        run: /usr/bin/python3 -I -B -m unittest discover -s tests -p test_archarm_runtime_probe_successor_20261109.py -v
+
+      - name: Native runtime probe (closed result only)
+        env:
+          TF_RUN_ID: ${{ github.run_id }}
+          TF_RUN_ATTEMPT: ${{ github.run_attempt }}
+          TF_SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          out="$RUNNER_TEMP/tf-archarm-runtime-probe-out"
+          mkdir -m 0700 "$out"
+          /usr/bin/python3 -I -B tools/verification/archarm_runtime_probe_successor_20261109/archarm_runtime_probe.py \
+            --work "$RUNNER_TEMP/tf-archarm-runtime-probe-work" \
+            --result "$out/result.json" \
+            --run-id "$TF_RUN_ID" \
+            --run-attempt "$TF_RUN_ATTEMPT" \
+            --source-sha "$TF_SOURCE_SHA"
+
+      - name: Upload closed result JSON only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: archarm-runtime-probe-result-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/tf-archarm-runtime-probe-out/result.json
+          if-no-files-found: error
+          retention-days: 7
