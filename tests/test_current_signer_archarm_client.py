@@ -108,9 +108,9 @@ class FakeSdk:
                 raise AssertionError("the client_cycle fake never opens a lease client")
 
         @contextmanager
-        def acquire_sdk(*, host, workspace, context, uid, gid):
+        def acquire_sdk(*, host, workspace, context, uid, gid, input_profile="historical"):
             owner.calls.append({"host": host, "workspace": workspace, "context": copy.deepcopy(context),
-                                "uid": uid, "gid": gid, "environ": dict(os.environ)})
+                                "uid": uid, "gid": gid, "input_profile": input_profile, "environ": dict(os.environ)})
             lease = ArchArmSDK(copy.deepcopy(context), uid, gid)
             lease = mutate(lease) if mutate else lease
             owner.leases.append(lease)
@@ -718,6 +718,7 @@ class QualifyLaneRouteTests(_Temp):
         self.assertEqual(self.old_provisioner_calls(), {})
         self.assertEqual(len(self.sdk.calls), 1)
         call = self.sdk.calls[0]
+        self.assertEqual(call["input_profile"], "successor-20261109")
         self.assertEqual(type(call["host"]).__name__, "RecordingRunner")
         self.assertIsInstance(call["host"].inner, subject.IsolatedClientRunner)
         self.assertTrue(call["host"].inner.lease_custody)

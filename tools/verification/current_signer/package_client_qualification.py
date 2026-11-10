@@ -494,7 +494,8 @@ class ArchArmLeaseHold:
         self.uid, self.gid, self.context = uid, gid, context
         self.probe_output = create_probe_output_root(work_dir, uid=uid, gid=gid)
         cm = acquire(host=host, workspace=Path(work_dir) / ARCHARM_SDK_WORKSPACE,
-                     context=_plain_context(context), uid=uid, gid=gid)
+                     context=_plain_context(context), uid=uid, gid=gid,
+                     input_profile="successor-20261109")
         if not callable(getattr(cm, "__enter__", None)) or not callable(getattr(cm, "__exit__", None)):
             refuse("ARCHARM_SDK_API")
         self.cm = cm
@@ -745,7 +746,7 @@ def qualify_lane(
                     lease_kwargs = {"sdk_lease": lease, "burst_scratch": archarm_hold.probe_output}
                 else:
                     env = provision_native("pacman", "x86_64-linux", pins, runner=host); provisioned_tags.append(tag)
-                    provision_image(host, "pacman", env["image_ref"], "linux/amd64", tag, [*env["preprovisioned_packages"], "python", "xorg-server-xvfb", "dbus"], recorder=prep_rows, substage_prefix="client-")
+                    provision_image(host, "pacman", env["image_ref"], "linux/amd64", tag, [*env["preprovisioned_packages"], "python", "xorg-server-xvfb", "dbus"], recorder=prep_rows, substage_prefix="client-", pacman_full_upgrade=True)
                     client_image, spec = tag, build_production_client_spec(staged_root, lane_spec)
                 rows, _ = client_cycle(
                     host, spec, image=client_image, platform=lane_spec.platform, products=REQUIRED_PRODUCTS,
