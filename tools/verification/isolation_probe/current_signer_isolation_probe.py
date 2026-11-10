@@ -65,12 +65,12 @@ EXPECTED_PROBE_WORKFLOW_REF = f"{REPOSITORY}/{PROBE_WORKFLOW_PATH}@refs/heads/ma
 PROBE_REL_PATH = "tools/verification/isolation_probe/current_signer_isolation_probe.py"
 CURRENT_SIGNER_REL_DIR = "tools/verification/current_signer"
 LEAF_MANIFEST_REL_PATH = "tools/verification/current_signer/leaf-manifest.json"
-PINNED_LEAF_MANIFEST_SHA256 = "59dcd62f4871ff1f90941c9c4ef225f7d27eb956f9d9b171e856f5f871d2f9f0"
+PINNED_LEAF_MANIFEST_SHA256 = "44e8a8df6cffd9381abd6063d78f4e690cbc570ae3f90abb4ad3c7fb4f9f23a5"
 PRODUCTION_PINS = {
     "tools/verification/current_signer/leaf-manifest.json": PINNED_LEAF_MANIFEST_SHA256,
-    "tools/verification/current_import_routing.py": "a73d59caa9c7530c0463e4e96fab5d0d4861d2b3b91aa2cb55e310298c2c9dd8",
-    ".github/workflows/qualify-current-signer.yml": "419e8a0544282dca2025ade7c7ddc205c60818e08e381649bac6a59c1b5ad491",
-    "tools/verification/current-rs9-inputs.json": "a1bb57f6ef1f739dfd05d611ec4cc92af897bd7b3128c6def9dc760a302ac772",
+    "tools/verification/current_import_routing.py": "94ce933b6ddfbf82e527418e3ed75d6fb1a26211aa5009c5c96183db86465651",
+    ".github/workflows/qualify-current-signer.yml": "4fcbd29a56893a374bd2c40394ad3ea99c9e161d1470f6487eded5b8a41aa96a",
+    "tools/verification/current-rs9-inputs.json": "fff9e22e196f585f9dd5f0839a3acd745d2533ed6ec04cee003fadf4b1cc1a2d",
 }
 OBSERVER_LEAVES = ("signing_network_gate", "signing_linux_isolation")
 # Only key-free leaves. No signing, frame, agent, passphrase or worker leaf.
