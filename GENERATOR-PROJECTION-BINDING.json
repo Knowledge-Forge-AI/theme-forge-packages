@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-10T16:05:38.019Z",
+  "generatedAt": "2026-11-10T18:07:28.907Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "b3fa39c6d881ec7a0f1fb9697b06b66caacf01e83517f102945adad835d3202e",
+  "generationOverlayManifestSha256": "645527a9a96c4861b4f613121cfee87a34d8cd4126bd7e626fa4cf9acdf0c497",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "b3fa39c6d881ec7a0f1fb9697b06b66caacf01e83517f102945adad835d3202e",
+  "treeManifestSha256": "645527a9a96c4861b4f613121cfee87a34d8cd4126bd7e626fa4cf9acdf0c497",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -184,8 +184,8 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 9373,
-      "sha256": "c6365d8caf9f8a1a1b5f3a39de500480e336501494097db5ba8394f5bb934ced"
+      "bytes": 11613,
+      "sha256": "0d3a5d39aec60b931b49e46a0659b5d27a54c496b47a5a7052672f00eaecf2a3"
     },
     {
       "path": "docs/current-client-admission-policy.md",
@@ -239,8 +239,8 @@
     },
     {
       "path": "INSTALL.md",
-      "bytes": 5687,
-      "sha256": "3f6ddc38c48fdebc152b4c8b8aeba98a1dbd29b35827f8324d076f26a1300996"
+      "bytes": 7252,
+      "sha256": "3fedfc810c014712ac5bad5c75172fae0da10db5eaeb0efbf1f23930dce24a11"
     },
     {
       "path": "keys/KEY-METADATA.json",
@@ -289,8 +289,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 10133,
-      "sha256": "b765ea9a7806895fb4841e5fddc5c93913b37d528f21240f1fa4a45aec2eb4db"
+      "bytes": 8673,
+      "sha256": "75cc51307400aa3744aea35ef0ff0e9e0d209e1c447eb100fc564cfa3df68980"
     },
     {
       "path": "release-lock.json",
@@ -309,8 +309,8 @@
     },
     {
       "path": "static/index.html",
-      "bytes": 1739,
-      "sha256": "c69e0b0083c804855c27e48c15a7a3e53da724f239a86b07767bb5548a53bb90"
+      "bytes": 1676,
+      "sha256": "7a212c6380e62b3c39df7ab166a40c29139a3f124061a4c5f464a9671ae45175"
     },
     {
       "path": "templates/desktop/theme-forge-nebular-fusion.desktop",

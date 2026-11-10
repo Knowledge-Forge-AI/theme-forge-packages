@@ -1,6 +1,6 @@
-# Theme Forge current-four distribution preparation
+# Theme Forge current-four distribution
 
-This projection binds the current upstream releases. APT, DNF and pacman 0.8 signed repository publication remains held. The Nix-only release [nix-current-202611](https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/nix-current-202611) publishes exact qualified source `35266dbd6449432a540f3a1cc630d501c0d67911`, including Nebular `0.8.0`. That Nix acceptance is separate from this later signer projection. See [CURRENT-GENERATION-STATUS.json](CURRENT-GENERATION-STATUS.json). Current validate.yml retains the manually dispatched own-native-three jobs; current publish.yml admits retained signing/client and GUI evidence before protected Pages deployment. This source still requires accepted same-source signing/client and GUI evidence and the attended environment review before OS publication.
+Signed APT, DNF and pacman repositories are published at https://tf.rs9.knowledge-forge.ai/ for both Linux architectures, including pacman AArch64. Nebular Fusion is 0.8.0; the CLI versions in the table are unchanged. See the [publication receipt](https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/packages-current-202611-nebular080) and [CURRENT-GENERATION-STATUS.json](CURRENT-GENERATION-STATUS.json).
 
 | Product | Upstream version | Commands |
 | --- | --- | --- |
@@ -17,18 +17,20 @@ All four products, including Nebular Fusion GUI, are in scope for Homebrew, Nix,
 | --- | --- | --- |
 | Homebrew | Knowledge-Forge-AI/tap; support determined by its own receipts | Separate current Homebrew work; no acceptance claimed here |
 | Nix | x86_64-linux, aarch64-linux, aarch64-darwin (macOS 13.3+) | Published at nix-current-202611, source35266dbd, including Nebular 0.8.0; three-host campaign42507224940 and exact260-file/mode tag readback passed. Later signer projections require their own source-bound gates. |
-| APT | Ubuntu 26.04 resolute; amd64, arm64 | Held pending RS9 unsigned-package bridge, key-preserving signing and repository URL evidence |
-| DNF | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
-| pacman | x86_64, aarch64 | Held pending RS9 unsigned-package bridge and protected signer/Pages publication |
+| APT | Ubuntu 26.04 resolute; amd64, arm64 | Published; amd64 and arm64 native clients passed signature/trust, install and cleanup checks |
+| DNF | x86_64, aarch64 | Published; both architecture-specific native clients passed signature/trust, install and cleanup checks |
+| pacman | x86_64, aarch64 | Published; both architecture-specific native clients passed signature/trust, install and cleanup checks |
 | AUR | Deferred | Historical readiness recipes only; no current activation claim |
 
 Nebular Linux consumes approximately 57 MB thin raw archives and system WebKitGTK 4.1. The 219-225 MB portable archives are excluded from this generation. The macOS source is the native app archive.
 
-## Installation after acceptance
+## Signed repository installation
 
-Do not use historical repository commands as proof that these current versions are published. Before adding current native install commands, bind the qualified unsigned RS9 output, production key continuity, signed repository metadata, exact publication receipt and a native consumer installation receipt. The APT repository URL and Signed-By identity remain unset until that bridge exists.
+Use the [installation guide](https://tfnf.knowledge-forge.ai/#install) to configure the signed repository for your package manager, then select package names from the product table. The repository base is `https://tf.rs9.knowledge-forge.ai/`; the existing public certificate is [`keys/knowledge-forge-ai-packages.asc`](https://tf.rs9.knowledge-forge.ai/keys/knowledge-forge-ai-packages.asc). Its primary fingerprint remains `7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF`, and the CI signing subkey remains `C021E00EE3D37C459B0E1CB3199F8028126E8A8C`.
 
-The published qualified Nix reference is `github:Knowledge-Forge-AI/theme-forge-packages/nix-current-202611`, source `35266dbd6449432a540f3a1cc630d501c0d67911`, including Nebular `0.8.0`. Its three-host campaign is [42507224940](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/42507224940); the published tag received exact 260-file body and executable-mode readback. Package attributes are `theme-forge-stellar-burst`, `theme-forge-stellar-loom`, `theme-forge-solar-sail` and `theme-forge-nebular-fusion`. This qualifies that exact Nix source/ref; it does not qualify arbitrary later P source or the APT, DNF and pacman signer bridge.
+The accepted package source is `97f6895f465dbd86000025805135e50f653f28a5`. Original signing/client run [42855446431](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/42855446431) passed all seven jobs; GUI run [42855418851](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/42855418851) passed all three native hosts. Protected production run [42859410403](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/42859410403) deployed the retained qualified bytes without rebuilding or resigning. All 75 served files match the qualified inventory.
+
+The published qualified Nix reference is `github:Knowledge-Forge-AI/theme-forge-packages/nix-current-202611`, source `35266dbd6449432a540f3a1cc630d501c0d67911`, including Nebular `0.8.0`. Its three-host campaign is [42507224940](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/42507224940); the published tag received exact 260-file body and executable-mode readback. Package attributes are `theme-forge-stellar-burst`, `theme-forge-stellar-loom`, `theme-forge-solar-sail` and `theme-forge-nebular-fusion`. This qualifies that exact Nix source/ref. The signed OS repositories have their separate qualified source and receipts above; neither result qualifies arbitrary later source changes.
 
 Nix has its own acceptance path: all three native Nix hosts, the exact qualified source/ref publication, and the corresponding hosted acceptance must pass together for Nix promotion. This is independent of the APT, DNF and pacman RS9 bridge and protected-repository signing gates.
 
@@ -36,35 +38,16 @@ Nix has its own acceptance path: all three native Nix hosts, the exact qualified
 
 The existing theme-forge-packages production repository owns the signer, key continuity and Pages deployer. RS9 supplies qualified unsigned native packages; this preparation creates no APT backend. In this current overlay, validate.yml retains P own-native-three candidate qualification jobs with manual dispatch only during the process-predicate preparation stage, using the restoring Linux user-namespace/AppArmor guard under the bounded test-class and source-preparation approval recorded on 2026-10-30. Hosted execution remains a parent-controlled manual public-CI action using that exact guarded route; the class approval does not itself start a run or establish native acceptance. Current publish.yml has permissions-empty workflow defaults, a contents/actions-read admission job and a protected Pages deployment job. It admits original signing/client and GUI qualification runs at the same P commit before staging retained repository bytes. The github-pages review remains required; this source description grants no deployment or native-acceptance authority. Historical default workflow templates and output remain byte-identical; their old validation/signing jobs are not emitted in this current overlay. Legacy RPM/pacman/AUR templates remain historical reference material and are not current build authority. Older releases and receipts remain historical.
 
-Burst 0.7.0 requires smol-toml 1.9.1. The exact 31,492-byte registry archive is authenticated against the tagged lockfile SHA512; its SHA-256 is recorded in release-lock.json and the Nix mapping. The published Nix0.8 source35266dbd passed its own native command and addon checks. This later signer projection requires its own fresh qualification. No historical npmDepsHash is treated as current qualification.
+Burst 0.7.0 requires smol-toml 1.9.1. The exact 31,492-byte registry archive is authenticated against the tagged lockfile SHA512; its SHA-256 is recorded in release-lock.json and the Nix mapping. The published Nix0.8 source35266dbd passed its own native command and addon checks. The signed OS projection has the separate exact-source qualification above. No historical npmDepsHash is treated as current qualification.
 
 The manual `probe-current-process-predicate.yml` workflow tests the Linux monitor/application predicate on x86_64-linux and aarch64-linux using the locked NixPython test-tool class. The bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and source preparation were approved on 2026-10-30; later owner approval covers the reviewed GUI, observer and headless-WebKit campaign. Historical campaign41192208654 had an x86_64-linux C-signal harness failure. Later exact source0be1 passed campaign41350364796 and is published at nix-current-202610; this successor preparation requires fresh qualification. Hosted invocation remains parent-controlled through the exact reviewed guard and retains its own native evidence. The approvals do not grant signing or publication acceptance. See [process-predicate-policy.md](docs/process-predicate-policy.md).
 
-## Prepared current signer GPG probe
+## Historical preparation evidence
 
-Existing-key preflight41137005493 passed both availability checks and throwaway-signature verification. Key-free B3 and three-host GUI campaigns passed on source 0be1ef1fa4ca7e7269dbcc120c167ce78bd7a8ad in runs41350362487 and41350364796, qualifying that exact prior source.
+The earlier GPG, synthetic APT, isolation, diagnostic, AArch64 and client-admission preparation snapshots remain historical in `CURRENT-GENERATION-STATUS.json`. Their old held or unqualified fields describe those earlier checkpoints; they are superseded for current publication status by the completed source-specific receipt above. They do not establish the cause of an earlier failed run.
 
-The [current signer GPG probe](docs/current-signer-gpg-probe-policy.md) passed its bounded synthetic detached-signature slice at source00db6cf797a96760c1a8390247631d7bd8a7acc2 in [run41385843035](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/41385843035). That proof does not qualify successor source or the full signer. The separate [synthetic APT probe](docs/current-signer-apt-probe-policy.md) is prepared for a distinct purpose decision and fresh hosted qualification. Existing signing identity, protected environment, guard and locked-Python approvals remain valid; production publication stays held.
+The [full-signer contract](docs/current-full-signer-policy.md), [AArch64 operating policy](docs/current-pacman-aarch64-policy.md), [client admission policy](docs/current-client-admission-policy.md) and [process-predicate policy](docs/process-predicate-policy.md) retain their existing controls. Previously granted key, environment, guard, locked-Python and bounded runner-policy approvals are recorded. This documentation grants no new signing, workflow execution or publication authority.
 
-## Current signing-isolation preparation
+The release-lock and generated-binding `publicationStatus` retain their existing candidate-validation guard. Observed publication is recorded separately in `CURRENT-GENERATION-STATUS.json` and the exact-source receipt above; these records grant no execution authority.
 
-The [full-signer contract](docs/current-full-signer-policy.md#default-bridge-intake-candidate-and-ownership) describes the default-bridge intake candidate and immutable-ID ownership checks. The original [key-free custom-bridge probe](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/41739689778) passed at source0db75d27 and measured sockets surviving detachment; its strict predicate refused them. The new topology remains source/fixture preparation until its own native evidence and the required fresh signer/client and GUI campaigns pass. Signed repository publication stays held.
-
-## Bounded post-frame failure diagnostics
-
-The current signer can reach the private-frame phase while a failed worker remains opaque. The prepared diagnostic extension retains only one source-defined step/code record after the host has reached POST_FRAME and observed a nonzero worker exit. It marks the record as an untrusted worker claim. Existing handshake error fields stay WITHHELD_POST_FRAME; no exception text, raw stderr, private values or identifiers are retained. See [the full signer policy](docs/current-full-signer-policy.md). This source requires its owner policy disposition and fresh original source-bound qualification; it grants no signing, client or publication acceptance.
-
-The next diagnostic refinement is prepared after run41767909403 refused inside SIGNING_RUNTIME. It adds only closed last-requested runtime-operation steps, whose limits and privacy implications are described in the policy. It requires a distinct policy decision and fresh source-bound qualification. Existing signing identity and environment protections are preserved.
-\nAArch64 pacman product/client support is [prepared under the approved narrow operating policy](docs/current-pacman-aarch64-policy.md). Its new source requires fresh original native qualification and paired source adoption before publication.\n
-## Client admission correction preparation
-
-Original run 42126045888 passed its full signing job and ARM64 APT client,
-but five clients refused aggregate run admission during initial scheduling.
-The retained signed artifact's exact 75-file inventory and source-bound native
-verification/cleanup receipt passed validation. The run remains failed.
-
-The [client admission proposal](docs/current-client-admission-policy.md) permits
-only queued or in-progress aggregate state with an explicit null conclusion,
-retaining the successful-signer, active-client and final seven-job gates. Its
-fixed diagnostics and source are prepared for fresh native qualification under
-separate operator authority. The original API state and refusal cause remain unproved.
+RPM qualification retains the [release-scoped preservation exceptions](https://github.com/Knowledge-Forge-AI/release-starport-9/blob/bcd741657372c9bb01cfe214d6f2a30f9ecad7a5/operators/theme-forge-current-202610/rpm-lint-policy-nebular080.json). Raw lint findings remain visible; publication does not claim raw RPM-lint cleanliness or official Fedora qualification. The release-lock retains its preparation-era description and candidate-admission controls; publication availability is recorded by the exact-source receipt above.
