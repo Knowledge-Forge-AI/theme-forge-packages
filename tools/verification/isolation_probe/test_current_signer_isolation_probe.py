@@ -495,7 +495,7 @@ class HostEndToEnd(unittest.TestCase):
                          ("diagnostic-complete", "NONE", False))
         clean = probe.validate_result(result)
         self.assertEqual(clean["source"]["descriptor_sha256"],
-                         "fff9e22e196f585f9dd5f0839a3acd745d2533ed6ec04cee003fadf4b1cc1a2d")
+                         "0afe57fcb8864d05f571d16be99789eb3af382f913270aaf7d53e2ed5e9fadd2")
         self.assertEqual(clean["source"]["probe_source_sha256"], hashlib.sha256(PROBE_FILE.read_bytes()).hexdigest())
         self.assertEqual(self.events.count("dispose"), 1)
         self.assertFalse((self.tmp / "image-work").exists())

@@ -28,7 +28,7 @@
     "tools/verification/current_signer/detached_signature_adapter.py": "40eb428aff103459a22cc386b09f81b3e0ca6896c4c4fb4a0a1fe7403531f088",
     "tools/verification/current_signer/keyfree_agent_image_check.py": "089b142662301b2b7454306d8a788f7794e8d22daa2fd68dd95eff54c32fbba3",
     "tools/verification/current_signer/owned_gpg_agent.py": "305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf",
-    "tools/verification/current_signer/package_client_qualification.py": "1d3d226567a242ce047eeaaaf9441dd9c655eb5b315c8500d9ec208ea3f7ed1d",
+    "tools/verification/current_signer/package_client_qualification.py": "39f59f435d0b7148f6401068e7c766ef8f1157e1e5e398764c9cbef672ffc40b",
     "tools/verification/current_signer/protected_passphrase_fd.py": "abec0b730be0043ade1cdc9a022234941d467854e977f3f3727b25283899b325",
     "tools/verification/current_signer/protected_signing_runtime.py": "fc1a34e63038d1b25fe01fbfa0ae1e105f8e50137a2341965a5dd44af7080780",
     "tools/verification/current_signer/public_repository_files.py": "d02836b046a6310f95e7fea29e7876f22fbbc80339f5c55caa93c44cf38bc03f",
