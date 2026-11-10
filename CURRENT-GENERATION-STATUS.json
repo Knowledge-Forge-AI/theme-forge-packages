@@ -10,7 +10,6 @@
   "requiredBeforePromotion": [
     "Review and promote bounded canonical generator/input patch.",
     "Integrate RS9 qualified unsigned native packages into existing protected signer and Pages deployer with key continuity.",
-    "Bind exact native-three Nix qualification receipts and qualified Nix source/ref publication; this Nix gate is independent of the APT, DNF and pacman RS9 bridge and protected-repository signing gates.",
     "Bind exact Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64/aarch64 qualification receipts for their separate OS-channel gates.",
     "Regenerate binding after production public key preservation/bootstrap and final bridge integration."
   ],
@@ -24,7 +23,7 @@
   "aurStatus": "deferred",
   "runtimeArchiveEvidence": "The smol-toml1.9.1 archive is authenticated against the tagged Burst lockfile. Native Nix command/addon/GUI acceptance passed for the published0be1 source; successor projection acceptance remains separate.",
   "productionPublicKey": "existing public key and identity/environment preserved byte-for-byte; standalone availability and throwaway-crypto preflight passed on run 41137005493 at source 08e6656203085db46ca87e397fd528ced0d59dc2. Publication remains a separate gate and no secret material is recorded.",
-  "nixQualification": "Nix source release nix-current-202610 is published at https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/nix-current-202610, pinned to source0be1ef1fa4ca7e7269dbcc120c167ce78bd7a8ad qualified by three-host campaign41350364796. This successor projection requires fresh3host qualification; the accepted release tag must retain its qualified source.",
+  "nixQualification": "Published Nix reference nix-current-202611 at source35266dbd6449432a540f3a1cc630d501c0d67911 passed original three-host campaign42507224940 and exact260-file body/mode anonymous tag readback. This qualifies only that exact Nix projection. This later P signer source and APT/DNF/pacman remain subject to their separate current source-bound signing/client, GUI and attended deployment gates.",
   "candidateValidation": "explicit verification only; production/publication authority false",
   "pGuiAdapter": "Original upstream source stays pinned and unchanged; only spawned launcher is the actual canonical P public wrapper; original raw identity, PID/scenario/sandbox/cleanup checks remain.",
   "runnerPolicy": "Approved on 2026-10-30: bounded test class and source preparation, including the P adaptation of the maintained restoring userns/AppArmor guard. Later owner approval covers only the reviewed GUI, observer and headless-WebKit campaign. Exact hosted invocation remains parent-controlled; no broader runner policy, signing or publication authority follows.",

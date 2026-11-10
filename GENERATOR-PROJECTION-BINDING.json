@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-09T23:31:10.404Z",
+  "generatedAt": "2026-11-10T02:42:38.067Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "bb18a7df2aa377e9e6b98b7dc5261b8f5f51bf2dfd7e13d47ffa95f6fafdf00f",
+  "generationOverlayManifestSha256": "3d7fb24c8845eb4731d23b8009cb7bc5c49ff45f8b794e254c52928103ab88e5",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "bb18a7df2aa377e9e6b98b7dc5261b8f5f51bf2dfd7e13d47ffa95f6fafdf00f",
+  "treeManifestSha256": "3d7fb24c8845eb4731d23b8009cb7bc5c49ff45f8b794e254c52928103ab88e5",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 264,
+  "totalFiles": 266,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -90,12 +90,12 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 8812,
-      "sha256": "ce92b6e89dff958cce5f18060f0719c5458945f355fc3355ee652e3b0b47745e"
+      "sha256": "f7a87163e1843508c38477a822e3ca9183cda79af033d5f6e4b1e2576e89d604"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8496,
-      "sha256": "419e8a0544282dca2025ade7c7ddc205c60818e08e381649bac6a59c1b5ad491"
+      "sha256": "4fcbd29a56893a374bd2c40394ad3ea99c9e161d1470f6487eded5b8a41aa96a"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -184,8 +184,8 @@
     },
     {
       "path": "CURRENT-GENERATION-STATUS.json",
-      "bytes": 9558,
-      "sha256": "934313b720af5c51838da3f4a7b6f60ba872720b102216c27112e9290f7699eb"
+      "bytes": 9373,
+      "sha256": "c6365d8caf9f8a1a1b5f3a39de500480e336501494097db5ba8394f5bb934ced"
     },
     {
       "path": "docs/current-client-admission-policy.md",
@@ -223,6 +223,11 @@
       "sha256": "dbafafe14658f05064d523b8b2c0804a7f8148e9e4320cd46610450afa3a0734"
     },
     {
+      "path": "docs/runtime-original-input-relay.md",
+      "bytes": 1919,
+      "sha256": "d962ebb26b76062924db6d28c1d4d2dd6659ecc431814901ba6e9d993bd4281b"
+    },
+    {
       "path": "flake.lock",
       "bytes": 569,
       "sha256": "ed928e945c79e3d7f19d37b13a05f0d97b98440b38661d97bf77844e40606431"
@@ -234,8 +239,8 @@
     },
     {
       "path": "INSTALL.md",
-      "bytes": 5333,
-      "sha256": "6c59ea9843c142764036bfb0556c0a54c02ca2db305c77dceaf9c0f6511afd5b"
+      "bytes": 5687,
+      "sha256": "3f6ddc38c48fdebc152b4c8b8aeba98a1dbd29b35827f8324d076f26a1300996"
     },
     {
       "path": "keys/KEY-METADATA.json",
@@ -284,8 +289,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 10248,
-      "sha256": "5241bcd011c6dbdb1786c004f825eb9b6ced23d0a7e220562f17d7d902314e00"
+      "bytes": 10133,
+      "sha256": "b765ea9a7806895fb4841e5fddc5c93913b37d528f21240f1fa4a45aec2eb4db"
     },
     {
       "path": "release-lock.json",
@@ -558,6 +563,11 @@
       "sha256": "038355ff182038e87381409c823528c3ce9e88c146c317682c99c1d010d3366b"
     },
     {
+      "path": "tests/test_runtime_input_intake.py",
+      "bytes": 26987,
+      "sha256": "8148f5b3ace5ce4508c37efd1e1f2e034b5fc147964a2cca61c2ee4f75d901fd"
+    },
+    {
       "path": "tests/test-p-native-gui-adapter.mjs",
       "bytes": 11908,
       "sha256": "191f6a7d0e791f8064e8b888fc838a7f470434713ed166d7fbc90cb7e9adc5a9"
@@ -825,7 +835,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 98612,
-      "sha256": "3e5a482117e702f69802385468e84b9bd41495c39be902a6f8acbf2574d23494"
+      "sha256": "94ce933b6ddfbf82e527418e3ed75d6fb1a26211aa5009c5c96183db86465651"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -880,7 +890,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 6262,
-      "sha256": "59dcd62f4871ff1f90941c9c4ef225f7d27eb956f9d9b171e856f5f871d2f9f0"
+      "sha256": "44e8a8df6cffd9381abd6063d78f4e690cbc570ae3f90abb4ad3c7fb4f9f23a5"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -949,8 +959,8 @@
     },
     {
       "path": "tools/verification/current_signer/runtime_input_intake.py",
-      "bytes": 16517,
-      "sha256": "dcfd03ee3207bbce131d40b6180b00fd1e7208ccc29818f3dfae81705f7fa7ce"
+      "bytes": 31346,
+      "sha256": "d0868fb18f249ed657da5e7aff1d64e373b47a95bc9675730c97eabf04712de0"
     },
     {
       "path": "tools/verification/current_signer/runtime_workflow_bridge.py",
@@ -1150,7 +1160,7 @@
     {
       "path": "tools/verification/current-rs9-inputs.json",
       "bytes": 1222,
-      "sha256": "9c1162b54d18c54ea994adbee2c73d88814ab6b9276f1dab892e1037ae0939da"
+      "sha256": "fff9e22e196f585f9dd5f0839a3acd745d2533ed6ec04cee003fadf4b1cc1a2d"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
@@ -1165,12 +1175,12 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "511f5529b17ceec2ccf9e59d01575753ba292ce49869d8665782658e2f5154c8"
+      "sha256": "2298481230f459bb8a3b23d22da567c07d2b1bd5e14e38cdef90c8021beea7c8"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
       "bytes": 59556,
-      "sha256": "ec818972fb2fb8dc9f8877c0098d60e2a0a03f2bc20da0223e5dc7ddfcb62f65"
+      "sha256": "90a4ad6c3d489ad82ea5880c32ec3088bc1bffb89b9edda245ddc8f96e20fcde"
     },
     {
       "path": "tools/verification/p-command-probes.mjs",

@@ -39,7 +39,7 @@
     "tools/verification/current_signer/retained_publication.py": "24c7a5dfadf2e96ff31460a99ad4e61eb2a828f555519ec8387555ced639d33f",
     "tools/verification/current_signer/rpm_byte_preservation.py": "193d0b14bcca41ddb89d091fb1f12e11f7bfce6b31bbdb15d42e33bc251bb9b6",
     "tools/verification/current_signer/rpm_public_signature_adapter.py": "4c4f2f6f364cd1a66e9c9fa7e59201af7b2356ad3cfd3eb3b719874f428d82fd",
-    "tools/verification/current_signer/runtime_input_intake.py": "dcfd03ee3207bbce131d40b6180b00fd1e7208ccc29818f3dfae81705f7fa7ce",
+    "tools/verification/current_signer/runtime_input_intake.py": "d0868fb18f249ed657da5e7aff1d64e373b47a95bc9675730c97eabf04712de0",
     "tools/verification/current_signer/runtime_workflow_bridge.py": "6fed84beabc4864b758953f9f46142e1306de76bb318d28f418368d6fecb30ae",
     "tools/verification/current_signer/secret_frame_transport.py": "c031304a80a3e56fcd02133d7a776a3b1c40287a80778dd579b1e22633b57be4",
     "tools/verification/current_signer/signer_host_controller.py": "018f80e531058df2f76261e3abfd6649b168c57e3dfbb8aededa877d66616af7",
