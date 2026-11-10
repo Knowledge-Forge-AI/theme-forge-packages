@@ -2,137 +2,196 @@
   "schema": "theme-forge.current-generation-publication-hold-v1",
   "generation": "current-four",
   "productionEnabled": false,
-  "status": "held_pending_rs9_production_bridge",
-  "qualifiedUnsignedPackages": null,
-  "productionBridgeReceipt": null,
-  "hostedAcceptanceReceipt": null,
-  "signedRepositoryPublication": null,
-  "requiredBeforePromotion": [
-    "Review and promote bounded canonical generator/input patch.",
-    "Integrate RS9 qualified unsigned native packages into existing protected signer and Pages deployer with key continuity.",
-    "Bind exact Ubuntu 26.04 resolute amd64/arm64 APT, DNF x86_64/aarch64 and pacman x86_64/aarch64 qualification receipts for their separate OS-channel gates.",
-    "Regenerate binding after production public key preservation/bootstrap and final bridge integration."
-  ],
+  "status": "published_qualified_signed_repositories",
+  "qualifiedUnsignedPackages": {
+    "repository": "Knowledge-Forge-AI/release-starport-9",
+    "commit": "bcd741657372c9bb01cfe214d6f2a30f9ecad7a5",
+    "tree": "65c2b422237bed3540802848c5ce005fb67c8ea9",
+    "run": 42844446376,
+    "attempt": 1,
+    "all15JobsPassed": true,
+    "all13OriginalArchivesVerified": true,
+    "retainedProductionPromotionBlockers": [
+      "rpm-lint-policy-exceptions-not-raw-clean-not-fedora-qualified"
+    ]
+  },
+  "productionBridgeReceipt": "https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/packages-current-202611-nebular080",
+  "hostedAcceptanceReceipt": {
+    "PCommit": "97f6895f465dbd86000025805135e50f653f28a5",
+    "PTree": "517c988c1f867efb2f85cb75dcac85cdcb67d8ae",
+    "signingAndClientRun": 42855446431,
+    "signingAndClientJobsPassed": 7,
+    "guiRun": 42855418851,
+    "guiJobsPassed": 3,
+    "originalAttemptsOnly": true
+  },
+  "signedRepositoryPublication": {
+    "baseUrl": "https://tf.rs9.knowledge-forge.ai/",
+    "productionRun": 42859410403,
+    "sourceCommit": "97f6895f465dbd86000025805135e50f653f28a5",
+    "sourceTree": "517c988c1f867efb2f85cb75dcac85cdcb67d8ae",
+    "receipt": "https://github.com/Knowledge-Forge-AI/theme-forge-packages/releases/tag/packages-current-202611-nebular080",
+    "publicFileCount": 75,
+    "publicBytes": 268028902,
+    "publicInventorySha256": "61f52d7b73dac30b731e60cbb24aefaaf2b859ad91e0ff095094f3652028d8d1",
+    "allServedBytesMatchQualifiedOriginals": true,
+    "channels": {
+      "apt": [
+        "amd64",
+        "arm64"
+      ],
+      "dnf": [
+        "x86_64",
+        "aarch64"
+      ],
+      "pacman": [
+        "x86_64",
+        "aarch64"
+      ]
+    },
+    "keyContinuity": {
+      "primary": "7D03EE84F8C7025FD2F3D772BF89DF6643C2F1AF",
+      "signingSubkey": "C021E00EE3D37C459B0E1CB3199F8028126E8A8C"
+    }
+  },
+  "requiredBeforePromotion": [],
   "historicalTemplates": [
     "templates/rpm",
     "templates/pacman",
     "aur"
   ],
   "historicalTemplatesAreCurrentBuildAuthority": false,
-  "workflowAuthority": "The existing validate.yml and key-free B3 lifecycle workflow remain manual-only. Exact public source0be1ef1fa4ca7e7269dbcc120c167ce78bd7a8ad passed three-host GUI campaign41350364796 and key-free B3 campaign41350362487. The separately approved current signer GPG probe passed its bounded slice on source00db6cf797a96760c1a8390247631d7bd8a7acc2 in run41385843035; that prior-source proof does not qualify this successor full signer. This successor projection requires fresh3host qualification; prior guard and locked-Python class/source approvals remain granted. publish.yml provides manual retained-artifact admission with job-scoped read permissions and a protected Pages deployment job. Original signing/client and GUI runs at the same P commit and the existing github-pages review are required; production repository publication remains held.",
+  "workflowAuthority": "Existing manual workflows, exact original source/run/artifact admission and protected github-pages deployment remain unchanged. The recorded publication completed those gates at P97f6895f. This status document grants no execution, secret access, protection bypass or successor-source acceptance.",
   "aurStatus": "deferred",
   "runtimeArchiveEvidence": "The smol-toml1.9.1 archive is authenticated against the tagged Burst lockfile. Native Nix command/addon/GUI acceptance passed for the published0be1 source; successor projection acceptance remains separate.",
-  "productionPublicKey": "existing public key and identity/environment preserved byte-for-byte; standalone availability and throwaway-crypto preflight passed on run 41137005493 at source 08e6656203085db46ca87e397fd528ced0d59dc2. Publication remains a separate gate and no secret material is recorded.",
-  "nixQualification": "Published Nix reference nix-current-202611 at source35266dbd6449432a540f3a1cc630d501c0d67911 passed original three-host campaign42507224940 and exact260-file body/mode anonymous tag readback. This qualifies only that exact Nix projection. This later P signer source and APT/DNF/pacman remain subject to their separate current source-bound signing/client, GUI and attended deployment gates.",
+  "productionPublicKey": "Existing production primary and CI signing-subkey identities are preserved. Standalone preflight41137005493 and current full signer/client42855446431 passed. No secret material is recorded.",
+  "nixQualification": "Published Nix reference nix-current-202611 at source35266dbd6449432a540f3a1cc630d501c0d67911 passed original three-host campaign42507224940 and exact260-file body/mode tag readback. The OS publication recorded here has separate source-bound signing/client, GUI and attended deployment evidence.",
   "candidateValidation": "explicit verification only; production/publication authority false",
   "pGuiAdapter": "Original upstream source stays pinned and unchanged; only spawned launcher is the actual canonical P public wrapper; original raw identity, PID/scenario/sandbox/cleanup checks remain.",
-  "runnerPolicy": "Approved on 2026-10-30: bounded test class and source preparation, including the P adaptation of the maintained restoring userns/AppArmor guard. Later owner approval covers only the reviewed GUI, observer and headless-WebKit campaign. Exact hosted invocation remains parent-controlled; no broader runner policy, signing or publication authority follows.",
+  "runnerPolicy": "Prior guard, locked-Python and bounded runner/source approvals remain granted. Hosted invocation remains parent-controlled and source-specific; this record grants no new policy or campaign authority.",
   "legacyWorkflowRouting": "Historical validation/signing jobs are replaced only in the current overlay; no duplicate qualify-current-nix.yml remains.",
   "predicateProbe": "Bounded locked Python/procfs/pidfd/STOP/CONT/watchdog test class and source preparation approved on 2026-10-30. Node owns the actual monitor PID/wait; sibling Python controller and inherited-pidfd watchdog are within that class. Campaign 41236881346 later passed all 3 hosts and 4 scenarios on P22 baseline b8c66b95595653c85485e46853b507249115078e; successor projections require fresh 3-host qualification before production.",
   "b3LifecycleProbe": "Key-free owned-agent lifecycle qualification passed on exact public source0be1ef1fa4ca7e7269dbcc120c167ce78bd7a8ad in run41350362487. Stage1 source authentication, prepared Fedora43 tool/context checks, native C6 lifecycle and agent/socket/held-process/container/builder cleanup passed. C6 source305f613aa989f807d5155c082e568d8e0c79ba63aa4ab8a25252433250c5c2cf remains unchanged. This is key-free lifecycle evidence, independent of successful standalone key preflight41137005493; it does not qualify the prepared key-bearing GPG runtime probe or RPM/repository-index signing. Earlier failed campaigns remain historical failures. The previous single-campaign B3 and GUI allowances are consumed.",
-  "currentSignerGpgProbe": {
-    "policy": "docs/current-signer-gpg-probe-policy.md",
-    "class": "p-current-signer-c6-gpg-throwaway-probe-v1",
-    "status": "prior_source_bounded_native_slice_passed_successor_requires_fresh_qualification",
-    "campaignsAuthorizedByPreparation": 0,
-    "productionAuthority": false,
-    "priorGuardAndLockedPythonClassSourceApprovals": "already granted; not pending",
-    "existingEnvironment": "github-pages",
-    "keyContinuity": "existing primary and CI subkey preserved",
-    "limitations": [
-      "synthetic detached GPG signature only",
-      "no live unsigned package admission",
-      "no RPM/repo-add/APT signing qualification",
-      "no production publication"
-    ],
-    "priorQualifiedSource": "00db6cf797a96760c1a8390247631d7bd8a7acc2",
-    "priorNativeRun": 41385843035,
-    "bothSecretsAvailable": true,
-    "fullSignerQualified": false
-  },
-  "currentSignerAptProbe": {
-    "policy": "docs/current-signer-apt-probe-policy.md",
-    "class": "p-current-signer-c6-apt-synthetic-probe-v1",
-    "status": "prepared_pending_distinct_native_purpose_approval",
-    "campaignsAuthorizedByPreparation": 0,
-    "productionAuthority": false,
-    "existingEnvironment": "github-pages",
-    "priorKeyEnvironmentGuardPythonApprovals": "already granted; not pending",
-    "fullSignerQualified": false
-  },
-  "currentSignerIsolationPreparation": {
-    "status": "default-bridge-source-candidate-native-unqualified",
-    "sourceEvidence": "Source/fixture checks only; exact current default-bridge native probe, fresh original R, full signer/client and same-source GUI evidence remain required before promotion.",
-    "historicalKeyfreeProbe": {
-      "run": 41739689778,
-      "source": "0db75d2727115ba482b9400e3c9979c3fd13bbba",
-      "conclusion": "success",
-      "meaning": "Measured custom-bridge sockets at127.0.0.11 survived detach; strict predicate refused TCP_V4_LISTEN; cleanup passed. No signing acceptance or original-listener ownership proof."
+  "statusDocumentGrantsProductionAuthority": false,
+  "recordSemantics": "Observed publication at the exact recorded source. productionEnabled remains false because this status document grants no execution authority. Historical preparation snapshots are retained separately and do not describe the current publication state. The release-lock and generated-binding held status are existing candidate-admission controls and remain unchanged.",
+  "successorSourceRequiresFreshQualification": true,
+  "historicalPreparationSnapshots": {
+    "currentSignerGpgProbe": {
+      "policy": "docs/current-signer-gpg-probe-policy.md",
+      "class": "p-current-signer-c6-gpg-throwaway-probe-v1",
+      "status": "prior_source_bounded_native_slice_passed_successor_requires_fresh_qualification",
+      "campaignsAuthorizedByPreparation": 0,
+      "productionAuthority": false,
+      "priorGuardAndLockedPythonClassSourceApprovals": "already granted; not pending",
+      "existingEnvironment": "github-pages",
+      "keyContinuity": "existing primary and CI subkey preserved",
+      "limitations": [
+        "synthetic detached GPG signature only",
+        "no live unsigned package admission",
+        "no RPM/repo-add/APT signing qualification",
+        "no production publication"
+      ],
+      "priorQualifiedSource": "00db6cf797a96760c1a8390247631d7bd8a7acc2",
+      "priorNativeRun": 41385843035,
+      "bothSecretsAvailable": true,
+      "fullSignerQualified": false
     },
-    "policy": "docs/current-full-signer-policy.md",
-    "campaignAllowance": "No allowance is granted or replenished by this status document."
+    "currentSignerAptProbe": {
+      "policy": "docs/current-signer-apt-probe-policy.md",
+      "class": "p-current-signer-c6-apt-synthetic-probe-v1",
+      "status": "prepared_pending_distinct_native_purpose_approval",
+      "campaignsAuthorizedByPreparation": 0,
+      "productionAuthority": false,
+      "existingEnvironment": "github-pages",
+      "priorKeyEnvironmentGuardPythonApprovals": "already granted; not pending",
+      "fullSignerQualified": false
+    },
+    "currentSignerIsolationPreparation": {
+      "status": "default-bridge-source-candidate-native-unqualified",
+      "sourceEvidence": "Source/fixture checks only; exact current default-bridge native probe, fresh original R, full signer/client and same-source GUI evidence remain required before promotion.",
+      "historicalKeyfreeProbe": {
+        "run": 41739689778,
+        "source": "0db75d2727115ba482b9400e3c9979c3fd13bbba",
+        "conclusion": "success",
+        "meaning": "Measured custom-bridge sockets at127.0.0.11 survived detach; strict predicate refused TCP_V4_LISTEN; cleanup passed. No signing acceptance or original-listener ownership proof."
+      },
+      "policy": "docs/current-full-signer-policy.md",
+      "campaignAllowance": "No allowance is granted or replenished by this status document."
+    },
+    "currentSignerPostFrameDiagnostics": {
+      "state": "source-prepared-pending-owner-disposition",
+      "sourceOnly": true,
+      "workerStepLabels": 9,
+      "workerCodeLabels": 61,
+      "hostRecordStates": 4,
+      "oneClosedObjectPerFailedInvocation": true,
+      "untrustedWorkerClaim": true,
+      "existingHandshakeDetailsWithheld": true,
+      "newRawRetention": false,
+      "gateSuccessOrCustodyRulesChanged": false,
+      "strictIsolationStillRequired": true,
+      "exactOwnerDispositionAndOriginalNativeQualificationRequired": true,
+      "nativeQualified": false,
+      "productionEnabled": false
+    },
+    "preparedRuntimeOperationDiagnostic": {
+      "status": "prepared_pending_owner_disposition",
+      "observedRun": 41767909403,
+      "observedSource": "decbce12395599671a54b4c65bd6b4901ed3fa9b",
+      "observedStep": "SIGNING_RUNTIME",
+      "observedCode": "UNCLASSIFIED",
+      "stepLabels": 25,
+      "additionalStepLabels": 16,
+      "codeLabels": 61,
+      "recordStates": 4,
+      "meaning": "last requested operation, not proof of command execution, failure cause or private cleanup",
+      "secretOrRawOutputRetention": false,
+      "signingAcceptance": false,
+      "publicationAuthority": false
+    },
+    "aarch64PacmanProductRuntime": {
+      "status": "isolated-source-prepared-not-adopted",
+      "operatingPolicy": "owner-approved-for-isolated-implementation",
+      "qualifiedPriorSdkProbe": 42033829642,
+      "qualifiedPriorSource": "bfa1a8a83c328e623692c467b84aeaf81cf546bd",
+      "newSourceNativeQualified": false,
+      "canonicalAnyConstructor": "pacman/x86_64-linux in same original campaign",
+      "newClient": "pacman-aarch64",
+      "hostedCampaignsAuthorized": 0,
+      "signingAuthorized": false,
+      "publicationAuthorized": false
+    },
+    "clientAdmissionPreparation": {
+      "status": "prepared-source-native-qualification-required",
+      "originalRun": 42126045888,
+      "originalSignerPassed": true,
+      "originalPublicInventoryFiles": 75,
+      "originalSignedPackageRows": 18,
+      "originalAptArm64Passed": true,
+      "failedClientAdmissionLanes": 5,
+      "nativeAggregateStateAtRefusal": "not-retained",
+      "proposedAggregateStates": [
+        "queued",
+        "in_progress"
+      ],
+      "explicitNullConclusionRequired": true,
+      "closedDiagnosticCodes": 8,
+      "finalCompletedSevenJobGateUnchanged": true,
+      "policy": "docs/current-client-admission-policy.md",
+      "publicationAuthority": false,
+      "preparationHostedRuns": 0
+    }
   },
-  "currentSignerPostFrameDiagnostics": {
-    "state": "source-prepared-pending-owner-disposition",
-    "sourceOnly": true,
-    "workerStepLabels": 9,
-    "workerCodeLabels": 61,
-    "hostRecordStates": 4,
-    "oneClosedObjectPerFailedInvocation": true,
-    "untrustedWorkerClaim": true,
-    "existingHandshakeDetailsWithheld": true,
-    "newRawRetention": false,
-    "gateSuccessOrCustodyRulesChanged": false,
-    "strictIsolationStillRequired": true,
-    "exactOwnerDispositionAndOriginalNativeQualificationRequired": true,
-    "nativeQualified": false,
-    "productionEnabled": false
-  },
-  "preparedRuntimeOperationDiagnostic": {
-    "status": "prepared_pending_owner_disposition",
-    "observedRun": 41767909403,
-    "observedSource": "decbce12395599671a54b4c65bd6b4901ed3fa9b",
-    "observedStep": "SIGNING_RUNTIME",
-    "observedCode": "UNCLASSIFIED",
-    "stepLabels": 25,
-    "additionalStepLabels": 16,
-    "codeLabels": 61,
-    "recordStates": 4,
-    "meaning": "last requested operation, not proof of command execution, failure cause or private cleanup",
-    "secretOrRawOutputRetention": false,
-    "signingAcceptance": false,
-    "publicationAuthority": false
-  },
-  "aarch64PacmanProductRuntime": {
-    "status": "isolated-source-prepared-not-adopted",
-    "operatingPolicy": "owner-approved-for-isolated-implementation",
-    "qualifiedPriorSdkProbe": 42033829642,
-    "qualifiedPriorSource": "bfa1a8a83c328e623692c467b84aeaf81cf546bd",
-    "newSourceNativeQualified": false,
-    "canonicalAnyConstructor": "pacman/x86_64-linux in same original campaign",
-    "newClient": "pacman-aarch64",
-    "hostedCampaignsAuthorized": 0,
-    "signingAuthorized": false,
-    "publicationAuthorized": false
-  },
-  "clientAdmissionPreparation": {
-    "status": "prepared-source-native-qualification-required",
-    "originalRun": 42126045888,
-    "originalSignerPassed": true,
-    "originalPublicInventoryFiles": 75,
-    "originalSignedPackageRows": 18,
-    "originalAptArm64Passed": true,
-    "failedClientAdmissionLanes": 5,
-    "nativeAggregateStateAtRefusal": "not-retained",
-    "proposedAggregateStates": [
-      "queued",
-      "in_progress"
-    ],
-    "explicitNullConclusionRequired": true,
-    "closedDiagnosticCodes": 8,
-    "finalCompletedSevenJobGateUnchanged": true,
-    "policy": "docs/current-client-admission-policy.md",
-    "publicationAuthority": false,
-    "preparationHostedRuns": 0
-  }
+  "executionAdmissionStatus": "held_pending_rs9_production_bridge",
+  "publicationResidualRestrictions": [
+    {
+      "code": "rpm-lint-policy-exceptions-not-raw-clean-not-fedora-qualified",
+      "disposition": "retained-release-scoped-own-repository-preservation-restriction",
+      "publicationOccurredWithRestrictionRetained": true,
+      "meaning": "Raw RPM lint failures remain visible; no raw-lint-clean or official Fedora qualification is claimed. The source-owned preservation policy does not itself grant signing or publication authority.",
+      "policy": "https://github.com/Knowledge-Forge-AI/release-starport-9/blob/bcd741657372c9bb01cfe214d6f2a30f9ecad7a5/operators/theme-forge-current-202610/rpm-lint-policy-nebular080.json",
+      "policySha256": "18beff59e710b79c5ea21eed9831010fd144cdab57e20db0e5a9e9efb7ceacb4"
+    }
+  ],
+  "completedPublicationGateScope": "requiredBeforePromotion describes the already-completed source97f6895f checkpoint. The retained RPM restrictions are not resolved or erased by publication. Future source/purpose changes still require their own admission, qualification and protected deployment."
 }
