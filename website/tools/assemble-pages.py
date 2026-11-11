@@ -32,6 +32,36 @@ WEBSITE_FILES = ("index.html", "styles.css", "main.js", "robots.txt", "CNAME")
 INVENTORY_SHA256 = "83f3792790824c9837260f79a365683b1288709e6f37442df87aac3da0ae530c"
 INITIAL_PACKAGE_DEPLOYMENT = 7688464725
 INITIAL_PACKAGE_SOURCE = "97f6895f465dbd86000025805135e50f653f28a5"
+FAILED_WEBSITE_SOURCE = "5fafb630b87e6a277988a4f872efb567687b40ae"
+FAILED_WEBSITE_RUN = 42982720952
+
+
+def admit_known_failed_website(repository, deployment):
+    """One exact failed website history, never a general failed-publisher bypass."""
+    require(repository == "theme-forge-packages", "FAILED_WEBSITE_SCOPE")
+    history = api(repository, "deployments?environment=github-pages&per_page=3")
+    expected = [
+        (7709348450, FAILED_WEBSITE_SOURCE, "failure", 42982720952, 130505789335),
+        (7704763715, FAILED_WEBSITE_SOURCE, "failure", 42982720952, 130396788604),
+        (INITIAL_PACKAGE_DEPLOYMENT, INITIAL_PACKAGE_SOURCE, "success", 42859410403, 129981612851),
+    ]
+    require(isinstance(history, list) and len(history) == len(expected)
+            and history[0] == deployment, "FAILED_WEBSITE_HISTORY")
+    for item, (identifier, source, state, run, job) in zip(history, expected):
+        require(item.get("id") == identifier and item.get("sha") == source
+                and item.get("ref") == "main", "FAILED_WEBSITE_IDENTITY")
+        statuses = api(repository, "deployments/" + str(identifier) + "/statuses")
+        require(isinstance(statuses, list) and statuses and statuses[0].get("state") == state
+                and statuses[0].get("log_url") == "https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/"
+                + str(run) + "/job/" + str(job), "FAILED_WEBSITE_STATUS")
+    run = api(repository, "actions/runs/" + str(FAILED_WEBSITE_RUN))
+    require(run.get("id") == FAILED_WEBSITE_RUN and run.get("path") == ".github/workflows/project-pages.yml"
+            and run.get("head_branch") == "main" and run.get("head_sha") == FAILED_WEBSITE_SOURCE
+            and run.get("status") == "completed" and run.get("conclusion") == "failure"
+            and run.get("run_attempt") == 2, "FAILED_WEBSITE_RUN")
+    return {"kind": "exact-failed-website-recovery", "previousDeployment": expected[0][0],
+            "failedRun": FAILED_WEBSITE_RUN, "failedRunAttempt": 2,
+            "lastSuccessfulDeployment": INITIAL_PACKAGE_DEPLOYMENT}
 
 
 def require(condition, code):
@@ -111,6 +141,8 @@ def admit_previous_deployment(repository):
     identifier = deployment.get("id")
     require(type(identifier) is int and identifier > 0 and deployment.get("ref") == "main", "DEPLOYMENT_IDENTITY")
     statuses = api(repository, "deployments/" + str(identifier) + "/statuses")
+    if isinstance(statuses, list) and statuses and statuses[0].get("state") == "failure":
+        return admit_known_failed_website(repository, deployment)
     require(isinstance(statuses, list) and statuses and statuses[0].get("state") == "success", "PREVIOUS_DEPLOYMENT_NOT_SUCCESSFUL")
     if repository == "theme-forge-packages" and identifier == INITIAL_PACKAGE_DEPLOYMENT:
         require(deployment.get("sha") == INITIAL_PACKAGE_SOURCE, "INITIAL_PACKAGE_SOURCE")
@@ -166,13 +198,29 @@ def archive_exact(root, names, destination, inventory=None):
     require(all(not p.is_symlink() for p in members), "OUTPUT_LINK")
     actual = {p.relative_to(root).as_posix() for p in members if not p.is_dir()}
     require(actual == set(names), "OUTPUT_INVENTORY")
-    with tarfile.open(destination, "x", format=tarfile.USTAR_FORMAT) as archive:
+    directories = {""}
+    for name in names:
+        safe_member(name)
+        parts = name.split("/")
+        directories.update("/".join(parts[:index]) for index in range(1, len(parts)))
+    require({p.relative_to(root).as_posix() for p in members if p.is_dir()}
+            == directories - {""}, "OUTPUT_DIRECTORY_INVENTORY")
+    with tarfile.open(destination, "x", format=tarfile.GNU_FORMAT) as archive:
+        # Match the working publisher's rooted directory/file topology while
+        # retaining neutral metadata and exact protected regular-file bytes.
+        for name in sorted(directories, key=lambda value: (value.count("/") + bool(value), value)):
+            info = tarfile.TarInfo("./" + name if name else ".")
+            info.type = tarfile.DIRTYPE
+            info.mode = 0o755
+            info.uid = info.gid = info.mtime = 0
+            info.uname = info.gname = ""
+            archive.addfile(info)
         for name in sorted(names):
             body = read_regular(root / name, 128 * 1024 * 1024)
             if name in inventory:
                 record = inventory[name]
                 require(len(body) == record["bytes"] and sha256(body) == record["sha256"], "ARCHIVE_PROTECTED_MEMBER_CHANGED")
-            info = tarfile.TarInfo(name)
+            info = tarfile.TarInfo("./" + name)
             info.size = len(body)
             info.mode = 0o644
             info.uid = info.gid = info.mtime = 0
@@ -181,11 +229,17 @@ def archive_exact(root, names, destination, inventory=None):
     # Bind the actual closed upload archive, rather than only its input tree.
     with tarfile.open(destination, "r:") as archive:
         archived = archive.getmembers()
-        require(len(archived) == len(names) and {m.name for m in archived} == set(names), "ARCHIVE_INVENTORY")
+        def normalized(member):
+            require(member.name == "." or member.name.startswith("./"), "ARCHIVE_ROOT")
+            return "" if member.name == "." else member.name.removeprefix("./").rstrip("/")
+        require(len(archived) == len(names) + len(directories)
+                and {normalized(m) for m in archived if m.isfile()} == set(names)
+                and {normalized(m) for m in archived if m.isdir()} == directories, "ARCHIVE_INVENTORY")
         for member in archived:
-            require(member.isfile() and not member.issym() and not member.islnk(), "ARCHIVE_MEMBER_TYPE")
-            if member.name in inventory:
-                record = inventory[member.name]
+            require((member.isfile() or member.isdir()) and not member.issym() and not member.islnk(), "ARCHIVE_MEMBER_TYPE")
+            name = normalized(member)
+            if name in inventory:
+                record = inventory[name]
                 require(member.size == record["bytes"], "ARCHIVE_PROTECTED_SIZE")
                 body = archive.extractfile(member).read(record["bytes"] + 1)
                 require(len(body) == record["bytes"] and sha256(body) == record["sha256"], "ARCHIVE_PROTECTED_DIGEST")
@@ -228,6 +282,7 @@ def assemble(repository, site_root, output, archive):
     write_new(output, "site-preservation.json", (json.dumps(receipt, indent=2) + "\n").encode())
     verify_protected(output, inventory)
     archive_exact(output, [*inventory, *WEBSITE_FILES, "site-preservation.json"], archive, inventory)
+    require(admit_previous_deployment(repository) == previous, "HOSTING_STATE_CHANGED")
     return receipt
 
 
