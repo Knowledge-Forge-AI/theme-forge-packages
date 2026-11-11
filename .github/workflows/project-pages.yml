@@ -1,0 +1,67 @@
+name: Deploy project website without rebuilding packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/index.html'
+      - 'website/styles.css'
+      - 'website/main.js'
+      - 'website/robots.txt'
+      - 'website/CNAME'
+      - 'website/protected-inventory.json'
+      - 'website/tools/**'
+      - '.github/workflows/project-pages.yml'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: current-package-publication
+  cancel-in-progress: false
+
+jobs:
+  assemble-website:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      deployments: read
+      actions: read
+    steps:
+      - name: Check out the exact website source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Retain the admitted public inventory and add website files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 -I -B website/tools/assemble-pages.py
+          --repository theme-forge-packages
+          --output "$RUNNER_TEMP/website-public"
+          --archive "$RUNNER_TEMP/artifact.tar"
+      - name: Upload the complete admitted Pages artifact
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy-website:
+    if: ${{ github.repository == 'Knowledge-Forge-AI/theme-forge-packages' && github.ref == 'refs/heads/main' }}
+    needs: assemble-website
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy the complete admitted tree
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
