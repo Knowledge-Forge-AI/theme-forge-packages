@@ -28,7 +28,7 @@ SITES = {
     "theme-forge-packages": "tf.rs9.knowledge-forge.ai",
     "release-starport-9": "rs9.knowledge-forge.ai",
 }
-WEBSITE_FILES = ("index.html", "styles.css", "main.js", "robots.txt", "CNAME", "orihime.webp")
+WEBSITE_FILES = ("index.html", "styles.css", "main.js", "robots.txt", "CNAME", "orihime.webp", "hikari.webp")
 INVENTORY_SHA256 = "83f3792790824c9837260f79a365683b1288709e6f37442df87aac3da0ae530c"
 INITIAL_PACKAGE_DEPLOYMENT = 7688464725
 INITIAL_PACKAGE_SOURCE = "97f6895f465dbd86000025805135e50f653f28a5"
