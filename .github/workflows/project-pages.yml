@@ -8,6 +8,8 @@ on:
       - 'website/styles.css'
       - 'website/main.js'
       - 'website/robots.txt'
+      - 'website/orihime.webp'
+      - 'website/hikari.webp'
       - 'website/CNAME'
       - 'website/protected-inventory.json'
       - 'website/tools/**'

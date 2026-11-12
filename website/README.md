@@ -13,9 +13,9 @@ deployment. Partial public-only output is left for disposable-runner teardown.
 The Packages site retains the exact 75 already-published files under apt/, arch/,
 rpm/ and keys/. The committed inventory is pinned by its byte digest; every body
 is fetched over verified HTTPS, size/hash checked, rechecked after adding the
-six presentation assets and a separate website receipt, then checked again on the exact archived bodies. The closed archive is reopened
+seven presentation assets and a separate website receipt, then checked again on the exact archived bodies. The closed archive is reopened
 and its exact member set and protected digests are verified. Ownership and
-timestamps are neutral. This adds seven root files; none collides with
+timestamps are neutral. This adds eight root files; none collides with
 the qualified package inventory. Website assets are not claimed to be signed
 package artifacts. The existing publication receipt continues to describe the
 unchanged original package files.
@@ -90,5 +90,11 @@ or dependency changes are included. Another failure requires diagnosis before
 further deployment. A successful first hosted extraction and live 75-file
 readback remain required; local tar checks do not prove the Pages root cause.
 
-The website includes one original mascot WebP. It is a presentation asset, not
-a signed package, a product release, or a change to the protected inventory.
+The website includes two mascot WebPs: original Orihime and established Hikari.
+They are presentation assets, not signed packages, product releases, or changes
+to the protected inventory.
+
+The paired mascot section uses Orihime for Theme Forge and Hikari for RS9. The
+new Hikari file is an exact copy of the established public illustration. Both
+are presentation assets outside the protected package inventory; no package,
+public key or repository metadata is changed by this addition.

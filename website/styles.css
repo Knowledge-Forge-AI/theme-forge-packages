@@ -117,3 +117,9 @@ footer div { display: flex; flex-wrap: wrap; gap: 28px; }
 .project-mascot p { max-width: 38rem; line-height: 1.65; }
 .project-mascot .mascot-eyebrow { margin: 0 0 .75rem; font: .8rem/1.4 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
 @media (max-width: 640px) { .project-mascot { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; } .project-mascot img { max-height: 22rem; } .project-mascot .mascot-copy { text-align: start; } }
+
+/* Paired project and distribution mascots; preserve the established site system. */
+.mascot-duo { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3.5rem); }
+.mascot-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: end; }
+.mascot-pair img { max-height: 26rem; }
+@media(max-width:700px) { .mascot-duo { grid-template-columns: minmax(0, 1fr); } .mascot-pair img { max-height: 22rem; } }
