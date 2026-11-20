@@ -29,7 +29,7 @@ SITES = {
     "release-starport-9": "rs9.knowledge-forge.ai",
 }
 WEBSITE_FILES = ("index.html", "styles.css", "main.js", "robots.txt", "CNAME", "orihime.webp", "hikari.webp")
-INVENTORY_SHA256 = "83f3792790824c9837260f79a365683b1288709e6f37442df87aac3da0ae530c"
+INVENTORY_SHA256 = "2863a0298583ae772c6c5cdab52d0765efda91a2439e8c50efec55262782dfc8"
 INITIAL_PACKAGE_DEPLOYMENT = 7688464725
 INITIAL_PACKAGE_SOURCE = "97f6895f465dbd86000025805135e50f653f28a5"
 FAILED_WEBSITE_SOURCE = "5fafb630b87e6a277988a4f872efb567687b40ae"
@@ -91,7 +91,7 @@ def validate_inventory(data):
         require(type(record["bytes"]) is int and 0 < record["bytes"] <= 128 * 1024 * 1024, "MEMBER_BOUND")
         require(isinstance(record["sha256"], str) and re.fullmatch(r"[0-9a-f]{64}", record["sha256"]), "MEMBER_DIGEST")
         total += record["bytes"]
-    require(total == 268028902, "INVENTORY_TOTAL")
+    require(total == 268029257, "INVENTORY_TOTAL")
     return data
 
 
@@ -147,6 +147,18 @@ def admit_previous_deployment(repository):
     if repository == "theme-forge-packages" and identifier == INITIAL_PACKAGE_DEPLOYMENT:
         require(deployment.get("sha") == INITIAL_PACKAGE_SOURCE, "INITIAL_PACKAGE_SOURCE")
         require(statuses[0].get("log_url") == "https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/42859410403/job/129981612851", "INITIAL_PACKAGE_RUN")
+        return {"kind": "qualified-package-publication", "previousDeployment": identifier}
+    if repository == "theme-forge-packages" and identifier == 7946660257:
+        source = "d16d9466c1fef121e669afae9313cdc60342e4ee"
+        run_id = 44772008113
+        require(deployment.get("sha") == source, "QUALIFIED_PACKAGE_SOURCE")
+        require(statuses[0].get("log_url") == "https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/44772008113/job/136412187474",
+                "QUALIFIED_PACKAGE_RUN")
+        run = api(repository, "actions/runs/" + str(run_id))
+        require(run.get("id") == run_id and run.get("path") == ".github/workflows/publish.yml"
+                and run.get("event") == "workflow_dispatch" and run.get("head_branch") == "main"
+                and run.get("head_sha") == source and run.get("run_attempt") == 1
+                and run.get("status") == "completed" and run.get("conclusion") == "success", "QUALIFIED_PACKAGE_RUN")
         return {"kind": "qualified-package-publication", "previousDeployment": identifier}
     prefix = "https://github.com/Knowledge-Forge-AI/" + repository + "/actions/runs/"
     log = statuses[0].get("log_url", "")

@@ -25,39 +25,20 @@ group, so it cannot race the maintained production publisher. A future package
 publication changes repository metadata or the last publisher and therefore
 requires a freshly reviewed protected inventory before another website refresh.
 
-RS9's initial project-site route required no recorded github-pages deployment
-and a certificate-verified HTTPS 404 at the root. Its project page is now live;
-package delivery lives on the separate Theme Forge Packages origin. Subsequent
-RS9 refreshes accept only its website
-workflow. Before activating package hosting on the RS9 origin, retire this
-project-only route or adopt an exact protected inventory and share its
-rs9-pages-publication concurrency group. Do not deploy a website-only tree over
-an origin that has acquired package-serving responsibilities.
+The current inventory comes from [production run 44772008113](https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/44772008113).
+All 75 package files match both the original signed qualification artifact
+and the live HTTPS responses. The seven website files also match the tracked
+source. A website refresh accepts that exact original package deployment or
+the immediately previous successful website workflow on `main`.
 
-Both routes retain the existing github-pages protection and exact main-branch
-condition. RS9 environment readback confirms reviewer lair001, self-review
-allowed, and a selected exact main branch rule; Pages uses GitHub Actions with
-the verified rs9.knowledge-forge.ai domain and HTTPS enforcement. No release, dependency, key, registry or repository-protection change
-is part of this workflow. Normal source CI still applies. The maintained assembly tests are local validation,
-not an added hosted gate: run python3 -I -B website/test/test_assembly.py in the
-Packages repository. The initial helper copies were identical. This repository
-now has the nested archive correction and exact failed-deployment recovery
-below; RS9's working flat project-site helper stays at its prior version.
-Changes to either helper require their own source review; neither is an
-installed shared dependency.
+[RS9's own CLI repositories](https://rs9.knowledge-forge.ai/) use a separate
+origin and protected inventory. Each origin's website workflow shares its
+concurrency group with that origin's package publisher.
 
-Concurrency protects the running publisher. GitHub can replace an older pending
-run in the same group with a newer one; do not start a website deployment while
-an attended package publication is pending. A failed deployment refuses later
-assembly. Rerun the failed deploy job while its one-day artifact remains; after
-expiry, inspect the actual hosting state and prepare an explicit recovery rather
-than bypassing the previous-publisher guard. The exact inspected recovery below
-does not grant acceptance to other failed histories.
-
-The committed inventory digest hashes the exact published PUBLIC-INVENTORY.json
-file. PUBLICATION.json records the original inventory representation's digest;
-it is not asserted to be the digest of that JSON map. This website pins the exact
-published map and independently checks all 75 sizes and bodies against it.
+Run `python3 -I -B website/test/test_assembly.py` for the local assembly
+tests. If the latest deployment failed, inspect that exact hosting history and
+the live bytes before authorizing a recovery. Changes to the live package
+inventory require a fresh inventory pin before another website refresh.
 
 ## Nested archive transport and inspected recovery
 

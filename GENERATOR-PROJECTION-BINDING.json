@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-20T16:01:52.410Z",
+  "generatedAt": "2026-11-20T16:22:24.816Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "45ba95336c2a4bec6048f55bfed8a02909acd59bc5a9982c8e4a4335d9870961",
+  "generationOverlayManifestSha256": "db9db56a08ef7062366259374fbb62d8f6c2786f6376b394d186bc4d8e81f4e2",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "45ba95336c2a4bec6048f55bfed8a02909acd59bc5a9982c8e4a4335d9870961",
+  "treeManifestSha256": "db9db56a08ef7062366259374fbb62d8f6c2786f6376b394d186bc4d8e81f4e2",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -1380,12 +1380,12 @@
     {
       "path": "website/protected-inventory.json",
       "bytes": 13356,
-      "sha256": "83f3792790824c9837260f79a365683b1288709e6f37442df87aac3da0ae530c"
+      "sha256": "2863a0298583ae772c6c5cdab52d0765efda91a2439e8c50efec55262782dfc8"
     },
     {
       "path": "website/README.md",
-      "bytes": 6582,
-      "sha256": "89cce0e994623a6b8bb616dad78d8b454d23fdc0441608aef025d1241ebc814a"
+      "bytes": 5227,
+      "sha256": "355502bd9884781fe191a0bbdbfbe19292b6e5493029a7504b5bb8b3ac549d2e"
     },
     {
       "path": "website/robots.txt",
@@ -1399,13 +1399,13 @@
     },
     {
       "path": "website/test/test_assembly.py",
-      "bytes": 11617,
-      "sha256": "3aebd678de84b57bd86df8d1b5f8c3b7a2a0db852d4ae04fbc50ebfe4ad0b934"
+      "bytes": 12773,
+      "sha256": "ebc218129c797b1c42582df65f67e38eacb03ebb023bf7a9506c4295d6c02138"
     },
     {
       "path": "website/tools/assemble-pages.py",
-      "bytes": 16130,
-      "sha256": "04d94f9ffa0ef3e6ccb95c9c8f2499b6a30908c344c2d86b6f2175b529ade156"
+      "bytes": 17105,
+      "sha256": "5c01c0dac355fa2569cdf890032000d6f8dd4cc23c520c5962382abd88c27c0d"
     }
   ]
 }
