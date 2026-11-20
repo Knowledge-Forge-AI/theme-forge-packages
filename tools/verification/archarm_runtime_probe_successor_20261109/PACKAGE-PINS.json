@@ -1,7 +1,11 @@
 {
+  "basePackageUpgrade": {
+    "from": "3.6.3-1",
+    "name": "openssl",
+    "to": "4.1.0-1"
+  },
   "networkDuringInstallOrProbe": false,
-  "noBasePackageUpgrades": true,
-  "packageCount": 139,
+  "packageCount": 141,
   "packages": [
     {
       "architecture": "any",
@@ -2024,6 +2028,34 @@
       "signatureSha256": "c3473472cf7a77271055254b73a4f8a489549345f1dd4d1cd3fd2887c245ba99",
       "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorgproto-2026.1-1-any.pkg.tar.xz",
       "version": "2026.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 6023968,
+      "filename": "openssl-4.1.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "openssl",
+      "sha256": "00550b8d3a4ff7b5c6aff3904baabbd499b51056bfe6fa4635bc4e9a2e44ae93",
+      "signatureBytes": 566,
+      "signatureSha256": "a93f560c3dd0807fe14e421df908eecf420d258171780de183d58204d6feba7f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/openssl-4.1.0-1-aarch64.pkg.tar.xz",
+      "version": "4.1.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2758164,
+      "filename": "openssl-3-3.5.9-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "openssl-3",
+      "sha256": "47024588218118ba13ed610da728b2397a21edc0b7c6cb4c2609b038e703192f",
+      "signatureBytes": 566,
+      "signatureSha256": "822e132fe018cc70fc52560bfbfb835b6350c4b0303055c07ef124e44b8cd5e6",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/openssl-3-3.5.9-2-aarch64.pkg.tar.xz",
+      "version": "3.5.9-2"
     }
   ],
   "publicSigningFingerprint": "68B3537F39A313B3E574D06777193F152BDBE6A6",
@@ -2035,8 +2067,8 @@
     "webkit2gtk-4.1",
     "xorg-server-xvfb"
   ],
-  "schema": "tf.archarm-runtime-package-pins.v1",
+  "schema": "tf.archarm-runtime-package-pins.v2",
   "toolNodeVersion": "22.23.5",
   "toolPythonVersion": "3.14.10",
-  "totalBytes": 201818828
+  "totalBytes": 210600960
 }

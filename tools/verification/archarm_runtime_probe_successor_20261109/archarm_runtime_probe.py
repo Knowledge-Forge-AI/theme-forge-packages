@@ -32,8 +32,8 @@ BASE_MODULE_NAME = "archarm_base_probe"
 BASE_CONTRACT = ("Refusal", "require", "NoRedirect", "inspect_members", "check_file",
                  "download", "command", "remove_fresh_docker_home")
 PACKAGE_PINS_PATH = HERE / "PACKAGE-PINS.json"
-PACKAGE_PINS_BYTES = 78598
-PACKAGE_PINS_SHA256 = "e73e6b6107b921c956aeed49487aea0195d74f46c8e5937c1a27d1009e213288"
+PACKAGE_PINS_BYTES = 79740
+PACKAGE_PINS_SHA256 = "e3933f2d2ef013edc8d988e87b07c255d828e3c36d8e1152dad0911c8bd739ff"
 ROOTFS_PIN_PATH = BASE_HELPER_PATH.parent / "ROOTFS-PIN.json"
 CERTIFICATE_PATH = BASE_HELPER_PATH.parent / "archlinuxarm-builder-public.gpg"
 
@@ -74,10 +74,12 @@ require = BASE.require
 # Fixed proposal constants (not inputs).
 # --------------------------------------------------------------------------
 RESULT_SCHEMA = "tf.archarm-key-free-runtime-probe.v2"
-PACKAGE_PIN_SCHEMA = "tf.archarm-runtime-package-pins.v1"
+PACKAGE_PIN_SCHEMA = "tf.archarm-runtime-package-pins.v2"
 FINGERPRINT = "68B3537F39A313B3E574D06777193F152BDBE6A6"
 ROOT_NAMES = ("fakeroot", "python", "nodejs-lts-jod", "gtk3", "webkit2gtk-4.1", "xorg-server-xvfb")
-VERSION_PINS = {"python": "3.14.10-1", "nodejs-lts-jod": "22.23.5-1", "webkit2gtk-4.1": "2.54.2-1"}
+VERSION_PINS = {"python": "3.14.10-1", "nodejs-lts-jod": "22.23.5-1", "webkit2gtk-4.1": "2.54.2-1",
+                "openssl": "4.1.0-1", "openssl-3": "3.5.9-2"}
+BASE_PACKAGE_UPGRADE = {"name": "openssl", "from": "3.6.3-1", "to": VERSION_PINS["openssl"]}
 TOOL_PYTHON_VERSION = "3.14.10"
 TOOL_NODE_VERSION = "22.23.5"
 PACKAGE_URL_PREFIX = "https://fl.us.mirror.archlinuxarm.org/aarch64/"
@@ -105,8 +107,8 @@ CONNECT_TIMEOUT_SECONDS = 30
 
 # Real expectations; tests substitute a synthetic dict of the same shape.
 REAL_EXPECT = {
-    "packageCount": 139,
-    "packageBytes": 201818828,
+    "packageCount": 141,
+    "packageBytes": 210600960,
     "rootfsUrl": "https://fl.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
     "rootfsBytes": 829367415,
     "rootfsSha256": "42a4eeaa038994ffd31fa173256ef2f0ef511358eeb41b9ea1f8626391b9b319",
@@ -167,6 +169,24 @@ LocalFileSigLevel = Required
 RemoteFileSigLevel = Required
 """
 
+# Inventory operations shared with the synthetic installer tests.
+INSTALL_INVENTORY_SCRIPT = r'''
+plan_inventory() {
+  test "$(wc -l < "$T/selected")" -eq 141 || fail delta
+  grep -Fxq 'openssl 3.6.3-1' "$T/before" || fail base_changed
+  grep -Fxq 'openssl 4.1.0-1' "$T/selected" || fail delta
+  grep -Fxq 'openssl-3 3.5.9-2' "$T/selected" || fail delta
+  awk '{print $1}' "$T/before" | LC_ALL=C sort > "$T/base-names" || fail base_changed
+  awk '{print $1}' "$T/selected" | LC_ALL=C sort > "$T/selected-names" || fail delta
+  test "$(LC_ALL=C comm -12 "$T/base-names" "$T/selected-names")" = openssl || fail base_changed
+  test "$(LC_ALL=C sort -u "$T/selected-names" | wc -l)" -eq 141 || fail delta
+  { awk '$1 != "openssl"' "$T/before"; cat "$T/selected"; } | LC_ALL=C sort > "$T/expected" || fail delta
+}
+check_inventory() {
+  cmp -s "$T/expected" "$T/after" || fail base_changed
+}
+'''
+
 # Root installer, network none, closed capabilities, read-only input mount.
 # Only fixed "TFI <stage>" / "TFI fail <label>" tokens reach stdout (fd 3).
 INSTALL_SCRIPT = r'''set -euo pipefail
@@ -181,6 +201,7 @@ T=/var/tmp/tf-runtime-probe-install
 FPR=68B3537F39A313B3E574D06777193F152BDBE6A6
 mark() { printf 'TFI %s\n' "$1" >&3; }
 fail() { printf 'TFI fail %s\n' "$1" >&3; exit 1; }
+''' + INSTALL_INVENTORY_SCRIPT + r'''
 test "$(id -u):$(id -g)" = 0:0 || fail identity
 test "$(uname -m)" = aarch64 || fail identity
 test ! -e "$G" || fail inputs
@@ -188,12 +209,12 @@ test ! -e "$T" || fail inputs
 test -f "$C" || fail inputs
 test -f "$K" || fail inputs
 set -- "$I"/pkg/[0-9][0-9][0-9].pkg.tar.xz
-test "$#" -eq 139 || fail inputs
+test "$#" -eq 141 || fail inputs
 for p in "$@"; do
   test -f "$p" || fail inputs
   test -f "$p.sig" || fail inputs
 done
-test "$(ls -A "$I/pkg" | wc -l)" -eq 278 || fail inputs
+test "$(ls -A "$I/pkg" | wc -l)" -eq 282 || fail inputs
 mark inputs
 mkdir -m 0700 "$G" "$T"
 : > "$G/common.conf"
@@ -206,6 +227,8 @@ test "$(awk -F: '$1 == "pub" { print $2 }' "$T/keys")" = u || fail keyring
 test "$(awk -F: '$1 == "fpr" { print $10; exit }' "$T/keys")" = "$FPR" || fail keyring
 mark keyring
 pacman --config "$C" -Q | LC_ALL=C sort > "$T/before" || fail pacman_query
+pacman --config "$C" -Qp "$@" | LC_ALL=C sort > "$T/selected" || fail pacman_query
+plan_inventory
 rc=0
 pacman --config "$C" -U --noconfirm --noprogressbar "$@" > "$T/pacman.out" 2>&1 || rc=$?
 if grep -q 'could not change the root directory' "$T/pacman.out"; then fail chroot; fi
@@ -213,9 +236,8 @@ test "$rc" -eq 0 || fail pacman_exit
 if grep -Eq '^error:|command failed to execute correctly' "$T/pacman.out"; then fail pacman_error; fi
 mark pacman
 pacman --config "$C" -Q | LC_ALL=C sort > "$T/after" || fail pacman_query
-test -z "$(LC_ALL=C comm -23 "$T/before" "$T/after")" || fail base_changed
-test "$(LC_ALL=C comm -13 "$T/before" "$T/after" | wc -l)" -eq 139 || fail delta
-pacman --config "$C" -Q fakeroot python nodejs-lts-jod gtk3 webkit2gtk-4.1 xorg-server-xvfb || fail delta
+check_inventory
+pacman --config "$C" -Q fakeroot python nodejs-lts-jod gtk3 webkit2gtk-4.1 xorg-server-xvfb openssl openssl-3 || fail delta
 mark delta
 test -s /usr/share/glib-2.0/schemas/gschemas.compiled || fail hooks_schemas
 if compgen -G '/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders/*.so' >/dev/null; then
@@ -233,7 +255,8 @@ case "$(getcap /usr/lib/gstreamer-1.0/gst-ptp-helper)" in
   *) fail ptpcaps ;;
 esac
 mark ptpcaps
-rm -f -- "$T/keys" "$T/before" "$T/after" "$T/pacman.out"
+rm -f -- "$T/keys" "$T/before" "$T/after" "$T/pacman.out" "$T/selected" \
+  "$T/base-names" "$T/selected-names" "$T/expected"
 rmdir -- "$T"
 mark done
 '''
@@ -492,7 +515,7 @@ def load_json(raw):
 PACKAGE_TOP_KEYS = frozenset({"schema", "rootNames", "publicSigningFingerprint", "packages",
                               "packageCount", "totalBytes", "toolPythonVersion",
                               "toolNodeVersion", "networkDuringInstallOrProbe",
-                              "noBasePackageUpgrades"})
+                              "basePackageUpgrade"})
 PACKAGE_KEYS = frozenset({"name", "version", "architecture", "url", "filename", "bytes",
                           "sha256", "signatureBytes", "signatureSha256", "licenses"})
 
@@ -513,7 +536,7 @@ def validate_package_pins(doc, expect):
     require(doc["toolPythonVersion"] == TOOL_PYTHON_VERSION
             and doc["toolNodeVersion"] == TOOL_NODE_VERSION, "PIN_VERSION")
     require(doc["networkDuringInstallOrProbe"] is False
-            and doc["noBasePackageUpgrades"] is True, "PIN_SCHEMA")
+            and doc["basePackageUpgrade"] == BASE_PACKAGE_UPGRADE, "PIN_SCHEMA")
     packages = doc["packages"]
     require(isinstance(packages, list) and 0 < len(packages) <= MAX_PACKAGES, "PIN_COUNT")
     require(_is_int(doc["packageCount"]) and doc["packageCount"] == len(packages)
@@ -550,7 +573,7 @@ def validate_package_pins(doc, expect):
             require(version == VERSION_PINS[name], "PIN_VERSION")
         total += record["bytes"]
         require(total <= MAX_PACKAGE_TOTAL_BYTES, "PIN_BYTES")
-    require(set(ROOT_NAMES) <= names, "PIN_ROOTS")
+    require((set(ROOT_NAMES) | VERSION_PINS.keys()) <= names, "PIN_ROOTS")
     require(_is_int(doc["totalBytes"]) and doc["totalBytes"] == total
             == expect["packageBytes"], "PIN_BYTES")
     return doc

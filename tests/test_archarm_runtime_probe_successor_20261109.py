@@ -1,6 +1,6 @@
 """Pure tests for the PROPOSED, NOT ADMITTED ArchARM runtime probe controller.
 
-Fake command callbacks and synthetic files only. These tests never run Docker,
+Fake command callbacks and synthetic inventories only. These tests never run Docker,
 GPG, pacman, makepkg, Python 3.14.10, Node, fakeroot, Xvfb, GTK or WebKit, never
 touch the network and never create DB/RAW paths or real repository databases.
 Passing them proves controller gate logic only; it does not prove native ARM
@@ -16,6 +16,7 @@ import os
 import re
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -58,6 +59,8 @@ SYNTHETIC = (
     ("fakeroot", "1:2.1.4-1", "aarch64", "core"),
     ("gtk3", "1:3.24.52-2", "aarch64", "extra"),
     ("nodejs-lts-jod", "22.23.5-1", "aarch64", "extra"),
+    ("openssl", "4.1.0-1", "aarch64", "core"),
+    ("openssl-3", "3.5.9-2", "aarch64", "core"),
     ("python", "3.14.10-1", "aarch64", "core"),
     ("webkit2gtk-4.1", "2.54.2-1", "aarch64", "extra"),
     ("xorg-server-xvfb", "21.1.25-2", "aarch64", "extra"),
@@ -82,7 +85,8 @@ def synthetic_inputs(tmp):
             "publicSigningFingerprint": FPR, "packages": packages,
             "packageCount": len(packages), "totalBytes": total,
             "toolPythonVersion": "3.14.10", "toolNodeVersion": "22.23.5",
-            "networkDuringInstallOrProbe": False, "noBasePackageUpgrades": True}
+            "networkDuringInstallOrProbe": False,
+            "basePackageUpgrade": {"name": "openssl", "from": "3.6.3-1", "to": "4.1.0-1"}}
     rootfs, rootfs_sig, cert = b"synthetic-rootfs" * 32, b"synthetic-rootfs-sig", b"synthetic-cert"
     real_pin = json.loads(ROOTFS_PIN_PATH.read_text())
     rootfs_pin = dict(real_pin, rootfsBytes=len(rootfs), rootfsSha256=sha256(rootfs),
@@ -391,8 +395,8 @@ class RealPinClosure(unittest.TestCase):
         self.assertEqual(len(raw), P.PACKAGE_PINS_BYTES)
         self.assertEqual(sha256(raw), P.PACKAGE_PINS_SHA256)
         doc = P.validate_package_pins(P.load_json(raw), P.REAL_EXPECT)
-        self.assertEqual(len(doc["packages"]), 139)
-        self.assertEqual(sum(p["bytes"] for p in doc["packages"]), 201818828)
+        self.assertEqual(len(doc["packages"]), 141)
+        self.assertEqual(sum(p["bytes"] for p in doc["packages"]), 210600960)
         self.assertTrue(set(P.ROOT_NAMES) <= {p["name"] for p in doc["packages"]})
 
     def test_exact_pin_file_bytes_refuse_mutation_or_truncation(self):
@@ -417,11 +421,12 @@ class RealPinClosure(unittest.TestCase):
 
     def test_scripts_embed_only_fixed_literals(self):
         s = P.INSTALL_SCRIPT
-        self.assertIn('test "$#" -eq 139', s)
-        self.assertIn("-eq 278", s)
-        self.assertIn("comm -13", s)
+        self.assertIn('test "$#" -eq 141', s)
+        self.assertIn("-eq 282", s)
+        self.assertIn('comm -12 "$T/base-names" "$T/selected-names"', s)
+        self.assertIn('cmp -s "$T/expected" "$T/after"', s)
         self.assertIn("FPR=" + FPR, s)
-        self.assertEqual(P.REAL_EXPECT["packageCount"], 139)
+        self.assertEqual(P.REAL_EXPECT["packageCount"], 141)
         r = P.RUNTIME_SCRIPT
         for literal in ("(3, 14, 10)", "v22.23.5 arm64 linux", "[2, 54, 2]",
                         "PKGEXT=.pkg.tar.zst", "SOURCE_DATE_EPOCH=1767225600",
@@ -482,7 +487,8 @@ class PinRefusals(TempCase):
                      "PIN_PACKAGE")
         self.refused(mutate(lambda d: d["packages"].append(copy.deepcopy(d["packages"][0]))),
                      "PIN_COUNT")
-        self.refused(mutate(lambda d: d["packages"][4].update(version="3.14.8-1")), "PIN_PACKAGE")
+        self.refused(mutate(lambda d: next(p for p in d["packages"] if p["name"] == "python")
+                            .update(version="3.14.8-1")), "PIN_PACKAGE")
         mirror = lambda d: d["packages"][0].update(url=d["packages"][0]["url"].replace(
             "fl.us.mirror", "de.mirror"))
         self.refused(mutate(mirror), "PIN_URL")
@@ -497,10 +503,17 @@ class PinRefusals(TempCase):
 
     def test_python_version_pin(self):
         doc = copy.deepcopy(self.pins)
-        record = doc["packages"][4]
+        record = next(p for p in doc["packages"] if p["name"] == "python")
         record.update(version="3.14.8-1", filename="python-3.14.8-1-aarch64.pkg.tar.xz",
                       url=P.PACKAGE_URL_PREFIX + "core/python-3.14.8-1-aarch64.pkg.tar.xz")
         self.refused(doc, "PIN_VERSION")
+
+    def test_base_transition_refuses_any_other_package_or_version(self):
+        for key, value in (("name", "glibc"), ("from", "3.6.4-1"), ("to", "4.2.0-1")):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.pins)
+                doc["basePackageUpgrade"][key] = value
+                self.refused(doc, "PIN_SCHEMA")
 
     def test_json_loader_refusals(self):
         for raw in (b'{"a": 1, "a": 2}', b'{"a": NaN}', b"\xff", b"[1,"):
@@ -1178,8 +1191,8 @@ class MainEntry(TempCase):
             result["digests"].update(kwargs["digests"])
             result["digests"]["packagePinsSha256"] = "f" * 64
             result["flags"].update({key: True for key in P.FLAG_KEYS})
-            result["counts"].update(packagesPinned=139, packageBytesPinned=201818828,
-                                    packagesDownloaded=139, packageSignaturesVerified=139)
+            result["counts"].update(packagesPinned=141, packageBytesPinned=210600960,
+                                    packagesDownloaded=141, packageSignaturesVerified=141)
             return result
 
         P.run_probe = altered_result
@@ -1201,6 +1214,47 @@ class MainEntry(TempCase):
         self.assertEqual(result_path.read_text(), "owner")
 
 
+class InstallInventory(unittest.TestCase):
+    def setUp(self):
+        self.before = ["glibc 2.43-1", "openssl 3.6.3-1", "zlib 1.3.2-1"]
+        self.selected = ["openssl 4.1.0-1", "openssl-3 3.5.9-2"] + [
+            f"synthetic-{i:03} 1-1" for i in range(139)
+        ]
+        self.after = [row for row in self.before if not row.startswith("openssl ")] + self.selected
+
+    def invoke(self):
+        with tempfile.TemporaryDirectory(prefix="tf-archarm-inventory-test-") as tmp:
+            for name, rows in (("before", self.before), ("selected", self.selected), ("after", self.after)):
+                (Path(tmp) / name).write_text("\n".join(sorted(rows)) + "\n")
+            script = ('set -euo pipefail\nT=$1\nfail() { printf "%s\\n" "$1"; exit 1; }\n'
+                      + P.INSTALL_INVENTORY_SCRIPT + "\nplan_inventory\ncheck_inventory\n")
+            return subprocess.run(["/bin/bash", "-c", script, "inventory-test", tmp],
+                                  capture_output=True, text=True, check=False)
+
+    def test_only_the_approved_transition_and_exact_signed_rows_pass(self):
+        result = self.invoke()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_refuses_extra_base_overlap_before_install(self):
+        self.selected[-1] = "glibc 2.44-1"
+        result = self.invoke()
+        self.assertEqual((result.returncode, result.stdout), (1, "base_changed\n"))
+
+    def test_refuses_the_wrong_base_openssl_version(self):
+        self.before[1] = "openssl 3.6.4-1"
+        result = self.invoke()
+        self.assertEqual((result.returncode, result.stdout), (1, "base_changed\n"))
+
+    def test_refuses_changed_kept_row_or_wrong_new_package(self):
+        for replacement in ("glibc 2.44-1", "different-package 1-1"):
+            with self.subTest(replacement=replacement):
+                previous = self.after[0]
+                self.after[0] = replacement
+                result = self.invoke()
+                self.assertEqual((result.returncode, result.stdout), (1, "base_changed\n"))
+                self.after[0] = previous
+
+
 class WorkflowText(unittest.TestCase):
     def setUp(self):
         self.text = WORKFLOW_PATH.read_text()
@@ -1213,7 +1267,7 @@ class WorkflowText(unittest.TestCase):
                           "docker push", "gh release", "upload-release", "self-hosted"):
             self.assertNotIn(forbidden, t)
         for required in ("contents: read", "runs-on: ubuntu-24.04-arm", "timeout-minutes: 90",
-                         "retention-days: 7", "github.ref == 'refs/heads/codex/archarm-runtime-20261120'",
+                         "retention-days: 7", "github.ref == 'refs/heads/codex/archarm-openssl-transition-20261120'",
                          "github.run_attempt == '1'", "/theme-forge-packages'",
                          "persist-credentials: false", "test_archarm_runtime_probe_successor_20261109.py",
                          "archarm_runtime_probe.py", "${{ github.run_id }}", "${{ github.sha }}"):

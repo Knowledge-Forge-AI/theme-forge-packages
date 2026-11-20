@@ -1,6 +1,6 @@
 # Successor ArchARM runtime input proposal, 2026-11-09
 
-This branch qualifies the exact November 20 refresh of the ArchARM dependency inputs. The 139-package closure retains 124 existing records and replaces 15 packages whose pinned files disappeared from the same mirror. The rootfs, certificate, capabilities, limits, cleanup and result schema carry forward. Native acceptance is required before product SDK adoption.
+This branch qualifies the OpenSSL transition for the November 20 ArchARM refresh. It retains all 139 previously approved package records and adds the signed `openssl` 4.1.0-1 and `openssl-3` 3.5.9-2 archives. The one allowed base version change is `openssl` 3.6.3-1 to 4.1.0-1. The rootfs, certificate, capabilities, cleanup and result schema carry forward. Native acceptance is required before product SDK adoption.
 
 # ArchARM key-free native runtime/SDK probe — PROPOSAL, NOT ADMITTED
 
@@ -14,9 +14,9 @@ or imply any authorization.
 ## Exact scope
 
 The probe answers one question: on a native `ubuntu-24.04-arm` runner, can the
-pinned ArchARM base rootfs plus exactly 139 pinned, signed packages (six roots:
+pinned ArchARM base rootfs plus exactly 141 pinned, signed packages (six runtime roots:
 `fakeroot`, `python`, `nodejs-lts-jod`, `gtk3`, `webkit2gtk-4.1`,
-`xorg-server-xvfb`; 201,818,828 package bytes) be installed by pacman with
+`xorg-server-xvfb`; 210,600,960 package bytes) be installed by pacman with
 signature enforcement in an isolated container, then run a small set of SDK and
 headless runtime checks as an unprivileged user?
 
@@ -58,11 +58,11 @@ Out of scope, not exercised, and not implied:
     `fl.us.mirror.archlinuxarm.org/aarch64/{core,extra,alarm}/` prefix with `:`
     encoded as `%3A`; size and SHA-256 of both the package and its detached
     signature.
-  - Count equals 139, and the sum of package bytes equals `totalBytes`, which
-    equals 201,818,828.
+  - Count equals 141, and the sum of package bytes equals `totalBytes`, which
+    equals 210,600,960.
   - The root set and the tool versions match fixed constants.
-  - The exact committed pin file is 78,598 bytes, SHA-256
-    `e73e6b6107b921c956aeed49487aea0195d74f46c8e5937c1a27d1009e213288`. The controller refuses other pin bytes and
+  - The exact committed pin file is 79,740 bytes, SHA-256
+    `e3933f2d2ef013edc8d988e87b07c255d828e3c36d8e1152dad0911c8bd739ff`. The controller refuses other pin bytes and
     requires the result's `packagePinsSha256` to equal this value.
   - Caps: 64 MiB per package, 4 KiB per signature, 256 MiB aggregate, 1 MiB pin
     file, 16 KiB result.
@@ -130,10 +130,12 @@ Out of scope, not exercised, and not implied:
      `--assume-installed`, `--overwrite`, `--noscriptlet`.
    - The config has `LocalFileSigLevel = Required`, `Architecture = aarch64`, and
      no repositories.
-   - `pacman -U --noconfirm` runs over all 139 local paths with `.sig` files
+   - `pacman -U --noconfirm` runs over all 141 local paths with `.sig` files
      alongside. With no network, no download is possible.
-   - The installer also confirms that no base package changed (`comm -23` is
-     empty), that exactly 139 packages were added, and that all roots are
+   - The installer uses the full pre-install inventory and the archive name
+     and version rows to construct the exact expected post-install inventory.
+     It allows only the pinned OpenSSL upgrade, requires precisely 140 added
+     package names, and confirms that all roots are
      present.
 4. **Commit.** The stopped, successful installer is committed to a unique local
    derived tag `tf-archarm-runtime-probe-sdk:r<run>-a1-<sha12>`. It is never
@@ -162,7 +164,7 @@ refuses any other output.
   - hicolor `icon-theme.cache`
   - fontconfig caches
 
-  The installer checks presence, not freshness. The pinned base and all 139
+  The installer checks presence, not freshness. The pinned base and all 141
   packages contain no external gdk-pixbuf loader modules, so their path-triggered
   cache hook does not run. In that case the installer requires the cache to be
   absent; with external modules it requires a nonempty cache. The aggregate
@@ -211,7 +213,7 @@ logs, archives, images, SDKs or source bundles.
 ## Runner and temporary data policy
 
 - Disposable GitHub-hosted `ubuntu-24.04-arm` only. Runs need manual dispatch,
-  on `codex/archarm-runtime-20261120`, attempt 1. Permissions are `contents: read`; there is no
+  on `codex/archarm-openssl-transition-20261120`, attempt 1. Permissions are `contents: read`; there is no
   environment and there are no secrets.
 - The checkout uses `persist-credentials: false`. The job timeout is 90 minutes,
   which is a proposed new policy.
