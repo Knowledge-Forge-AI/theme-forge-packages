@@ -32,8 +32,8 @@ BASE_MODULE_NAME = "archarm_base_probe"
 BASE_CONTRACT = ("Refusal", "require", "NoRedirect", "inspect_members", "check_file",
                  "download", "command", "remove_fresh_docker_home")
 PACKAGE_PINS_PATH = HERE / "PACKAGE-PINS.json"
-PACKAGE_PINS_BYTES = 78588
-PACKAGE_PINS_SHA256 = "a0896233d98b32fde260c6139321dfc64be4efa345585ee16bdbdd4ffdd2f207"
+PACKAGE_PINS_BYTES = 78598
+PACKAGE_PINS_SHA256 = "e73e6b6107b921c956aeed49487aea0195d74f46c8e5937c1a27d1009e213288"
 ROOTFS_PIN_PATH = BASE_HELPER_PATH.parent / "ROOTFS-PIN.json"
 CERTIFICATE_PATH = BASE_HELPER_PATH.parent / "archlinuxarm-builder-public.gpg"
 
@@ -77,9 +77,9 @@ RESULT_SCHEMA = "tf.archarm-key-free-runtime-probe.v2"
 PACKAGE_PIN_SCHEMA = "tf.archarm-runtime-package-pins.v1"
 FINGERPRINT = "68B3537F39A313B3E574D06777193F152BDBE6A6"
 ROOT_NAMES = ("fakeroot", "python", "nodejs-lts-jod", "gtk3", "webkit2gtk-4.1", "xorg-server-xvfb")
-VERSION_PINS = {"python": "3.14.9-1", "nodejs-lts-jod": "22.23.4-1", "webkit2gtk-4.1": "2.54.2-1"}
-TOOL_PYTHON_VERSION = "3.14.9"
-TOOL_NODE_VERSION = "22.23.4"
+VERSION_PINS = {"python": "3.14.10-1", "nodejs-lts-jod": "22.23.5-1", "webkit2gtk-4.1": "2.54.2-1"}
+TOOL_PYTHON_VERSION = "3.14.10"
+TOOL_NODE_VERSION = "22.23.5"
 PACKAGE_URL_PREFIX = "https://fl.us.mirror.archlinuxarm.org/aarch64/"
 PACKAGE_REPOS = ("core", "extra", "alarm")
 PACKAGE_URL_RE = re.compile(r"https://fl\.us\.mirror\.archlinuxarm\.org/aarch64/"
@@ -106,7 +106,7 @@ CONNECT_TIMEOUT_SECONDS = 30
 # Real expectations; tests substitute a synthetic dict of the same shape.
 REAL_EXPECT = {
     "packageCount": 139,
-    "packageBytes": 201488096,
+    "packageBytes": 201818828,
     "rootfsUrl": "https://fl.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
     "rootfsBytes": 829367415,
     "rootfsSha256": "42a4eeaa038994ffd31fa173256ef2f0ef511358eeb41b9ea1f8626391b9b319",
@@ -266,7 +266,7 @@ def need(condition):
     if not condition:
         raise SystemExit(3)
 need(sys.implementation.name == "cpython")
-need(tuple(sys.version_info[:3]) == (3, 14, 9))
+need(tuple(sys.version_info[:3]) == (3, 14, 10))
 need(platform.machine() == "aarch64")
 import io
 import json
@@ -296,7 +296,7 @@ libc.strlen.argtypes = [ctypes.c_char_p]
 need(libc.strlen(b"inert") == 5)
 PYEOF
 mark python
-test "$(node -e 'process.stdout.write([process.version, process.arch, process.platform].join(" "))')" = "v22.23.4 arm64 linux" || fail node
+test "$(node -e 'process.stdout.write([process.version, process.arch, process.platform].join(" "))')" = "v22.23.5 arm64 linux" || fail node
 mark node
 test "$(fakeroot -- /usr/bin/id -u)" = 0 || fail fakeroot
 : > /tmp/w/fakeroot-probe

@@ -1,6 +1,6 @@
 # Successor ArchARM runtime input proposal, 2026-11-09
 
-This is a distinct, unadopted successor to the retained historical 139-package input set. It changes exactly desktop-file-utils 0.28-1 to 0.29-1, fakeroot 1:2.1.4-1 to 2:1.37.2-1, and libstemmer 3.1.1-1 to 3.2.0-1. All package names/count, other 136 records, rootfs, public certificate, capabilities, limits, cleanup and result schema stay fixed. The aggregate archive size is 201,488,096 bytes. The source and pin identities differ from the historical native result, which is not reused as qualification. No SDK adoption is authorized by this source proposal.
+This branch qualifies the exact November 20 refresh of the ArchARM dependency inputs. The 139-package closure retains 124 existing records and replaces 15 packages whose pinned files disappeared from the same mirror. The rootfs, certificate, capabilities, limits, cleanup and result schema carry forward. Native acceptance is required before product SDK adoption.
 
 # ArchARM key-free native runtime/SDK probe — PROPOSAL, NOT ADMITTED
 
@@ -16,16 +16,16 @@ or imply any authorization.
 The probe answers one question: on a native `ubuntu-24.04-arm` runner, can the
 pinned ArchARM base rootfs plus exactly 139 pinned, signed packages (six roots:
 `fakeroot`, `python`, `nodejs-lts-jod`, `gtk3`, `webkit2gtk-4.1`,
-`xorg-server-xvfb`; 201,488,096 package bytes) be installed by pacman with
+`xorg-server-xvfb`; 201,818,828 package bytes) be installed by pacman with
 signature enforcement in an isolated container, then run a small set of SDK and
 headless runtime checks as an unprivileged user?
 
 In scope:
 
-- Python 3.14.9 (a tool inside the container only, separate from the host
+- Python 3.14.10 (a tool inside the container only, separate from the host
   observer Python): stdlib `json`, `hashlib`, `tarfile`, `lzma`, `tomllib`,
   `ctypes`.
-- Node 22.23.4 version string plus `arm64`/`linux`.
+- Node 22.23.5 version string plus `arm64`/`linux`.
 - Running `fakeroot` natively.
 - `makepkg` (nonroot) builds an inert `arch=('aarch64')` fixture with
   `PKGEXT=.pkg.tar.zst` and `SOURCE_DATE_EPOCH=1767225600`. The probe then checks
@@ -59,10 +59,10 @@ Out of scope, not exercised, and not implied:
     encoded as `%3A`; size and SHA-256 of both the package and its detached
     signature.
   - Count equals 139, and the sum of package bytes equals `totalBytes`, which
-    equals 201,488,096.
+    equals 201,818,828.
   - The root set and the tool versions match fixed constants.
-  - The exact committed pin file is 78,588 bytes, SHA-256
-    `a0896233d98b32fde260c6139321dfc64be4efa345585ee16bdbdd4ffdd2f207`. The controller refuses other pin bytes and
+  - The exact committed pin file is 78,598 bytes, SHA-256
+    `e73e6b6107b921c956aeed49487aea0195d74f46c8e5937c1a27d1009e213288`. The controller refuses other pin bytes and
     requires the result's `packagePinsSha256` to equal this value.
   - Caps: 64 MiB per package, 4 KiB per signature, 256 MiB aggregate, 1 MiB pin
     file, 16 KiB result.
@@ -211,7 +211,7 @@ logs, archives, images, SDKs or source bundles.
 ## Runner and temporary data policy
 
 - Disposable GitHub-hosted `ubuntu-24.04-arm` only. Runs need manual dispatch,
-  on `main`, attempt 1. Permissions are `contents: read`; there is no
+  on `codex/archarm-runtime-20261120`, attempt 1. Permissions are `contents: read`; there is no
   environment and there are no secrets.
 - The checkout uses `persist-credentials: false`. The job timeout is 90 minutes,
   which is a proposed new policy.

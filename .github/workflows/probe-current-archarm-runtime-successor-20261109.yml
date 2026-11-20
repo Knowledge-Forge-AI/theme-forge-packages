@@ -1,8 +1,8 @@
 # PROPOSAL ONLY - NOT ADMITTED. Key-free native ArchARM runtime/SDK probe.
-# Manual dispatch on main, attempt 1 only. No secrets, no environment, no
+# Manual dispatch on the qualification branch, attempt 1 only. No secrets, no environment, no
 # publication, no R/Q/GUI product invocation. Uploads the closed result JSON only.
 #
-name: Probe successor ArchARM runtime 20261109 (proposal)
+name: Probe successor ArchARM runtime 20261120 (proposal)
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
   probe:
     if: >-
       github.repository == 'Knowledge-Forge-AI/theme-forge-packages'
-      && github.ref == 'refs/heads/main'
+      && github.ref == 'refs/heads/codex/archarm-runtime-20261120'
       && github.run_attempt == '1'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 90

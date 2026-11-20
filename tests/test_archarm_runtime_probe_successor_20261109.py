@@ -1,7 +1,7 @@
 """Pure tests for the PROPOSED, NOT ADMITTED ArchARM runtime probe controller.
 
 Fake command callbacks and synthetic files only. These tests never run Docker,
-GPG, pacman, makepkg, Python 3.14.9, Node, fakeroot, Xvfb, GTK or WebKit, never
+GPG, pacman, makepkg, Python 3.14.10, Node, fakeroot, Xvfb, GTK or WebKit, never
 touch the network and never create DB/RAW paths or real repository databases.
 Passing them proves controller gate logic only; it does not prove native ARM
 behaviour, signature validity on a real host, or container runtime behaviour.
@@ -57,8 +57,8 @@ SYNTHETIC = (
     ("adwaita-fonts", "51.0-2", "any", "extra"),
     ("fakeroot", "1:2.1.4-1", "aarch64", "core"),
     ("gtk3", "1:3.24.52-2", "aarch64", "extra"),
-    ("nodejs-lts-jod", "22.23.4-1", "aarch64", "extra"),
-    ("python", "3.14.9-1", "aarch64", "core"),
+    ("nodejs-lts-jod", "22.23.5-1", "aarch64", "extra"),
+    ("python", "3.14.10-1", "aarch64", "core"),
     ("webkit2gtk-4.1", "2.54.2-1", "aarch64", "extra"),
     ("xorg-server-xvfb", "21.1.25-2", "aarch64", "extra"),
 )
@@ -81,7 +81,7 @@ def synthetic_inputs(tmp):
     pins = {"schema": P.PACKAGE_PIN_SCHEMA, "rootNames": list(P.ROOT_NAMES),
             "publicSigningFingerprint": FPR, "packages": packages,
             "packageCount": len(packages), "totalBytes": total,
-            "toolPythonVersion": "3.14.9", "toolNodeVersion": "22.23.4",
+            "toolPythonVersion": "3.14.10", "toolNodeVersion": "22.23.5",
             "networkDuringInstallOrProbe": False, "noBasePackageUpgrades": True}
     rootfs, rootfs_sig, cert = b"synthetic-rootfs" * 32, b"synthetic-rootfs-sig", b"synthetic-cert"
     real_pin = json.loads(ROOTFS_PIN_PATH.read_text())
@@ -392,7 +392,7 @@ class RealPinClosure(unittest.TestCase):
         self.assertEqual(sha256(raw), P.PACKAGE_PINS_SHA256)
         doc = P.validate_package_pins(P.load_json(raw), P.REAL_EXPECT)
         self.assertEqual(len(doc["packages"]), 139)
-        self.assertEqual(sum(p["bytes"] for p in doc["packages"]), 201488096)
+        self.assertEqual(sum(p["bytes"] for p in doc["packages"]), 201818828)
         self.assertTrue(set(P.ROOT_NAMES) <= {p["name"] for p in doc["packages"]})
 
     def test_exact_pin_file_bytes_refuse_mutation_or_truncation(self):
@@ -423,7 +423,7 @@ class RealPinClosure(unittest.TestCase):
         self.assertIn("FPR=" + FPR, s)
         self.assertEqual(P.REAL_EXPECT["packageCount"], 139)
         r = P.RUNTIME_SCRIPT
-        for literal in ("(3, 14, 9)", "v22.23.4 arm64 linux", "[2, 54, 2]",
+        for literal in ("(3, 14, 10)", "v22.23.5 arm64 linux", "[2, 54, 2]",
                         "PKGEXT=.pkg.tar.zst", "SOURCE_DATE_EPOCH=1767225600",
                         "arch=('aarch64')", "28b52ffd", "libgtk-3.so.0",
                         "libwebkit2gtk-4.1.so.0", "gtk_init_check", "DISPLAY=:99",
@@ -1178,7 +1178,7 @@ class MainEntry(TempCase):
             result["digests"].update(kwargs["digests"])
             result["digests"]["packagePinsSha256"] = "f" * 64
             result["flags"].update({key: True for key in P.FLAG_KEYS})
-            result["counts"].update(packagesPinned=139, packageBytesPinned=201488096,
+            result["counts"].update(packagesPinned=139, packageBytesPinned=201818828,
                                     packagesDownloaded=139, packageSignaturesVerified=139)
             return result
 
@@ -1213,7 +1213,7 @@ class WorkflowText(unittest.TestCase):
                           "docker push", "gh release", "upload-release", "self-hosted"):
             self.assertNotIn(forbidden, t)
         for required in ("contents: read", "runs-on: ubuntu-24.04-arm", "timeout-minutes: 90",
-                         "retention-days: 7", "github.ref == 'refs/heads/main'",
+                         "retention-days: 7", "github.ref == 'refs/heads/codex/archarm-runtime-20261120'",
                          "github.run_attempt == '1'", "/theme-forge-packages'",
                          "persist-credentials: false", "test_archarm_runtime_probe_successor_20261109.py",
                          "archarm_runtime_probe.py", "${{ github.run_id }}", "${{ github.sha }}"):
