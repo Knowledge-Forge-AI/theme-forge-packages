@@ -495,7 +495,7 @@ class ArchArmLeaseHold:
         self.probe_output = create_probe_output_root(work_dir, uid=uid, gid=gid)
         cm = acquire(host=host, workspace=Path(work_dir) / ARCHARM_SDK_WORKSPACE,
                      context=_plain_context(context), uid=uid, gid=gid,
-                     input_profile="successor-20261109")
+                     input_profile="successor-20261120")
         if not callable(getattr(cm, "__enter__", None)) or not callable(getattr(cm, "__exit__", None)):
             refuse("ARCHARM_SDK_API")
         self.cm = cm

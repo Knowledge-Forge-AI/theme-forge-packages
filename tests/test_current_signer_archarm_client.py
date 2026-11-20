@@ -718,7 +718,7 @@ class QualifyLaneRouteTests(_Temp):
         self.assertEqual(self.old_provisioner_calls(), {})
         self.assertEqual(len(self.sdk.calls), 1)
         call = self.sdk.calls[0]
-        self.assertEqual(call["input_profile"], "successor-20261109")
+        self.assertEqual(call["input_profile"], "successor-20261120")
         self.assertEqual(type(call["host"]).__name__, "RecordingRunner")
         self.assertIsInstance(call["host"].inner, subject.IsolatedClientRunner)
         self.assertTrue(call["host"].inner.lease_custody)
