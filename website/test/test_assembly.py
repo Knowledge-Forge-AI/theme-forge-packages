@@ -107,6 +107,17 @@ class AssemblyTests(unittest.TestCase):
    self.assertEqual(assembly.admit_previous_deployment('theme-forge-packages')['kind'],'prior-website-publication')
    run['path']='.github/workflows/publish.yml'
    with self.assertRaises(assembly.Refused):assembly.admit_previous_deployment('theme-forge-packages')
+ def test_current_production_publisher_binds_the_original_success(self):
+  source='d16d9466c1fef121e669afae9313cdc60342e4ee';deployment={'id':7946660257,'ref':'main','sha':source}
+  status={'state':'success','log_url':'https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/44772008113/job/136412187474'}
+  run={'id':44772008113,'path':'.github/workflows/publish.yml','event':'workflow_dispatch','head_branch':'main','head_sha':source,'run_attempt':1,'status':'completed','conclusion':'success'}
+  def api(repository,suffix):return run if suffix.startswith('actions/') else ([deployment] if suffix.startswith('deployments?') else [status])
+  with patch.object(assembly,'api',api):
+   self.assertEqual(assembly.admit_previous_deployment('theme-forge-packages')['previousDeployment'],7946660257)
+   for key,value in (('run_attempt',2),('conclusion','failure'),('head_sha','a'*40),('path','.github/workflows/project-pages.yml')):
+    before=run[key];run[key]=value
+    with self.subTest(field=key),self.assertRaisesRegex(assembly.Refused,'QUALIFIED_PACKAGE_RUN'):assembly.admit_previous_deployment('theme-forge-packages')
+    run[key]=before
  def recovery_fixture(self):
   history=[{'id':7709348450,'sha':assembly.FAILED_WEBSITE_SOURCE,'ref':'main'},{'id':7704763715,'sha':assembly.FAILED_WEBSITE_SOURCE,'ref':'main'},{'id':assembly.INITIAL_PACKAGE_DEPLOYMENT,'sha':assembly.INITIAL_PACKAGE_SOURCE,'ref':'main'}]
   statuses={identifier:[{'state':state,'log_url':'https://github.com/Knowledge-Forge-AI/theme-forge-packages/actions/runs/'+str(run)+'/job/'+str(job)}] for identifier,state,run,job in ((7709348450,'failure',42982720952,130505789335),(7704763715,'failure',42982720952,130396788604),(assembly.INITIAL_PACKAGE_DEPLOYMENT,'success',42859410403,129981612851))}

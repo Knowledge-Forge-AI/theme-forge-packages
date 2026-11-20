@@ -1,27 +1,27 @@
 {
   "apt/dists/resolute/InRelease": {
     "bytes": 1677,
-    "sha256": "976c2d4ab34aedbb24890fb92224f9169ea36cfcd4cb2e527baf0c5a2486f103"
+    "sha256": "1b37308130691af5e9980a4db97922cada2908922050c39090c490638246aa5d"
   },
   "apt/dists/resolute/Release": {
     "bytes": 795,
-    "sha256": "b92dde5cca87ae4c9528ed33350ac5d9baa7bf6350c8b486a499576f6f07afb2"
+    "sha256": "4be4bff1006f71e19a431289d64ad22a3565fb3dc54459892d816952015f2ca0"
   },
   "apt/dists/resolute/Release.gpg": {
     "bytes": 833,
-    "sha256": "659bb0a55928484ff52f509aa6f66ac9345ebc581a053d294196538d5f9c0de2"
+    "sha256": "64f11876c25a66d2cd708da7703a4b1d145434247d13cfd658316c5874c51a12"
   },
-  "apt/dists/resolute/by-hash/SHA256/659bb0a55928484ff52f509aa6f66ac9345ebc581a053d294196538d5f9c0de2": {
-    "bytes": 833,
-    "sha256": "659bb0a55928484ff52f509aa6f66ac9345ebc581a053d294196538d5f9c0de2"
-  },
-  "apt/dists/resolute/by-hash/SHA256/976c2d4ab34aedbb24890fb92224f9169ea36cfcd4cb2e527baf0c5a2486f103": {
+  "apt/dists/resolute/by-hash/SHA256/1b37308130691af5e9980a4db97922cada2908922050c39090c490638246aa5d": {
     "bytes": 1677,
-    "sha256": "976c2d4ab34aedbb24890fb92224f9169ea36cfcd4cb2e527baf0c5a2486f103"
+    "sha256": "1b37308130691af5e9980a4db97922cada2908922050c39090c490638246aa5d"
   },
-  "apt/dists/resolute/by-hash/SHA256/b92dde5cca87ae4c9528ed33350ac5d9baa7bf6350c8b486a499576f6f07afb2": {
+  "apt/dists/resolute/by-hash/SHA256/4be4bff1006f71e19a431289d64ad22a3565fb3dc54459892d816952015f2ca0": {
     "bytes": 795,
-    "sha256": "b92dde5cca87ae4c9528ed33350ac5d9baa7bf6350c8b486a499576f6f07afb2"
+    "sha256": "4be4bff1006f71e19a431289d64ad22a3565fb3dc54459892d816952015f2ca0"
+  },
+  "apt/dists/resolute/by-hash/SHA256/64f11876c25a66d2cd708da7703a4b1d145434247d13cfd658316c5874c51a12": {
+    "bytes": 833,
+    "sha256": "64f11876c25a66d2cd708da7703a4b1d145434247d13cfd658316c5874c51a12"
   },
   "apt/dists/resolute/main/binary-amd64/Packages": {
     "bytes": 1949,
@@ -96,132 +96,132 @@
     "sha256": "ab07ddb3632e141b333f3393b6f87b385d6277600f0b9c2f04fd411323716aca"
   },
   "arch/aarch64/knowledge-forge-ai.db": {
-    "bytes": 3226,
-    "sha256": "488fe416689f3fca028161a03e2cd1adb20955d395710f1e13bcbb0e6ec85c50"
+    "bytes": 3230,
+    "sha256": "49e4122ac03fda0adf2746d90ee8b0b3b97dd2c27eb1f5337a689f566698731b"
   },
   "arch/aarch64/knowledge-forge-ai.db.sig": {
     "bytes": 566,
-    "sha256": "e4bc5c9a8a8269b69bf9f799eedd56537149dc8f7ef32631f548f48200143445"
+    "sha256": "75661855d5079ade87f7f871d013eab650a43a8a4785862bb894d01a7530a0ca"
   },
   "arch/aarch64/knowledge-forge-ai.db.tar.gz": {
-    "bytes": 3226,
-    "sha256": "488fe416689f3fca028161a03e2cd1adb20955d395710f1e13bcbb0e6ec85c50"
+    "bytes": 3230,
+    "sha256": "49e4122ac03fda0adf2746d90ee8b0b3b97dd2c27eb1f5337a689f566698731b"
   },
   "arch/aarch64/knowledge-forge-ai.db.tar.gz.sig": {
     "bytes": 566,
-    "sha256": "e4bc5c9a8a8269b69bf9f799eedd56537149dc8f7ef32631f548f48200143445"
+    "sha256": "75661855d5079ade87f7f871d013eab650a43a8a4785862bb894d01a7530a0ca"
   },
   "arch/aarch64/knowledge-forge-ai.files": {
-    "bytes": 19022,
-    "sha256": "5335a92694aec3441b9e794015948337ddb2e52cb3614f8240952241608f8041"
+    "bytes": 19023,
+    "sha256": "17bc559b300f4089aebe2ea3b7b05e19c7c8039d79e82763c915a04592f66748"
   },
   "arch/aarch64/knowledge-forge-ai.files.sig": {
     "bytes": 566,
-    "sha256": "b31bf4b90af53b0aea288c0378ff416070e96584e9f687279d98e47b2154237e"
+    "sha256": "93ebf051fec3223bb3dde37426bb67d2f2a3622f35b6195abd303178c88e32ee"
   },
   "arch/aarch64/knowledge-forge-ai.files.tar.gz": {
-    "bytes": 19022,
-    "sha256": "5335a92694aec3441b9e794015948337ddb2e52cb3614f8240952241608f8041"
+    "bytes": 19023,
+    "sha256": "17bc559b300f4089aebe2ea3b7b05e19c7c8039d79e82763c915a04592f66748"
   },
   "arch/aarch64/knowledge-forge-ai.files.tar.gz.sig": {
     "bytes": 566,
-    "sha256": "b31bf4b90af53b0aea288c0378ff416070e96584e9f687279d98e47b2154237e"
+    "sha256": "93ebf051fec3223bb3dde37426bb67d2f2a3622f35b6195abd303178c88e32ee"
   },
   "arch/aarch64/theme-forge-nebular-fusion-0.8.0-1-aarch64.pkg.tar.zst": {
-    "bytes": 52332722,
-    "sha256": "1f8e4e8ac3fcaf73179023ebafaf0f9a75001374dbc23adc69d3d7693f59e2e3"
+    "bytes": 52332789,
+    "sha256": "39f7f509a391e0404279cc843c9b86db52d5c3be40716cc28b62c0b57c91043c"
   },
   "arch/aarch64/theme-forge-nebular-fusion-0.8.0-1-aarch64.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "5f6d971841e27bbb67c4a05c0506dc0c0e631cf8f9deb1be5d80e734034c9525"
+    "sha256": "de1c8383b69b33ad4341a5447e4f6eb7f364c197e0e6ef8c0abf88c818a67a9c"
   },
   "arch/aarch64/theme-forge-solar-sail-0.3.0-1-any.pkg.tar.zst": {
-    "bytes": 98734,
-    "sha256": "62dea780b38c7542c68041ec182973edabd4b4d1f601d63f327562719e0bbbe3"
+    "bytes": 98776,
+    "sha256": "7144db28d1a3e3f894b71430c490a3edd25a3d856707d974ff97b89b9e94ddd6"
   },
   "arch/aarch64/theme-forge-solar-sail-0.3.0-1-any.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "98d206f884047dc9eb2267bb9b8fa2df98def78caac603e33add89fccb6a498b"
+    "sha256": "3df06c01b226b78307dd19753bf937593f9e6b5b849696e5d18b7bdbf1d1b861"
   },
   "arch/aarch64/theme-forge-stellar-burst-0.7.0-1-aarch64.pkg.tar.zst": {
-    "bytes": 866432,
-    "sha256": "256e2738cc8aa9e92f9e0b831748a8d14992306b04a10c085d3e3f411576eb53"
+    "bytes": 866567,
+    "sha256": "5cd7087ae1722b5fe9b2f640904b97c7b233b5b51cf6bf59f3180ffe6f944663"
   },
   "arch/aarch64/theme-forge-stellar-burst-0.7.0-1-aarch64.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "7225fb5016a867e51b83e7c571c490088b2395ea2dbf0f3ca1c4f34086dbfc59"
+    "sha256": "e902510a6c3b97c44bcc14bcd5c90085ddcfb3e69942a949f5aa7b5f43c48237"
   },
   "arch/aarch64/theme-forge-stellar-loom-0.5.0-1-any.pkg.tar.zst": {
-    "bytes": 259962,
-    "sha256": "a89737e2738775bcdd6f5eae4f74398e47f984d5f050e76e0d45d3309b448b71"
+    "bytes": 259971,
+    "sha256": "1b95a40c349208a9379eb5d3aad214469cb05958d0efd00771c2e4122a971185"
   },
   "arch/aarch64/theme-forge-stellar-loom-0.5.0-1-any.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "0ce904fe8726e920db6351adf71d1bd8396e618671c89db0f54532c86c374ef6"
+    "sha256": "a57622493798aeb1e130d1c95fb4c036941dcb435567891a7e4b13de081b96fe"
   },
   "arch/x86_64/knowledge-forge-ai.db": {
-    "bytes": 3226,
-    "sha256": "a18bd10427a9fefcf39966062de8db722f5aab177ca4900d3795d9ef16e31d2a"
+    "bytes": 3232,
+    "sha256": "ebbb8ca48346a9e43dc6365a6c5cb62dd16b00e4d5ec061695911c5185267cd2"
   },
   "arch/x86_64/knowledge-forge-ai.db.sig": {
     "bytes": 566,
-    "sha256": "0a618f746847d96c2eef4788a34e1a35cdd17b521458239dea386cca4ea43d10"
+    "sha256": "fb0c47dfd5e96d6f8a50fcbf11c8289419e044f7e42758e5b08dcc2410e30609"
   },
   "arch/x86_64/knowledge-forge-ai.db.tar.gz": {
-    "bytes": 3226,
-    "sha256": "a18bd10427a9fefcf39966062de8db722f5aab177ca4900d3795d9ef16e31d2a"
+    "bytes": 3232,
+    "sha256": "ebbb8ca48346a9e43dc6365a6c5cb62dd16b00e4d5ec061695911c5185267cd2"
   },
   "arch/x86_64/knowledge-forge-ai.db.tar.gz.sig": {
     "bytes": 566,
-    "sha256": "0a618f746847d96c2eef4788a34e1a35cdd17b521458239dea386cca4ea43d10"
+    "sha256": "fb0c47dfd5e96d6f8a50fcbf11c8289419e044f7e42758e5b08dcc2410e30609"
   },
   "arch/x86_64/knowledge-forge-ai.files": {
-    "bytes": 19016,
-    "sha256": "63c8cf132ea37aeb7d72a24c51630e2c522b189bbaa00eabcb1c97e84b132138"
+    "bytes": 19028,
+    "sha256": "fff051b6ec632460dfc68d1fbf17fb5a91d1afb5e6c22d920cf1428bb24f5d87"
   },
   "arch/x86_64/knowledge-forge-ai.files.sig": {
     "bytes": 566,
-    "sha256": "d286d3b36a6847ee7c9fa50ad92e428bdc03cf06cd2993378d85832f862d0da9"
+    "sha256": "5ef9e1e25c836246bee6d2b9b8093169acbfe03301a8bc13621b164ec92f8277"
   },
   "arch/x86_64/knowledge-forge-ai.files.tar.gz": {
-    "bytes": 19016,
-    "sha256": "63c8cf132ea37aeb7d72a24c51630e2c522b189bbaa00eabcb1c97e84b132138"
+    "bytes": 19028,
+    "sha256": "fff051b6ec632460dfc68d1fbf17fb5a91d1afb5e6c22d920cf1428bb24f5d87"
   },
   "arch/x86_64/knowledge-forge-ai.files.tar.gz.sig": {
     "bytes": 566,
-    "sha256": "d286d3b36a6847ee7c9fa50ad92e428bdc03cf06cd2993378d85832f862d0da9"
+    "sha256": "5ef9e1e25c836246bee6d2b9b8093169acbfe03301a8bc13621b164ec92f8277"
   },
   "arch/x86_64/theme-forge-nebular-fusion-0.8.0-1-x86_64.pkg.tar.zst": {
-    "bytes": 52161922,
-    "sha256": "07158f0caedf6177a71e0ca931c481bc8340981226410e71ae8af8c0d4670119"
+    "bytes": 52161947,
+    "sha256": "ba4072f59250d9919c78136e6de4d03081a694f731b7604084e06f8401fec531"
   },
   "arch/x86_64/theme-forge-nebular-fusion-0.8.0-1-x86_64.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "84764389b1e5a55bdfc5a134ec61902669e57bebd937a68c3438a969e36166fa"
+    "sha256": "e7e50579e8921ae56f4b06541211a0661e155a3831475bf6543a9e71155be221"
   },
   "arch/x86_64/theme-forge-solar-sail-0.3.0-1-any.pkg.tar.zst": {
-    "bytes": 98734,
-    "sha256": "62dea780b38c7542c68041ec182973edabd4b4d1f601d63f327562719e0bbbe3"
+    "bytes": 98776,
+    "sha256": "7144db28d1a3e3f894b71430c490a3edd25a3d856707d974ff97b89b9e94ddd6"
   },
   "arch/x86_64/theme-forge-solar-sail-0.3.0-1-any.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "98d206f884047dc9eb2267bb9b8fa2df98def78caac603e33add89fccb6a498b"
+    "sha256": "3df06c01b226b78307dd19753bf937593f9e6b5b849696e5d18b7bdbf1d1b861"
   },
   "arch/x86_64/theme-forge-stellar-burst-0.7.0-1-x86_64.pkg.tar.zst": {
-    "bytes": 866475,
-    "sha256": "3548553aed3189ace7d3ae51b03038f5be5d6fe5eb95716b50defd9faafe94b3"
+    "bytes": 866476,
+    "sha256": "14317c35bcddad8508f13f87a339edb707763c81bbb85ac8771b34b62f656f8d"
   },
   "arch/x86_64/theme-forge-stellar-burst-0.7.0-1-x86_64.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "664a481e0483d3df1b7867efc15437ff42038976eefdfd574a4eb7dd076f3753"
+    "sha256": "a0301258d5c24e10d8152d81656d23c36f02abc0ad739b5eecf78285c1d3c712"
   },
   "arch/x86_64/theme-forge-stellar-loom-0.5.0-1-any.pkg.tar.zst": {
-    "bytes": 259962,
-    "sha256": "a89737e2738775bcdd6f5eae4f74398e47f984d5f050e76e0d45d3309b448b71"
+    "bytes": 259971,
+    "sha256": "1b95a40c349208a9379eb5d3aad214469cb05958d0efd00771c2e4122a971185"
   },
   "arch/x86_64/theme-forge-stellar-loom-0.5.0-1-any.pkg.tar.zst.sig": {
     "bytes": 566,
-    "sha256": "0ce904fe8726e920db6351adf71d1bd8396e618671c89db0f54532c86c374ef6"
+    "sha256": "a57622493798aeb1e130d1c95fb4c036941dcb435567891a7e4b13de081b96fe"
   },
   "keys/knowledge-forge-ai-packages.asc": {
     "bytes": 3947,
@@ -229,74 +229,74 @@
   },
   "rpm/aarch64/Packages/theme-forge-nebular-fusion-0.8.0-1.fc43.aarch64.rpm": {
     "bytes": 41444061,
-    "sha256": "ceb0aab3d65e07a91c8ca09b57ec5edc4adad46367dc5f56e0ef88507482fc44"
+    "sha256": "abf20de8469b5bc2ed95b1facc0044c464bafd2f7145329c84a3cd85f09f2d2a"
   },
   "rpm/aarch64/Packages/theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm": {
     "bytes": 90852,
-    "sha256": "260bbe7714cbb4f3e0f2bded9b22acbc3c39ce361819aafe72ad3bf5730d0053"
+    "sha256": "fd3a02ae57a29d3254a27fa65a79293bd52f35ac117729f10b50e16b3b96a50e"
   },
   "rpm/aarch64/Packages/theme-forge-stellar-burst-0.7.0-1.fc43.aarch64.rpm": {
     "bytes": 679375,
-    "sha256": "5bcf6852cc1835a3a265c3e78d652da4a78e0d23e53e46caf10f2d6c4bbf3067"
+    "sha256": "e42b534fa30ee026455f9ae3dcf7b47a4ae8aca4614d584eafaef1177e6930bd"
   },
   "rpm/aarch64/Packages/theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm": {
     "bytes": 237859,
-    "sha256": "ed831fa832275b534d3b3fbc115cd5e35a1d13765a21144937ddc1566231479c"
+    "sha256": "21c4e8e92a9c2481328b39eb747af1090e02c3818ab9ee844ada18cecc5fc99d"
   },
-  "rpm/aarch64/repodata/4336102b5aaf27ab46b5d82bb22d8186b41070b69734139eefc96b98135cc76c-primary.xml.gz": {
-    "bytes": 1676,
-    "sha256": "4336102b5aaf27ab46b5d82bb22d8186b41070b69734139eefc96b98135cc76c"
+  "rpm/aarch64/repodata/7e2bcf11a9e274d62b1b3cd9e6ae425e0f45fdbe9a9f3d998ea8273b10c78872-filelists.xml.gz": {
+    "bytes": 16304,
+    "sha256": "7e2bcf11a9e274d62b1b3cd9e6ae425e0f45fdbe9a9f3d998ea8273b10c78872"
   },
-  "rpm/aarch64/repodata/a170eae8f1f6605650f2f11b9caf5fe6160f79ed43efe4084fa4576efa60bb68-other.xml.gz": {
-    "bytes": 583,
-    "sha256": "a170eae8f1f6605650f2f11b9caf5fe6160f79ed43efe4084fa4576efa60bb68"
+  "rpm/aarch64/repodata/94e81d10cd07e4ed05fdb4ca81eb553d6b61268b0824e48b2eef8f5935db2045-other.xml.gz": {
+    "bytes": 580,
+    "sha256": "94e81d10cd07e4ed05fdb4ca81eb553d6b61268b0824e48b2eef8f5935db2045"
   },
-  "rpm/aarch64/repodata/cebfd0c3449fc219486589d801ed890ea75be81db1033a09c515f2e753e9547f-filelists.xml.gz": {
-    "bytes": 16307,
-    "sha256": "cebfd0c3449fc219486589d801ed890ea75be81db1033a09c515f2e753e9547f"
+  "rpm/aarch64/repodata/ba5de1f290ca3e56dd5a080288cdc09bc04ee2eb6cdf7747f341670670380e8d-primary.xml.gz": {
+    "bytes": 1671,
+    "sha256": "ba5de1f290ca3e56dd5a080288cdc09bc04ee2eb6cdf7747f341670670380e8d"
   },
   "rpm/aarch64/repodata/repomd.xml": {
     "bytes": 1553,
-    "sha256": "48351e29f60dcceb967806b97e148b7b3e89cd0ad57c24ded0f96a6ba6b67dc9"
+    "sha256": "b922f44941bac25b4af62835dc929d6b745918cfa4ea0845d7c9b3f732a92f17"
   },
   "rpm/aarch64/repodata/repomd.xml.asc": {
     "bytes": 833,
-    "sha256": "ffe04b6f3fc5bc08f738552bf21f7f193cf71a26c83f8a8c47e362ee576e458f"
+    "sha256": "0a6714cc0cc183ed6916e8e4c93f53a537ec2ec66801de69da868ea4030763d0"
   },
   "rpm/x86_64/Packages/theme-forge-nebular-fusion-0.8.0-1.fc43.x86_64.rpm": {
     "bytes": 41482567,
-    "sha256": "3586691bc28ae30c708754d87969f7071687cda1b668b74dc18d38f7d6465a3f"
+    "sha256": "3d91a6ea175acf5d5c4e44768f321cfb8cb6e59bba99bd067a68db656248783f"
   },
   "rpm/x86_64/Packages/theme-forge-solar-sail-0.3.0-1.fc43.noarch.rpm": {
     "bytes": 90852,
-    "sha256": "260bbe7714cbb4f3e0f2bded9b22acbc3c39ce361819aafe72ad3bf5730d0053"
+    "sha256": "fd3a02ae57a29d3254a27fa65a79293bd52f35ac117729f10b50e16b3b96a50e"
   },
   "rpm/x86_64/Packages/theme-forge-stellar-burst-0.7.0-1.fc43.x86_64.rpm": {
     "bytes": 679443,
-    "sha256": "308952da8f3bdb98b8969bac36e5016ddce89e65a155a0f72f6554fa20a98284"
+    "sha256": "fb4145ae8e9db0cbb41a3b40047db84c53dc4e0c85aa8947d24aecdec6b2125a"
   },
   "rpm/x86_64/Packages/theme-forge-stellar-loom-0.5.0-1.fc43.noarch.rpm": {
     "bytes": 237859,
-    "sha256": "ed831fa832275b534d3b3fbc115cd5e35a1d13765a21144937ddc1566231479c"
+    "sha256": "21c4e8e92a9c2481328b39eb747af1090e02c3818ab9ee844ada18cecc5fc99d"
   },
-  "rpm/x86_64/repodata/156808b6a7663f1bcbbbe5be6a539c8ccd6d1f6bba18a5afc4666c3d3f0a2e4d-primary.xml.gz": {
-    "bytes": 1682,
-    "sha256": "156808b6a7663f1bcbbbe5be6a539c8ccd6d1f6bba18a5afc4666c3d3f0a2e4d"
+  "rpm/x86_64/repodata/08eaa136b770c5f561e853df1db24b79a3554c55908a73036e1917ce26c3e823-primary.xml.gz": {
+    "bytes": 1681,
+    "sha256": "08eaa136b770c5f561e853df1db24b79a3554c55908a73036e1917ce26c3e823"
   },
-  "rpm/x86_64/repodata/2c85254dedde62e7077d6979f0a11ee9c89715cf8d6c1d6f0a1a0620f459f3df-filelists.xml.gz": {
-    "bytes": 16313,
-    "sha256": "2c85254dedde62e7077d6979f0a11ee9c89715cf8d6c1d6f0a1a0620f459f3df"
+  "rpm/x86_64/repodata/d93237e51dfb8291852316bd4725d2e32e2dbbaa9cf1be1d86f011bdbab81c56-filelists.xml.gz": {
+    "bytes": 16308,
+    "sha256": "d93237e51dfb8291852316bd4725d2e32e2dbbaa9cf1be1d86f011bdbab81c56"
   },
-  "rpm/x86_64/repodata/d41692a563ac4e422f7272ce6605b6910d01494eeaa06143a7a33a0d4aa1ee52-other.xml.gz": {
-    "bytes": 587,
-    "sha256": "d41692a563ac4e422f7272ce6605b6910d01494eeaa06143a7a33a0d4aa1ee52"
+  "rpm/x86_64/repodata/de845f5831d9d1e03196f466c66ed0a4c11672bbd9bb62b0088b59afd7fb4ae3-other.xml.gz": {
+    "bytes": 583,
+    "sha256": "de845f5831d9d1e03196f466c66ed0a4c11672bbd9bb62b0088b59afd7fb4ae3"
   },
   "rpm/x86_64/repodata/repomd.xml": {
     "bytes": 1553,
-    "sha256": "8940b44433478cc53b49a8191d2cf856ccb05a28da648107a8b4e690389db8e3"
+    "sha256": "b847a03cd7f19cecf3c72850c65ce0b7550401d867d466d7b7d141c9ee2beb49"
   },
   "rpm/x86_64/repodata/repomd.xml.asc": {
     "bytes": 833,
-    "sha256": "a32aaaa4522d18382f486b08f66d9c65d47bbfc21ba40db66ac89c1ea2dffe3d"
+    "sha256": "da11df216faff8aa6184ebbf0b46c473d77e6ebe1bcb78405c0e0f2f76de569a"
   }
 }
