@@ -1,16 +1,16 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-20T14:26:03.281Z",
+  "generatedAt": "2026-11-20T16:01:52.410Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "c71c0b3bb5b539f69daf2d58f6529f92567f19820e05cbc552889f89255227c6",
+  "generationOverlayManifestSha256": "45ba95336c2a4bec6048f55bfed8a02909acd59bc5a9982c8e4a4335d9870961",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "c71c0b3bb5b539f69daf2d58f6529f92567f19820e05cbc552889f89255227c6",
+  "treeManifestSha256": "45ba95336c2a4bec6048f55bfed8a02909acd59bc5a9982c8e4a4335d9870961",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -94,8 +94,8 @@
     },
     {
       "path": ".github/workflows/publish.yml",
-      "bytes": 8812,
-      "sha256": "92cc48e2e2bb87292a2e05c73d0aebde6a4e16f88a5a1216c65f94e2e7d995e6"
+      "bytes": 10494,
+      "sha256": "32edbd72e3a6edc7b650b8e6cc97c878977045e07b389e6faf05729bc5a5b7fb"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
@@ -1165,7 +1165,7 @@
     {
       "path": "tools/verification/current-rs9-inputs.json",
       "bytes": 1215,
-      "sha256": "8693d127d834b4557650bc7327de9f696535d6755f34efe9d230392cde673952"
+      "sha256": "6b1e5b1fead56b55e8e429376f75113dfab0002dd2f671722616b505bd601886"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
@@ -1180,12 +1180,12 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "86f69c5d5b04c73b4b46c4c47fbb92b726fc58b845923f2441511c3f64273bff"
+      "sha256": "da95df863a47bb9553d596b1407f20e323a527d2e25609fcb339267a096423ff"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
       "bytes": 59556,
-      "sha256": "381ff7672a9a6aa134b77041acd6f344c311f48de68a1b3c22f51bd850fe2efb"
+      "sha256": "210eea7c5d1410d0379d56465317829e32c4b3f8853e31f4ee257df37fc2315f"
     },
     {
       "path": "tools/verification/p-command-probes.mjs",

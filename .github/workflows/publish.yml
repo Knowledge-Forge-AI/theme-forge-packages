@@ -113,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -I -B - <<'PY'
-          import os, re, subprocess, sys
+          import importlib.util, json, os, re, subprocess, sys
           from pathlib import Path
 
           root = Path.cwd()
@@ -138,7 +138,6 @@ jobs:
           result = subprocess.run(command, stdin=subprocess.DEVNULL, check=False)
           if result.returncode:
               raise SystemExit(result.returncode)
-          import json
           audit = json.loads((work / "admission-audit.json").read_bytes())
           fields = ("artifact_id", "artifact_digest_sha256", "public_inventory_sha256",
                     "public_file_count", "qualification_run_id", "gui_validation_run_id")
@@ -146,15 +145,41 @@ jobs:
               summary.write("Retained repository admission\n\n")
               for field in fields:
                   summary.write(field + ": " + str(audit[field]) + "\n")
+          # The website assembler has no upload or signing authority. Use only
+          # its physical file and exact archive helpers on the admitted tree.
+          website = root / "website"
+          assembler = website / "tools/assemble-pages.py"
+          def tracked_website(name):
+              return subprocess.check_output(["/usr/bin/git", "show", "HEAD:website/" + name], timeout=10)
+          if assembler.is_symlink() or assembler.read_bytes() != tracked_website("tools/assemble-pages.py"):
+              raise SystemExit("PUBLICATION_WEBSITE_ASSEMBLER_DIGEST")
+          spec = importlib.util.spec_from_file_location("website_assembly", assembler)
+          site = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(site)
+          inventory = {}
+          for member in sorted(destination.rglob("*")):
+              if member.is_symlink():
+                  raise SystemExit("PUBLICATION_PACKAGE_LINK")
+              if member.is_dir():
+                  continue
+              name = member.relative_to(destination).as_posix()
+              body = site.read_regular(member, 128 * 1024 * 1024)
+              inventory[name] = {"bytes": len(body), "sha256": site.sha256(body)}
+          package_digest = site.sha256(json.dumps(inventory, sort_keys=True, separators=(",", ":")).encode())
+          if len(inventory) != audit["public_file_count"] or package_digest != audit["public_inventory_sha256"]:
+              raise SystemExit("PUBLICATION_PACKAGE_INVENTORY_CHANGED")
+          if site.read_regular(website / "CNAME", 256) != b"tf.rs9.knowledge-forge.ai\n":
+              raise SystemExit("PUBLICATION_WEBSITE_DOMAIN")
+          for name in site.WEBSITE_FILES:
+              if name in inventory:
+                  raise SystemExit("PUBLICATION_WEBSITE_COLLISION")
+              body = site.read_regular(website / name, 1024 * 1024)
+              if body != tracked_website(name):
+                  raise SystemExit("PUBLICATION_WEBSITE_SOURCE_CHANGED")
+              site.write_new(destination, name, body)
+              inventory[name] = {"bytes": len(body), "sha256": site.sha256(body)}
           archive = work / "artifact.tar"
-          # The admitted tree contains only regular files and physical directories.
-          # Create the Pages transport without a composite action's mutable nested tag.
-          result = subprocess.run([
-              "/usr/bin/tar", "--directory", str(destination), "-cf", str(archive), ".",
-          ], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-              stderr=subprocess.DEVNULL, timeout=120, check=False)
-          if result.returncode:
-              raise SystemExit("PAGES_TRANSPORT_ARCHIVE_FAILED")
+          site.archive_exact(destination, list(inventory), archive, inventory)
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write("archive_path=" + str(archive) + "\n")
           PY
