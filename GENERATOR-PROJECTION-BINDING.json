@@ -1,21 +1,21 @@
 {
   "schema": "tfsb.dist1-generator-projection-binding-v1",
-  "generatedAt": "2026-11-20T14:12:09.696Z",
+  "generatedAt": "2026-11-20T14:26:03.281Z",
   "generator": "tools/distribution/generate-public-projection.mjs",
   "releaseLockSha256": "d489a366edeeadf26ed33bd72f9ada63e7826cf590824b84f51a2a225d4d788c",
   "generation": "current-four",
   "productionPublicKeySha256": "6931a99cf38e204c0adc75dd868f8c0e79d68e58e2644f575d4be1da2ea18d95",
   "generatorSha256": "20721adb5c17be57724f9c2ddd81aca49c1186373562f61044341ba60edbc4f6",
   "generationInputsSha256": "42ee683e32f69dfb7cdb015fcb75c7b18dcf1872461852e6a9769070d4a1a775",
-  "generationOverlayManifestSha256": "c2d84b16cf8d1c2ada34d8fb29ef2d3846dfba753721c7dc0e34cd4631b7a31d",
+  "generationOverlayManifestSha256": "c71c0b3bb5b539f69daf2d58f6529f92567f19820e05cbc552889f89255227c6",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "c2d84b16cf8d1c2ada34d8fb29ef2d3846dfba753721c7dc0e34cd4631b7a31d",
+  "treeManifestSha256": "c71c0b3bb5b539f69daf2d58f6529f92567f19820e05cbc552889f89255227c6",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 266,
+  "totalFiles": 278,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -86,6 +86,11 @@
       "path": ".github/workflows/probe-current-signer-isolation.yml",
       "bytes": 2596,
       "sha256": "124cf3494a6b93a28eef3403ae62f68278390119b7073cba8a18ebdeeedbdfbb"
+    },
+    {
+      "path": ".github/workflows/project-pages.yml",
+      "bytes": 2165,
+      "sha256": "30e30cedffcaf616eab5fd4e402b4c544359945295e35a91cda9c4d2a617b6f1"
     },
     {
       "path": ".github/workflows/publish.yml",
@@ -1346,6 +1351,61 @@
       "path": "verification-tests/test-p-predicate-native-driver.py",
       "bytes": 9358,
       "sha256": "d71c2b6830b31c3230b282c9ef58f71a1baa7edf9f936f2298414d446a93a2ae"
+    },
+    {
+      "path": "website/CNAME",
+      "bytes": 26,
+      "sha256": "95507bab7442f3a0b12bbdcdda49691b857e1e1138a3bc06d88c45b2ec493b89"
+    },
+    {
+      "path": "website/hikari.webp",
+      "bytes": 212754,
+      "sha256": "79f3fb675f2644069d6a3d5aa6a3a19d61c313e7691cb638c830c5f857cb5c23"
+    },
+    {
+      "path": "website/index.html",
+      "bytes": 5863,
+      "sha256": "0e40ab8bdcc18945475bbc8afdb32914d49ffa1a8ad7676a88727753039ae860"
+    },
+    {
+      "path": "website/main.js",
+      "bytes": 953,
+      "sha256": "ae1cc38686033575071f41645866f35dd516fb24fe00797b5a78665b88a80d19"
+    },
+    {
+      "path": "website/orihime.webp",
+      "bytes": 393788,
+      "sha256": "7fa33afd77cd87ddc0240a25eea2ff1464911fe7ac4ff5068b49ca9bea11fc66"
+    },
+    {
+      "path": "website/protected-inventory.json",
+      "bytes": 13356,
+      "sha256": "83f3792790824c9837260f79a365683b1288709e6f37442df87aac3da0ae530c"
+    },
+    {
+      "path": "website/README.md",
+      "bytes": 6582,
+      "sha256": "89cce0e994623a6b8bb616dad78d8b454d23fdc0441608aef025d1241ebc814a"
+    },
+    {
+      "path": "website/robots.txt",
+      "bytes": 23,
+      "sha256": "16ceb5ee3e0dc13aa9adf31a3ebbe45a1d965b8c2b9f72eaf84e5911e140ed95"
+    },
+    {
+      "path": "website/styles.css",
+      "bytes": 8972,
+      "sha256": "333413d5c82ade80e9961d07ce6898b9be85645b7089ef80780f40ef2505fccf"
+    },
+    {
+      "path": "website/test/test_assembly.py",
+      "bytes": 11617,
+      "sha256": "3aebd678de84b57bd86df8d1b5f8c3b7a2a0db852d4ae04fbc50ebfe4ad0b934"
+    },
+    {
+      "path": "website/tools/assemble-pages.py",
+      "bytes": 16130,
+      "sha256": "04d94f9ffa0ef3e6ccb95c9c8f2499b6a30908c344c2d86b6f2175b529ade156"
     }
   ]
 }
