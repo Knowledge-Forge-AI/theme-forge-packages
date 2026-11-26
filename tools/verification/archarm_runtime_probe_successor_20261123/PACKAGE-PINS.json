@@ -1,0 +1,2074 @@
+{
+  "basePackageUpgrade": {
+    "from": "3.6.3-1",
+    "name": "openssl",
+    "to": "4.1.0-1"
+  },
+  "networkDuringInstallOrProbe": false,
+  "packageCount": 141,
+  "packages": [
+    {
+      "architecture": "any",
+      "bytes": 295516,
+      "filename": "adwaita-cursors-51.0-1-any.pkg.tar.xz",
+      "licenses": [
+        "CC-BY-SA-3.0 OR LGPL-3.0-only"
+      ],
+      "name": "adwaita-cursors",
+      "sha256": "cd6e1e6e9ae223bedae40ec4135a161b37eaaa6b62ce2ff201c5af8b51939b67",
+      "signatureBytes": 566,
+      "signatureSha256": "f84fa45242eca32036da5b42f8a2a64e1a2175db65c897a834d97432a3b28449",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/adwaita-cursors-51.0-1-any.pkg.tar.xz",
+      "version": "51.0-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 2038816,
+      "filename": "adwaita-fonts-51.0-2-any.pkg.tar.xz",
+      "licenses": [
+        "OFL-1.1"
+      ],
+      "name": "adwaita-fonts",
+      "sha256": "3a6f361315f4a2361a4f8f5776ba35578bad70b52fbd61331ec51db071bc893b",
+      "signatureBytes": 566,
+      "signatureSha256": "51e84dfb8f731f49afb3aa4eb4d577fe79515881efee6eb920ecbce39226a448",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/adwaita-fonts-51.0-2-any.pkg.tar.xz",
+      "version": "51.0-2"
+    },
+    {
+      "architecture": "any",
+      "bytes": 196204,
+      "filename": "adwaita-icon-theme-51.0-1-any.pkg.tar.xz",
+      "licenses": [
+        "CC-BY-SA-3.0 OR LGPL-3.0-only"
+      ],
+      "name": "adwaita-icon-theme",
+      "sha256": "095a796743bfd6b3cbd1a1f6744d73383999739f55b8f5e4532fc8e4a6b78f89",
+      "signatureBytes": 566,
+      "signatureSha256": "e01e44fddadc1ce0ad365d8b5f0203d0ab9b8e1a93b07b84afdf59a6bc4e4960",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/adwaita-icon-theme-51.0-1-any.pkg.tar.xz",
+      "version": "51.0-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 2275500,
+      "filename": "adwaita-icon-theme-legacy-46.2-3-any.pkg.tar.xz",
+      "licenses": [
+        "CC-BY-SA-3.0 OR LGPL-3.0-only"
+      ],
+      "name": "adwaita-icon-theme-legacy",
+      "sha256": "bee29029e278e70571e3dc30112f18bbe046af8a66feea0af79c4f8978ad979d",
+      "signatureBytes": 566,
+      "signatureSha256": "0e146d94c5c01f0373114479bae5bac60bcbe44e7d70ce5069acd0725f8c7f25",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/adwaita-icon-theme-legacy-46.2-3-any.pkg.tar.xz",
+      "version": "46.2-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2683572,
+      "filename": "aom-3.15.3-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "aom",
+      "sha256": "1b1e42bf043b0202ad10dfedfafddbf4e3aa8836d26ce4839cfe5117aca5b4e8",
+      "signatureBytes": 566,
+      "signatureSha256": "38b56337491d18a4a1c9ac2123ee9b4610e4e10afecb748220b14152e146e65d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/aom-3.15.3-1-aarch64.pkg.tar.xz",
+      "version": "3.15.3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 548324,
+      "filename": "at-spi2-core-2.62.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "at-spi2-core",
+      "sha256": "797e9c3e7d7b7352b831cc671f096dcac790de22628ac8191e46fda496b0a27b",
+      "signatureBytes": 566,
+      "signatureSha256": "7d4e9493e15e58fed8d40e76501e2b3ecaa0002713f1f973d3fafc3a1a3dadcf",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/at-spi2-core-2.62.2-1-aarch64.pkg.tar.xz",
+      "version": "2.62.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 382112,
+      "filename": "avahi-1:0.9rc5-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "avahi",
+      "sha256": "ef808937dd227d0edca14cd59b6618270f9b7fbedff529eb1df5b89799db2da8",
+      "signatureBytes": 566,
+      "signatureSha256": "64d8000053fce66a30e18e693c22ace5828c3e96b580d7d1405b1acfcdf4709b",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/avahi-1%3A0.9rc5-2-aarch64.pkg.tar.xz",
+      "version": "1:0.9rc5-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 40528,
+      "filename": "bubblewrap-0.13.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "bubblewrap",
+      "sha256": "d00ed77381839a07ba254c096242466c46aebe93e4f411842baf72fb24da5329",
+      "signatureBytes": 566,
+      "signatureSha256": "796ebf0c9b863e8e2f16cdb77328abb9e54a239d0c6e1b7f5a31502293ee9822",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/bubblewrap-0.13.1-1-aarch64.pkg.tar.xz",
+      "version": "0.13.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 235836,
+      "filename": "c-ares-1.34.9-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "c-ares",
+      "sha256": "54cd10512e4dfe96018aef00af4a7ee951870c4778a33710ea230eb77f2da66a",
+      "signatureBytes": 566,
+      "signatureSha256": "164f848c5cf7ca8d9f229cc3bb3a0b8e321577be34e44bc217e50fafb1ecc28a",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/c-ares-1.34.9-1-aarch64.pkg.tar.xz",
+      "version": "1.34.9-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 581820,
+      "filename": "cairo-1.18.6-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-only OR MPL-1.1"
+      ],
+      "name": "cairo",
+      "sha256": "8c5a5c0470ff369386a3597d1e414c79c951a18d03313c162e5fff3d91989773",
+      "signatureBytes": 566,
+      "signatureSha256": "37a4d936e0cc69ed53a003155bf963494bbe34fd365d69677c4f2bcdf4fc2c8d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/cairo-1.18.6-1-aarch64.pkg.tar.xz",
+      "version": "1.18.6-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 342540,
+      "filename": "dav1d-1.5.5-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause"
+      ],
+      "name": "dav1d",
+      "sha256": "48343c9014ecb19f26b3c1c002ab37b0f5dbde486ff9d5f4ebc4ab5140772566",
+      "signatureBytes": 566,
+      "signatureSha256": "5c37bbae861fffc82cbf4060cf043a86ea8444691ac9b1e61300523d5aacba00",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/dav1d-1.5.5-1-aarch64.pkg.tar.xz",
+      "version": "1.5.5-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 1044852,
+      "filename": "db5.3-5.3.28-7-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Sleepycat"
+      ],
+      "name": "db5.3",
+      "sha256": "0a787f952c0f7dd1493db437ab0dc3ffda6053cb6affa4ebf91caff185e586b4",
+      "signatureBytes": 566,
+      "signatureSha256": "e17a6fdad268459de144b828f33a8b63fd9b7f05a2c1ea2c1dc02b4670b8bdab",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/db5.3-5.3.28-7-aarch64.pkg.tar.xz",
+      "version": "5.3.28-7"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 107628,
+      "filename": "dconf-51.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "dconf",
+      "sha256": "f7da15ede101991696f9f9cd96d442f646c8abdf8c34f217cb7144cd60a8c3cd",
+      "signatureBytes": 566,
+      "signatureSha256": "4c60a92d0ad78233cabcae646e70d73350dd6f223e390b233cdb6e762ca931df",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/dconf-51.0-1-aarch64.pkg.tar.xz",
+      "version": "51.0-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 2412,
+      "filename": "default-cursors-3-1-any.pkg.tar.xz",
+      "licenses": [
+        "CC0-1.0"
+      ],
+      "name": "default-cursors",
+      "sha256": "19a87290af8829271e9670576096b08b9262d8fac1e3deb4167d7cd3d3ae1830",
+      "signatureBytes": 566,
+      "signatureSha256": "827073d7349739733b2c4e42eb0429e8ab38b91c4724a1edf0c7dbcd4af9e4e0",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/default-cursors-3-1-any.pkg.tar.xz",
+      "version": "3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 47600,
+      "filename": "desktop-file-utils-0.29-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-or-later"
+      ],
+      "name": "desktop-file-utils",
+      "sha256": "cd8a30c717a8df9c2db78209ac3c6fe23c0ea7e651a081a638240127c0512453",
+      "signatureBytes": 566,
+      "signatureSha256": "1c5f35cda86fe653b833db28ba1a2fdd38b8d79dc5081bf3d8a5e88613456a94",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/desktop-file-utils-0.29-1-aarch64.pkg.tar.xz",
+      "version": "0.29-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 163804,
+      "filename": "duktape-2.7.0-7-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "duktape",
+      "sha256": "1e3c597a3290017cfef0aec1300fc9a4212a5af3680857807431bf881f3cf64d",
+      "signatureBytes": 566,
+      "signatureSha256": "ec86f34a3fcc5993fe3dc9950fec5111b091ce805596e33c03012c31ff207c6f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/duktape-2.7.0-7-aarch64.pkg.tar.xz",
+      "version": "2.7.0-7"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 76788,
+      "filename": "enchant-2.8.21-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "enchant",
+      "sha256": "dfaf82efb0814c68e14255aff50db1e3330c8ef26f3b3236f7a121fe4e50c1e6",
+      "signatureBytes": 566,
+      "signatureSha256": "51ead198d431be0fdc9a1cf60bfbc600416c8113501ff7c5749ab52b48192e3d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/enchant-2.8.21-1-aarch64.pkg.tar.xz",
+      "version": "2.8.21-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 77536,
+      "filename": "fakeroot-2:1.37.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-3.0-or-later"
+      ],
+      "name": "fakeroot",
+      "sha256": "04566092fc250f4117120b241fca461310fcdb96f5681520442731207887c339",
+      "signatureBytes": 566,
+      "signatureSha256": "415c6af37ede5ceb02b60cf1fe8f1537a9ed31671a91e1a47b4b3eb5221e2a06",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/fakeroot-2%3A1.37.2-1-aarch64.pkg.tar.xz",
+      "version": "2:1.37.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 386308,
+      "filename": "fontconfig-2:2.18.4-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND AND Unicode-DFS-2016"
+      ],
+      "name": "fontconfig",
+      "sha256": "d68515befe913772867f35a740f7d6d1067874f6b38ef5133d42dd28b7a89ab4",
+      "signatureBytes": 566,
+      "signatureSha256": "6a6df97a4589eae5e4ed98a70de3a48316399e62a85867297b433729fc2905e2",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/fontconfig-2%3A2.18.4-1-aarch64.pkg.tar.xz",
+      "version": "2:2.18.4-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 499252,
+      "filename": "freetype2-2.15.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "FTL OR GPL-2.0-or-later"
+      ],
+      "name": "freetype2",
+      "sha256": "9f155b171de0169d9b87b9ad8ac1effb8aa226bf6dcc631c2b0f2a495738d7d0",
+      "signatureBytes": 566,
+      "signatureSha256": "8796a5d4d1160493541eeac6521a55764a193e8d623ee96e2702d70d0048f0bb",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/freetype2-2.15.0-1-aarch64.pkg.tar.xz",
+      "version": "2.15.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 73792,
+      "filename": "fribidi-1.0.18-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "fribidi",
+      "sha256": "6e0867c4e416c36ad7911ff41fb6c79a266ca9ef00818846a384d7472dab688f",
+      "signatureBytes": 566,
+      "signatureSha256": "9ce96d8e8f2fba9cbb218bc11c335ea6ec15049eaf9ee9696e0dea18c859e7b4",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/fribidi-1.0.18-1-aarch64.pkg.tar.xz",
+      "version": "1.0.18-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 450220,
+      "filename": "gdk-pixbuf2-2.44.8-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.0-or-later"
+      ],
+      "name": "gdk-pixbuf2",
+      "sha256": "3e8b614b8cab4b983129bfd0195673a45a485dc603a4b5b5d4dce7218f649082",
+      "signatureBytes": 566,
+      "signatureSha256": "63cf9f6114efadc9e741b11b6974fa84151905debbc13295965c6926c96f68cd",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gdk-pixbuf2-2.44.8-1-aarch64.pkg.tar.xz",
+      "version": "2.44.8-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 85008,
+      "filename": "giflib-6.1.3-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "giflib",
+      "sha256": "e76eb0af39d3d9bb7a5f792d3040c7524c49bbe69395df54e4193a4510ed2e87",
+      "signatureBytes": 566,
+      "signatureSha256": "c3860b204884ac5c580d5e54c000ed44d9fe036da422cdf9e2408cffd3cf710f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/giflib-6.1.3-2-aarch64.pkg.tar.xz",
+      "version": "6.1.3-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 143432,
+      "filename": "glib-networking-1:2.90.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "glib-networking",
+      "sha256": "d1456a3ad3e264a2391bafcfc608483032d43406023547a78066f9e2e5d8a72e",
+      "signatureBytes": 566,
+      "signatureSha256": "a347d6d606548fbe6bfe35aa8f2fbec682c93bc45fea7397a7a98e44f0b61d20",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/glib-networking-1%3A2.90.1-1-aarch64.pkg.tar.xz",
+      "version": "1:2.90.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 3741692,
+      "filename": "glycin-2.2.6-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MPL-2.0 OR LGPL-2.1-or-later"
+      ],
+      "name": "glycin",
+      "sha256": "86e1cba5e08c32ebf8620b24b29e7d07e30875e669353ac30f78f11c6c680683",
+      "signatureBytes": 566,
+      "signatureSha256": "66a8dd0646627c2448e0e52a05b370103d839fb7f2e8645565dc268d04f399da",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/glycin-2.2.6-2-aarch64.pkg.tar.xz",
+      "version": "2.2.6-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 501700,
+      "filename": "gperftools-2.19.3-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "gperftools",
+      "sha256": "32eb7915343a7d5312ae8005f85439e67930fee4e47495dd7e9509deb842d85a",
+      "signatureBytes": 566,
+      "signatureSha256": "19820678f3f38990d9c1c40c752e951d09c6fc310d18b864cbe3b4c0419092ce",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gperftools-2.19.3-1-aarch64.pkg.tar.xz",
+      "version": "2.19.3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 103788,
+      "filename": "graphene-1.10.8-2.1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "graphene",
+      "sha256": "2f928a829385d79626cba58fcc111f8f930d1ae951d83f405813a3886ab9ec7b",
+      "signatureBytes": 566,
+      "signatureSha256": "ee7224f1aaff41b75eb745daae70accc83502c7e64e0eed954f9312403e4e498",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/graphene-1.10.8-2.1-aarch64.pkg.tar.xz",
+      "version": "1.10.8-2.1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 80168,
+      "filename": "graphite-1:1.3.15-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later OR MPL-2.0 OR GPL-2.0-or-later"
+      ],
+      "name": "graphite",
+      "sha256": "87c700c71585c7f44f951928184deb690a78d39ad36ea9b6c07c59d7592e4c92",
+      "signatureBytes": 566,
+      "signatureSha256": "0910dbbcf8d5b395ceb27d3547a716f284366faf221df39903d0ce514fffcd45",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/graphite-1%3A1.3.15-1-aarch64.pkg.tar.xz",
+      "version": "1:1.3.15-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 843564,
+      "filename": "gsettings-desktop-schemas-51.0-1-any.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gsettings-desktop-schemas",
+      "sha256": "87e806c8fb932c8d02c6a09cdd47af61a45b7901218f8a85826880a67becce57",
+      "signatureBytes": 566,
+      "signatureSha256": "39ec9d85826aac68cbec719196b08882c7d0ad00dd836ed6b139f9b4b2e1ca0a",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gsettings-desktop-schemas-51.0-1-any.pkg.tar.xz",
+      "version": "51.0-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 6084,
+      "filename": "gsettings-system-schemas-51.0-1-any.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gsettings-system-schemas",
+      "sha256": "1f09f0a13318507f2bdbe7a57b685dec1c2a7e400038d870511baeac03fce648",
+      "signatureBytes": 566,
+      "signatureSha256": "db263c748f66f96cccf63ece8caafe1b33e9a72281b2579771ab07d46120b376",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gsettings-system-schemas-51.0-1-any.pkg.tar.xz",
+      "version": "51.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 55036,
+      "filename": "gssdp-1.6.6-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gssdp",
+      "sha256": "6b4eaa0f2c31b5901b14b306bb4607842dbc3e2c9d5658ad719a1001b8bc5216",
+      "signatureBytes": 566,
+      "signatureSha256": "f0ee57cb95aa34bd7850443d2760ca5ce0cb0b78606d61cb27e9ddd67d35aacf",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gssdp-1.6.6-1-aarch64.pkg.tar.xz",
+      "version": "1.6.6-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2724524,
+      "filename": "gst-plugins-bad-libs-1.28.9-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gst-plugins-bad-libs",
+      "sha256": "6a1d5c2fc2886c14dfba5a3e2a7f9ad69205dc2fb40aa0bad74af41b2a1ee6f1",
+      "signatureBytes": 566,
+      "signatureSha256": "4f2aea4cbb30035c196af79f01243c8ffe076a066cdeec1475e73d79454409de",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gst-plugins-bad-libs-1.28.9-3-aarch64.pkg.tar.xz",
+      "version": "1.28.9-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2279484,
+      "filename": "gst-plugins-base-libs-1.28.9-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gst-plugins-base-libs",
+      "sha256": "d4168fa1e96218689a396ef9924df1e091d586f8c7dd00aee7499e2cce8ff7ed",
+      "signatureBytes": 566,
+      "signatureSha256": "3a2b84ecb0523b2a4598978eac4cd0e51d025489b6fbd755265c57345aa0d400",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gst-plugins-base-libs-1.28.9-3-aarch64.pkg.tar.xz",
+      "version": "1.28.9-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 1981176,
+      "filename": "gstreamer-1.28.9-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gstreamer",
+      "sha256": "4811a54323603d7a51ac6a165830ec200872e71db51f5cf282c7f36658574534",
+      "signatureBytes": 566,
+      "signatureSha256": "0b62ab5d20297fad021d218f600cc87f277c5336da9bde6e49f2385787721c3d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gstreamer-1.28.9-3-aarch64.pkg.tar.xz",
+      "version": "1.28.9-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 362640,
+      "filename": "gtest-1.18.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "gtest",
+      "sha256": "b89d9d236da04689bf776e8639976a7568957ea4cd11b5035204daf5211f3d7a",
+      "signatureBytes": 566,
+      "signatureSha256": "f12408a4ef3b30dc3fea2ce554fc136a8df329618aa640d7b35e20625ce3170d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gtest-1.18.0-1-aarch64.pkg.tar.xz",
+      "version": "1.18.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 17076,
+      "filename": "gtk-update-icon-cache-1:4.24.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gtk-update-icon-cache",
+      "sha256": "5966179f8e3ae3d5d9e2158ba0eaa425e317c2d73635f502c74590d41e9575d6",
+      "signatureBytes": 566,
+      "signatureSha256": "a0e1381cf6ddb5d9d97d359363df30b5f95b26411c360a74185f416e36abf7b5",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gtk-update-icon-cache-1%3A4.24.2-1-aarch64.pkg.tar.xz",
+      "version": "1:4.24.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 8772520,
+      "filename": "gtk3-1:3.24.52-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gtk3",
+      "sha256": "0c1ea65dd3683d5e1fdf1020f9157c09ac60638f99e11b13c5235a47ed4737d4",
+      "signatureBytes": 566,
+      "signatureSha256": "15b3328c977a06aac5a862f249fd6ae6101d6e7eec2f7ba5cc3e3c227be5b2e2",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gtk3-1%3A3.24.52-2-aarch64.pkg.tar.xz",
+      "version": "1:3.24.52-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 121972,
+      "filename": "gupnp-1:1.6.10-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gupnp",
+      "sha256": "38e6d7fdc0882f8b08e2d2e15c9e686607bdde6e01d48c54c7bd191a31f60ebf",
+      "signatureBytes": 566,
+      "signatureSha256": "7fcfa673ee1522fe5f73fc0f85c89e41b094d3b6247c960b160c5332e005bed3",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gupnp-1%3A1.6.10-1-aarch64.pkg.tar.xz",
+      "version": "1:1.6.10-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 27772,
+      "filename": "gupnp-igd-1.6.0-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "gupnp-igd",
+      "sha256": "47ada079f0ae6043f028ed6bf225ab26f085a40e06c6367a78580f058ea6e61b",
+      "signatureBytes": 566,
+      "signatureSha256": "7523f9f7ad17cad22829849ebce4bbe09ff1aa8b1091d0402333892bda807867",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/gupnp-igd-1.6.0-2-aarch64.pkg.tar.xz",
+      "version": "1.6.0-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 1543768,
+      "filename": "harfbuzz-15.2.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "harfbuzz",
+      "sha256": "046984a85fef843e5fb8ae457e9be5791872c92871b7d7f199e96da7327bce62",
+      "signatureBytes": 566,
+      "signatureSha256": "62e686f9d7444509260c8b536088f27613f263abf26c825649704b5d235b3e8c",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/harfbuzz-15.2.0-1-aarch64.pkg.tar.xz",
+      "version": "15.2.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 8412,
+      "filename": "harfbuzz-icu-15.2.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "harfbuzz-icu",
+      "sha256": "e4a64e3ad11e4d644904fde36ba144531c1899fa85dd8a80986b351c13e21678",
+      "signatureBytes": 566,
+      "signatureSha256": "a7c8eecec10742980e18b8881369fa1fbe1dbd1a0cae1a0d17889f381ea7a2a0",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/harfbuzz-icu-15.2.0-1-aarch64.pkg.tar.xz",
+      "version": "15.2.0-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 12320,
+      "filename": "hicolor-icon-theme-0.18-1-any.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-or-later"
+      ],
+      "name": "hicolor-icon-theme",
+      "sha256": "cdba2a3dba1dc73a10a1e2a4ac0da06deafa92ac243d81e127a1fcdafbe4a588",
+      "signatureBytes": 566,
+      "signatureSha256": "a25911051b351fdc48cdb1d5b303b143c1a7df5407272f636fcfa6f37ee4067c",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/hicolor-icon-theme-0.18-1-any.pkg.tar.xz",
+      "version": "0.18-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 42400,
+      "filename": "hidapi-0.15.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL3",
+        "BSD",
+        "custom"
+      ],
+      "name": "hidapi",
+      "sha256": "3c29d538838d3cedfaee37291cc139ffe07e9a9cd8da1c24ed8e58da5febd670",
+      "signatureBytes": 566,
+      "signatureSha256": "73ed6b680b85366be56552a1321dd3b9be9aa7ffbc9c4697c04839b276e12580",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/hidapi-0.15.0-1-aarch64.pkg.tar.xz",
+      "version": "0.15.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 737544,
+      "filename": "highway-1.4.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0 OR BSD-3-Clause"
+      ],
+      "name": "highway",
+      "sha256": "5679e47d31ae1ecca8b7e18b9a24ce6027ca333c42d9283bbd30ea7fa672ba8f",
+      "signatureBytes": 566,
+      "signatureSha256": "f4472f3281e406459daf10c10d2d1685fc39b339001e89a282ee599acee8377e",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/highway-1.4.0-1-aarch64.pkg.tar.xz",
+      "version": "1.4.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 16936,
+      "filename": "hyphen-2.8.10-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-only OR LGPL-2.1-or-later OR MPL-1.1"
+      ],
+      "name": "hyphen",
+      "sha256": "e0d179b8b94306509dc2b2412c99b19a6ad70499904495e9669347b0aceded2f",
+      "signatureBytes": 566,
+      "signatureSha256": "e126a611cdfe857cd63cf84dd7524c0ffbe495e8472d1a3b6a8b7032d52e7823",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/hyphen-2.8.10-1-aarch64.pkg.tar.xz",
+      "version": "2.8.10-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 3307468,
+      "filename": "iso-codes-4.20.1-1-any.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-only"
+      ],
+      "name": "iso-codes",
+      "sha256": "ca93043c3b5fe05f1f3886b3ad7ad5a68964303971edae967a8a82e8b850d010",
+      "signatureBytes": 566,
+      "signatureSha256": "c076ab986dac942a6ae927a67b8229e1376c5ec8d38d823d79aaf8116c833171",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/iso-codes-4.20.1-1-any.pkg.tar.xz",
+      "version": "4.20.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 49740,
+      "filename": "jbigkit-2.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-or-later"
+      ],
+      "name": "jbigkit",
+      "sha256": "1be37e2dc4b2029668838e9dc7068c5674199a883ca5a0f4c11c7d8005f626ba",
+      "signatureBytes": 566,
+      "signatureSha256": "a9a18e51c58154f771d8139f5f1c442eefb6756a2b94563af7da67c8e66a0b40",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/jbigkit-2.2-1-aarch64.pkg.tar.xz",
+      "version": "2.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 161472,
+      "filename": "json-glib-1.10.8-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "json-glib",
+      "sha256": "dc2a5ff08d3d7c8fcadeb820411aa31d5f1522e425045f6408fbf134db817d85",
+      "signatureBytes": 566,
+      "signatureSha256": "571507ccb1d96cd4242c530b10b36cb8b9f4416a5f85f24ee2a9867682509a13",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/json-glib-1.10.8-1-aarch64.pkg.tar.xz",
+      "version": "1.10.8-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 205304,
+      "filename": "lcms2-2.20-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "lcms2",
+      "sha256": "e9bb9f60db4824e7a58479628f5f9960c2462f35ef8da0e93aa934973763d7b9",
+      "signatureBytes": 566,
+      "signatureSha256": "7423433ac47e6dea2bf6dc622cd826663b6656a029796c53df9c9be204d2c123",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/lcms2-2.20-1-aarch64.pkg.tar.xz",
+      "version": "2.20-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 273668,
+      "filename": "libavif-1.4.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-libavif"
+      ],
+      "name": "libavif",
+      "sha256": "266d75081a73bf1ac3ac573a81462adf39469d1533884fc5da7900ad8db37bb8",
+      "signatureBytes": 566,
+      "signatureSha256": "f78d806f604d83693babd84cdbe48a73c772eb1ca6f3fd14ea40e4a294443b58",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libavif-1.4.2-1-aarch64.pkg.tar.xz",
+      "version": "1.4.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 44796,
+      "filename": "libcloudproviders-0.4.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-3.0-or-later"
+      ],
+      "name": "libcloudproviders",
+      "sha256": "e4c7732f816d048149c8410192b60bf98f7685ed86a18bba8e57ddc8c3f73665",
+      "signatureBytes": 566,
+      "signatureSha256": "f57200375cfb4693da65da2776eb7ce334aceb94f413869f8e5f5801cbe10610",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libcloudproviders-0.4.2-1-aarch64.pkg.tar.xz",
+      "version": "0.4.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 166304,
+      "filename": "libcolord-1.4.8-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-or-later"
+      ],
+      "name": "libcolord",
+      "sha256": "19937a3e61f1493d304d3515f48282edc64b84fb5898f26ccbbb9aa9ee4a82bd",
+      "signatureBytes": 566,
+      "signatureSha256": "725e672870906085749c6e40f7253bc01ba44c61fc20425259324b67423ef725",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libcolord-1.4.8-2-aarch64.pkg.tar.xz",
+      "version": "1.4.8-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 257476,
+      "filename": "libcups-2:2.4.20-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0 WITH LLVM-exception AND BSD-3-Clause AND Zlib AND BSD-2-Clause"
+      ],
+      "name": "libcups",
+      "sha256": "f280995b8d7426dc9f40c70ca8d19dead27aa8a116cfeb94afa0149028709e66",
+      "signatureBytes": 566,
+      "signatureSha256": "db214904615d2428f3c93556b6abe1e01fcb446d32c370c2765b2006a885c506",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libcups-2%3A2.4.20-1-aarch64.pkg.tar.xz",
+      "version": "2:2.4.20-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 19340,
+      "filename": "libdaemon-0.14-6-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL"
+      ],
+      "name": "libdaemon",
+      "sha256": "b96e8eb1604bf7901feb1addd2882cce2f366b504d919c9fc28a53f8c240243b",
+      "signatureBytes": 566,
+      "signatureSha256": "909ed8b7a847850945d2cd740a546a24c2c8fae689acab3682633657f11b3eff",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libdaemon-0.14-6-aarch64.pkg.tar.xz",
+      "version": "0.14-6"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 109632,
+      "filename": "libdatrie-0.2.14-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "libdatrie",
+      "sha256": "13f6aeb32f57d91c59ca68ce21abce48353081e886d3e8c2d89d5884b1f4b969",
+      "signatureBytes": 566,
+      "signatureSha256": "6b066c4d0b574bf88ae8d51265805ae4af6bdf511c9628bff653ce54a59fbede",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libdatrie-0.2.14-1-aarch64.pkg.tar.xz",
+      "version": "0.2.14-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 56044,
+      "filename": "libdeflate-1.26-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libdeflate",
+      "sha256": "d8798122abe2cdc8f496d7a65904b6c14bfcd4448d31a47629aaeb021d1134e9",
+      "signatureBytes": 566,
+      "signatureSha256": "691e10caba6354a0bb8eb329d6f8a876064d80dc90c320fe3f541e0fed8d67ec",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libdeflate-1.26-1-aarch64.pkg.tar.xz",
+      "version": "1.26-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 400060,
+      "filename": "libdrm-2.4.134-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libdrm",
+      "sha256": "d4173d7adc60d32d389e44e976447962c31bc23ff9a2153539bd8ad766e307b8",
+      "signatureBytes": 566,
+      "signatureSha256": "eba5b560895f0d12f8b92cbdaf32ee9425af439c201b733b6893d2b368300176",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libdrm-2.4.134-1-aarch64.pkg.tar.xz",
+      "version": "2.4.134-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 305076,
+      "filename": "libepoxy-1.5.10-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libepoxy",
+      "sha256": "8bb73da9e2df09cf7798904a8709dfb49826a7a9c593a166cddd4a891a280724",
+      "signatureBytes": 566,
+      "signatureSha256": "8f9a4c233d4065dab5ff88a0eeeab276d92d124911432182a5be681cb12bb096",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libepoxy-1.5.10-3-aarch64.pkg.tar.xz",
+      "version": "1.5.10-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 59536,
+      "filename": "libevdev-1.14.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libevdev",
+      "sha256": "ae8696d15c24381baf9a98af8f2eaf76383926336c9be59175b16b129effae3c",
+      "signatureBytes": 566,
+      "signatureSha256": "102da7dcb9e32526f39ffa40594d7ebf03180f33ff3f8883c9331659d8c8baf0",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libevdev-1.14.0-1-aarch64.pkg.tar.xz",
+      "version": "1.14.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 14760,
+      "filename": "libfontenc-1.1.10-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libfontenc",
+      "sha256": "4f3ae4fff1e0027b1e38a457f161bf33b80c5f96fe0f7cb744cc8df1b64e8b5a",
+      "signatureBytes": 566,
+      "signatureSha256": "7d225ddc3048cdc45e9d96d677eb2031e44f2591f56000da3e8fe387290bab53",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libfontenc-1.1.10-1-aarch64.pkg.tar.xz",
+      "version": "1.1.10-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 315240,
+      "filename": "libglvnd-1.7.0-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "custom:BSD-like"
+      ],
+      "name": "libglvnd",
+      "sha256": "5a163e41583346b55f25de580e10c2edb31f5c8662667531d0e476b7b1336338",
+      "signatureBytes": 566,
+      "signatureSha256": "1069fbce37b23197fee87c8f30ce4e867a350388723a4160adfa017cc2c7b48d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libglvnd-1.7.0-3-aarch64.pkg.tar.xz",
+      "version": "1.7.0-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 26720,
+      "filename": "libgudev-238-4-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "libgudev",
+      "sha256": "bdb77f57d81268f03b5f38ff74de80d319a39c391cd3f8b5149feadd15a10abe",
+      "signatureBytes": 566,
+      "signatureSha256": "ed9a7bbce64b21b3751915650fc52d5ad378f225bdca8f5724b3288708c38e64",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libgudev-238-4-aarch64.pkg.tar.xz",
+      "version": "238-4"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 75552,
+      "filename": "libice-1.1.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group"
+      ],
+      "name": "libice",
+      "sha256": "a4ad016e993915e0aba8037ef0b9602ee55d9198b115c5d76a3397a4dda3c846",
+      "signatureBytes": 566,
+      "signatureSha256": "ff4955421894457a1ce4203f34f7dc3053f0c16c20a20bc9761d4e63f6657240",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libice-1.1.2-1-aarch64.pkg.tar.xz",
+      "version": "1.1.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 504328,
+      "filename": "libjpeg-turbo-3.2.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause",
+        "IJG"
+      ],
+      "name": "libjpeg-turbo",
+      "sha256": "ad4440b30743a353b3fcac655259dae74a956d9ba97da6d02f7c78bbf6a7cf18",
+      "signatureBytes": 566,
+      "signatureSha256": "36ccba866f3bca68e5dca5bd559a87f6af2638ea01b6eeec65a84e33e7b98cee",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libjpeg-turbo-3.2.1-1-aarch64.pkg.tar.xz",
+      "version": "3.2.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 1407252,
+      "filename": "libjxl-0.13.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "libjxl",
+      "sha256": "9724d87809d07eb9709b7a4a0551431ad4814c95c170038c667f71ab7094978a",
+      "signatureBytes": 566,
+      "signatureSha256": "e94231385f484ff256e2ee712ab947e37195e8137a814bbf70e5a9994ab062f8",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libjxl-0.13.0-1-aarch64.pkg.tar.xz",
+      "version": "0.13.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 52652,
+      "filename": "libmanette-0.2.13-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "libmanette",
+      "sha256": "c6407145017f2ab87640b3198c5721ecc6b86480998e5943a3a9162e3f152418",
+      "signatureBytes": 566,
+      "signatureSha256": "443fa4fe297946a1615b8332c18a0a01d103f95d7f133777164cbaa2bad460ff",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libmanette-0.2.13-2-aarch64.pkg.tar.xz",
+      "version": "0.2.13-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 301848,
+      "filename": "libnice-0.1.24-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MPL-1.1 OR LGPL-2.1-only"
+      ],
+      "name": "libnice",
+      "sha256": "b6c6565ddb510373b211b62ae6c773c7608d39c4d799416c38a45e6a1549c61d",
+      "signatureBytes": 566,
+      "signatureSha256": "4c4a5d773f203a6df57e6fbc74b4beac62c7af44690e88ef415985d7b0f8798e",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libnice-0.1.24-1-aarch64.pkg.tar.xz",
+      "version": "0.1.24-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 20856,
+      "filename": "libpciaccess-0.19-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-libpciaccess"
+      ],
+      "name": "libpciaccess",
+      "sha256": "d490a86384c25a9258e7eec84f5eaceca072e6ca45c37972e12f6e8a3da3766d",
+      "signatureBytes": 566,
+      "signatureSha256": "e07be1eccd969abbf395677b0565cdb97cc7809f2fdda728c79360aa815df110",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libpciaccess-0.19-1-aarch64.pkg.tar.xz",
+      "version": "0.19-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 238992,
+      "filename": "libpng-1.6.59-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "libpng-2.0"
+      ],
+      "name": "libpng",
+      "sha256": "6265adc1c9ec9f3cb6dc3393ea90e6d8e934e99291ce4fbf5affe3ea1b9370fc",
+      "signatureBytes": 566,
+      "signatureSha256": "aaabdf1bc252f181bc03aa6585b716a75ec9578dc155066ccaf2937cb7829ebf",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libpng-1.6.59-1-aarch64.pkg.tar.xz",
+      "version": "1.6.59-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 27912,
+      "filename": "libproxy-0.5.12-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "libproxy",
+      "sha256": "071afd9aaa0dc6f45f5e81e51c9122aacfadf85726962d013fdecb67cbfcec9b",
+      "signatureBytes": 566,
+      "signatureSha256": "52bfddbeec58b0c8aeb50151ef838dde69e52ce89d829ee0f4c4119a2bae9b3c",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libproxy-0.5.12-1-aarch64.pkg.tar.xz",
+      "version": "0.5.12-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2031796,
+      "filename": "librsvg-2:2.63.4-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "librsvg",
+      "sha256": "c58a784667137bf4dffdba44a9c4934ed48b90394c111d24fe460b5c56d13c0c",
+      "signatureBytes": 566,
+      "signatureSha256": "d9f6a1bd5a4a6e948c6d1a9a736dad824c89718969b6c41f4219329001bfedca",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/librsvg-2%3A2.63.4-1-aarch64.pkg.tar.xz",
+      "version": "2:2.63.4-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 44556,
+      "filename": "libsm-1.2.6-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "MIT-open-group"
+      ],
+      "name": "libsm",
+      "sha256": "023fe454c714f591cf3f6c1cf0fc07d61779d96b71836bffdd8e8b07536bfb8c",
+      "signatureBytes": 566,
+      "signatureSha256": "07630c426259d3a8c0df405608566a68619eb01aeae11918aca682d2541651fb",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libsm-1.2.6-1-aarch64.pkg.tar.xz",
+      "version": "1.2.6-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 393940,
+      "filename": "libsoup3-3.8.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.0-or-later"
+      ],
+      "name": "libsoup3",
+      "sha256": "56dccd5b58c26783b6a50fdb8579c39186f69f108a87db46b3f8d6e919acbcf1",
+      "signatureBytes": 566,
+      "signatureSha256": "a9a46c39e7162aebb83ed449cd521c737b3a9ecf36c19bb7a14a1dad403a045c",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libsoup3-3.8.1-1-aarch64.pkg.tar.xz",
+      "version": "3.8.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 111436,
+      "filename": "libstemmer-3.2.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "libstemmer",
+      "sha256": "cd1bc1b6ac8bcbc2d504fbc00dac1001bf84714b60f4dabe802e4b5eb60985c2",
+      "signatureBytes": 566,
+      "signatureSha256": "e6e6f7c93414bf0219056a97e1f9e1bfff4a6f8c1f9342fa96fcc98b6fa5e19d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libstemmer-3.2.0-1-aarch64.pkg.tar.xz",
+      "version": "3.2.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 252064,
+      "filename": "libthai-0.1.30-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "libthai",
+      "sha256": "6bef55010b97524e3e2c7de4ec8834df5971eab8fe8ac4c5f2e88e42fad28524",
+      "signatureBytes": 566,
+      "signatureSha256": "591f61b958deff84c5c6e35c0115ec7c7efd6b408e9407868e1fd4554eb4a936",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libthai-0.1.30-1-aarch64.pkg.tar.xz",
+      "version": "0.1.30-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 354120,
+      "filename": "libtiff-4.7.2-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "libtiff"
+      ],
+      "name": "libtiff",
+      "sha256": "60308af15d83863b3ee1587922add34faca8d950b55aae29434de1423638a9f5",
+      "signatureBytes": 566,
+      "signatureSha256": "fbaa11aa24da920b08fd060172f99f70d2782e0778b0b286581585f66c705226",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libtiff-4.7.2-2-aarch64.pkg.tar.xz",
+      "version": "4.7.2-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 132712,
+      "filename": "libunwind-1.8.3-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libunwind",
+      "sha256": "3cdbe9df64c78d640327afcd6e8b89a3a1b03fbfe2c001abe0c40fff367c41e8",
+      "signatureBytes": 566,
+      "signatureSha256": "1d5c138b06b75f59911e6f2efa31bebfb5931d7048b9cd6f1562863d16bf8134",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libunwind-1.8.3-1-aarch64.pkg.tar.xz",
+      "version": "1.8.3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 264716,
+      "filename": "libuv-1.53.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "BSD-2-Clause",
+        "ISC",
+        "CC-BY-4.0"
+      ],
+      "name": "libuv",
+      "sha256": "66febf7c732337930f624bb69b1975b46041353c74d8a23820163a3209689180",
+      "signatureBytes": 566,
+      "signatureSha256": "d90375fabddefbd786dfc0acf01461531d04d0afe06903a261bf8f0faa60b80d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libuv-1.53.0-1-aarch64.pkg.tar.xz",
+      "version": "1.53.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 193448,
+      "filename": "libva-2.24.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libva",
+      "sha256": "208f2b00046c22544855390ae9359ac59a13f375ab1d6d1e3f50ee875ae9db61",
+      "signatureBytes": 566,
+      "signatureSha256": "77c200e2cc6618be6ac79615e012a1902fbfda7b2ae05bbe1d0a71c802f25a4f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libva-2.24.1-1-aarch64.pkg.tar.xz",
+      "version": "2.24.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 239984,
+      "filename": "libwebp-1.6.0-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "libwebp",
+      "sha256": "0fb38b71173ed214640ab0b6d5ad22d85f884f4d368ca9fef927b51ee43d0f9e",
+      "signatureBytes": 566,
+      "signatureSha256": "89646365f6805ec69f76d7b1e395feff1f044217480bd17798222d54ba44aab9",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libwebp-1.6.0-2-aarch64.pkg.tar.xz",
+      "version": "1.6.0-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2011296,
+      "filename": "libx11-1.8.14-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT AND X11"
+      ],
+      "name": "libx11",
+      "sha256": "0cdaa6fafbcfddc005d6e30ae1f0a00d1692879f05cc12eb4f002d86a15f6e29",
+      "signatureBytes": 566,
+      "signatureSha256": "c170426815020e7a116af59bdddd9260ac42dda9ee4a7e5b8a5873972a1cdc87",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libx11-1.8.14-1-aarch64.pkg.tar.xz",
+      "version": "1.8.14-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 11664,
+      "filename": "libxau-1.0.12-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group"
+      ],
+      "name": "libxau",
+      "sha256": "f9abaead8ca4f0d4f9a6e181c3fcad8f96ddb9cf1d75d1d82a81c0ca8ad08a50",
+      "signatureBytes": 566,
+      "signatureSha256": "50f66512cf2ae861215b624c54406e90fdd4d76d6212be7346327893df61173c",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxau-1.0.12-1-aarch64.pkg.tar.xz",
+      "version": "1.0.12-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 996228,
+      "filename": "libxcb-1.17.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "X11"
+      ],
+      "name": "libxcb",
+      "sha256": "329a41249a09b4bb7f9b5f9694c1848c971188243cc1c0a479df4227800214c0",
+      "signatureBytes": 566,
+      "signatureSha256": "a1bec28878ff180682133e01d06c3db19fb56e174cb8f8f6bcce1e560edbf0a2",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxcb-1.17.0-1-aarch64.pkg.tar.xz",
+      "version": "1.17.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 11676,
+      "filename": "libxcomposite-0.4.7-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "HPND-sell-variant"
+      ],
+      "name": "libxcomposite",
+      "sha256": "37f2d1eb8e2eeef41c0b6cc290aba66ed1783ada5657801929d5390893383978",
+      "signatureBytes": 566,
+      "signatureSha256": "0908be5df7c311c397949b56929236af47e0a9d6c44e88d3657789941efa65ad",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxcomposite-0.4.7-1-aarch64.pkg.tar.xz",
+      "version": "0.4.7-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 32412,
+      "filename": "libxcursor-1.2.3-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND-sell-variant"
+      ],
+      "name": "libxcursor",
+      "sha256": "9102597b8989250aa23379202a95ae15e2c7816e573d9bc81bc1bf4bc77b646f",
+      "signatureBytes": 566,
+      "signatureSha256": "2c6acac563b51fa89de026b0bfd02eb1603904a58224eac0baf12a84854d9f61",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxcursor-1.2.3-1-aarch64.pkg.tar.xz",
+      "version": "1.2.3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 7376,
+      "filename": "libxdamage-1.1.7-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND-sell-variant"
+      ],
+      "name": "libxdamage",
+      "sha256": "c10d529d8e1eb9e518eea2249d4250ea8f7a711f9ec15a644164b94a6b554955",
+      "signatureBytes": 566,
+      "signatureSha256": "a9349d715a17843bafa31de0a1eb10a4d46f65cd7a17483a3a8cd1406ce1c207",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxdamage-1.1.7-1-aarch64.pkg.tar.xz",
+      "version": "1.1.7-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 26648,
+      "filename": "libxdmcp-1.1.5-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group"
+      ],
+      "name": "libxdmcp",
+      "sha256": "aaf3575b4139a0ee675cbc15c03324d09892ded2188ac7cc326a8b36ef308496",
+      "signatureBytes": 566,
+      "signatureSha256": "d0278ab76d7e60e2960812d43bac281e2b36242858d3758aeedf274041d4c2aa",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxdmcp-1.1.5-2-aarch64.pkg.tar.xz",
+      "version": "1.1.5-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 103732,
+      "filename": "libxext-1.3.7-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-libxext"
+      ],
+      "name": "libxext",
+      "sha256": "bff987768ac6bb9ed809d49f3c171c93ccf0c7264c59ec7b0940e844ba4e53ac",
+      "signatureBytes": 566,
+      "signatureSha256": "dc3526d0f1173280f0ecb039f5a7282d166d94b2ef7ad5f1951c49b9e78ba45a",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxext-1.3.7-1-aarch64.pkg.tar.xz",
+      "version": "1.3.7-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 13844,
+      "filename": "libxfixes-6.0.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "HPND-sell-variant"
+      ],
+      "name": "libxfixes",
+      "sha256": "be025023ed05babf0372515e8346128f5dd7eccd82fd51be6c3c88eb8881d7a2",
+      "signatureBytes": 566,
+      "signatureSha256": "ab8ac60a762d1bdc3742ef15aad4dbe241197794fa75d8343ec68e6f8f25ef26",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxfixes-6.0.2-1-aarch64.pkg.tar.xz",
+      "version": "6.0.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 88520,
+      "filename": "libxfont2-2.0.10-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause",
+        "BSD-4-Clause-UC",
+        "HPND-sell-variant",
+        "MIT-open-group",
+        "SMLNJ",
+        "X11"
+      ],
+      "name": "libxfont2",
+      "sha256": "052e20998f98d19aaf53e93a87a602dbfc676aab60e3657460c4c8fabfc01fb9",
+      "signatureBytes": 566,
+      "signatureSha256": "fe8eeac4a0bfae854947e79d9ec7cf3011bcaedb270b8a20779f897ae67e6d8a",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxfont2-2.0.10-1-aarch64.pkg.tar.xz",
+      "version": "2.0.10-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 58276,
+      "filename": "libxft-2.3.9-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND-sell-variant"
+      ],
+      "name": "libxft",
+      "sha256": "30a770b25a75ff27cc96bf7b2c7fa8c022a6784786c1614a5a4564c86d1196af",
+      "signatureBytes": 566,
+      "signatureSha256": "efe30f9a0b6c6ae936c74bdb9bc45c5899dd7cbcdc26a0963b6ff1a959f6a1aa",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxft-2.3.9-1-aarch64.pkg.tar.xz",
+      "version": "2.3.9-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 70676,
+      "filename": "libxi-1.8.4-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group",
+        "SMLNJ",
+        "MIT"
+      ],
+      "name": "libxi",
+      "sha256": "293a34587a9b640cf14a0004684a8bf68065ddfc19d188a2ba71b25ed3944520",
+      "signatureBytes": 566,
+      "signatureSha256": "3f49ecea50d0852e418bfa6e6df2eaedd6c4adcf01c3bc49a2b331849e2be8bc",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxi-1.8.4-1-aarch64.pkg.tar.xz",
+      "version": "1.8.4-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 9972,
+      "filename": "libxinerama-1.1.6-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "MIT-open-group",
+        "X11"
+      ],
+      "name": "libxinerama",
+      "sha256": "3a44bdcbc01e68437ea76c8746051586bfda37a36f2c0c5613844eebf9eafdad",
+      "signatureBytes": 566,
+      "signatureSha256": "b1fbc00a23308d661cefff826fcd85f5dd144e7310ee62ca7e993ae0dc7739ae",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxinerama-1.1.6-1-aarch64.pkg.tar.xz",
+      "version": "1.1.6-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 263628,
+      "filename": "libxkbcommon-1.13.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libxkbcommon",
+      "sha256": "76b922d87d0af0011072b156464041ec5674f24ff1c78b7e85132fda72c9a7e7",
+      "signatureBytes": 566,
+      "signatureSha256": "728747f2821f46fa32a40da8a8a3ee08d5b968adfcbaf44b8dcec9954f60ab65",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxkbcommon-1.13.2-1-aarch64.pkg.tar.xz",
+      "version": "1.13.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 38984,
+      "filename": "libxkbcommon-x11-1.13.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libxkbcommon-x11",
+      "sha256": "6f456540140a0abea3ac01502a6bb0419af81851d08d159879091a05962004fd",
+      "signatureBytes": 566,
+      "signatureSha256": "19c710ba91b69e76a7c515168fcd6fdf10b996fc8b787652726b666833be08f4",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxkbcommon-x11-1.13.2-1-aarch64.pkg.tar.xz",
+      "version": "1.13.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 69720,
+      "filename": "libxkbfile-1.2.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-libxkbfile"
+      ],
+      "name": "libxkbfile",
+      "sha256": "cb98c65dd555dc3bd7dfbeb2745966da3631be2ac218bcf234f73bdf6ea33deb",
+      "signatureBytes": 566,
+      "signatureSha256": "d9956ae271f5a2d477e3fc4b998e38228776d89008cedecad389558c59fec552",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxkbfile-1.2.0-1-aarch64.pkg.tar.xz",
+      "version": "1.2.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 72980,
+      "filename": "libxmu-1.3.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group AND SMLNJ AND X11 AND ISC"
+      ],
+      "name": "libxmu",
+      "sha256": "598e2e2422a1136171264744c54dd0d1e884a2c6c86d6850611c2128dc976362",
+      "signatureBytes": 566,
+      "signatureSha256": "3b3194ac3ad4ad6d21302e4c1c0b21b025b56cb8d30d3930c3e6d74a690c9860",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxmu-1.3.1-1-aarch64.pkg.tar.xz",
+      "version": "1.3.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 25596,
+      "filename": "libxrandr-1.5.5-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND-sell-variant"
+      ],
+      "name": "libxrandr",
+      "sha256": "50ced1a5945e325ef28fd4a5f9ee3e45e49f538841271f49326916576213a5f3",
+      "signatureBytes": 566,
+      "signatureSha256": "ab470b50026dfc384a74289a6ab30d73839bcb2cc33149cdafafbb50aba84b0e",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxrandr-1.5.5-1-aarch64.pkg.tar.xz",
+      "version": "1.5.5-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 27860,
+      "filename": "libxrender-0.9.13-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND-sell-variant"
+      ],
+      "name": "libxrender",
+      "sha256": "33d2d130a4a304ecdaae5be07b2500f7d8cc531b82fa97e4e351e1700e794ceb",
+      "signatureBytes": 566,
+      "signatureSha256": "218e35205f00cc2f79be4874e0ea02aca96ba105452b27a9845e0a0034e7a959",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxrender-0.9.13-1-aarch64.pkg.tar.xz",
+      "version": "0.9.13-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 6188,
+      "filename": "libxshmfence-1.3.3-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND-sell-variant"
+      ],
+      "name": "libxshmfence",
+      "sha256": "d137d6cc13a75284267cd56beabfde6094fb1a4f8fb373af555c2e47c0e6b636",
+      "signatureBytes": 566,
+      "signatureSha256": "453600aa081f78b0abac4271afec2a958b0bb7ede005b7c0cbfd9534b150dd86",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxshmfence-1.3.3-1-aarch64.pkg.tar.xz",
+      "version": "1.3.3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 190736,
+      "filename": "libxslt-1.1.45-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "libxslt",
+      "sha256": "06473b287a43bf16441a791c77625339d1b36f6193b0ab51035224d0512c17ec",
+      "signatureBytes": 566,
+      "signatureSha256": "e97e145435976eb859811dcce5f4044b7e08337e74611dd29155684b58be57b5",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxslt-1.1.45-3-aarch64.pkg.tar.xz",
+      "version": "1.1.45-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 519872,
+      "filename": "libxt-1.3.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "HPND-sell-variant",
+        "SMLNJ",
+        "MIT-open-group",
+        "X11"
+      ],
+      "name": "libxt",
+      "sha256": "5361b689b6db0dffa3bc7131d45e29e3e291e7da93b00f3b2fe3ec688d84ff38",
+      "signatureBytes": 566,
+      "signatureSha256": "59db5836bd32911e75eac9fe0808944bc40fc3d93fa8a906bd10a721c60fc5af",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxt-1.3.1-1-aarch64.pkg.tar.xz",
+      "version": "1.3.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 25432,
+      "filename": "libxtst-1.2.6-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group",
+        "HPND-sell-variant",
+        "X11",
+        "HPND-doc",
+        "HPND-doc-sell"
+      ],
+      "name": "libxtst",
+      "sha256": "04e7e7c88d10ccd040220baa47100024c16f906b196f974b23baf26b9d087aa9",
+      "signatureBytes": 566,
+      "signatureSha256": "3e74dd5da1ad878b173d67ceff4ec2ebec43a4d2ef2510ecb09a526a616b11ee",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxtst-1.2.6-1-aarch64.pkg.tar.xz",
+      "version": "1.2.6-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 35444,
+      "filename": "libxv-1.0.13-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "SMLNJ",
+        "HPND-sell-variant"
+      ],
+      "name": "libxv",
+      "sha256": "03abeee4ba4b04cd0f6457ea60005e84701fd929bdd57d1a1be9034101c15243",
+      "signatureBytes": 566,
+      "signatureSha256": "0b05ea1f18099c07f602f0375bf7d66c872014ac30268cec9ba0b625b2716ca1",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxv-1.0.13-1-aarch64.pkg.tar.xz",
+      "version": "1.0.13-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 15016,
+      "filename": "libxxf86vm-1.1.7-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "X11-distribute-modifications-variant"
+      ],
+      "name": "libxxf86vm",
+      "sha256": "9c07efd6fe6040a7e2d19af307c74d5f2235b6313e74710a29ecedb56f9a6ded",
+      "signatureBytes": 566,
+      "signatureSha256": "9673a3563caccb2322ecc25305d6797603cab47ebb68bc9556137e511753921f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libxxf86vm-1.1.7-1-aarch64.pkg.tar.xz",
+      "version": "1.1.7-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 177656,
+      "filename": "libyuv-r2921+644251f25-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "custom"
+      ],
+      "name": "libyuv",
+      "sha256": "fd92999ccf6f56257ff4bf196dd75d93c2be5801de89af244f4568a0757ce06b",
+      "signatureBytes": 566,
+      "signatureSha256": "3d8917c4941685aa6ee64599abf23fa75ea8169f2f86ee676e6da1d2e8dcf13d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libyuv-r2921+644251f25-1-aarch64.pkg.tar.xz",
+      "version": "r2921+644251f25-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 37599608,
+      "filename": "llvm-libs-23.1.5-1.2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0 WITH LLVM-exception"
+      ],
+      "name": "llvm-libs",
+      "sha256": "73e5798472f43ca7e0871403e0b0ff07dd53f2a97061e5e9f1902dbde40c11e3",
+      "signatureBytes": 566,
+      "signatureSha256": "b200fc747a66ce7e9357bf6010d74d1a6145d4d6eb39270fb1026f715222c623",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/llvm-libs-23.1.5-1.2-aarch64.pkg.tar.xz",
+      "version": "23.1.5-1.2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 125904,
+      "filename": "lm_sensors-1:3.6.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-only OR LGPL-2.1-only"
+      ],
+      "name": "lm_sensors",
+      "sha256": "dc855daccb5fe4a7f89702db47bd3c53b3047dee8de92df2de975fe130985eb5",
+      "signatureBytes": 566,
+      "signatureSha256": "56331bf2d6f551d9015a5e35b3beb5b39339abc27553c45290b90b2f6c4f7521",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/lm_sensors-1%3A3.6.2-1-aarch64.pkg.tar.xz",
+      "version": "1:3.6.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 78388,
+      "filename": "lzo-2.10-5-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL"
+      ],
+      "name": "lzo",
+      "sha256": "7831512f18a7764b64f04c2c3483405c7576aefaf543b3fcfd462721afcf3c7d",
+      "signatureBytes": 566,
+      "signatureSha256": "6e2099240a1cf828c09d7284a0717bbfa15ba539720e3217e3e2f5bcdd064534",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/lzo-2.10-5-aarch64.pkg.tar.xz",
+      "version": "2.10-5"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 12883288,
+      "filename": "mesa-1:26.3.1-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT AND BSD-3-Clause AND SGI-B-2.0"
+      ],
+      "name": "mesa",
+      "sha256": "1aac151ff03544a0515a1d6d82a2c4bbab9c0371336ed26496ed46612d1d0c8c",
+      "signatureBytes": 566,
+      "signatureSha256": "81beff6d12f8ac32dfc43b41c6ebdf683762cbe2a6faf6b77759ed5d43343432",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/mesa-1%3A26.3.1-3-aarch64.pkg.tar.xz",
+      "version": "1:26.3.1-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 93808,
+      "filename": "mpdecimal-4.0.1-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause"
+      ],
+      "name": "mpdecimal",
+      "sha256": "388611eba7f9b0dddcc03adb4f28bcb8fd2c42fbd8c930ca6b9b0f9e4ece0f1e",
+      "signatureBytes": 566,
+      "signatureSha256": "bb0580360f8d8095b16e04723565ba16188947f51d6e42e713472a9ad8c864da",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/mpdecimal-4.0.1-3-aarch64.pkg.tar.xz",
+      "version": "4.0.1-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 13349892,
+      "filename": "nodejs-lts-jod-22.23.5-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "nodejs-lts-jod",
+      "sha256": "8757a26c4b72386de4780d3505e8613dd16e98125d3330398fea3cb6711aa61d",
+      "signatureBytes": 566,
+      "signatureSha256": "b263fa47d2e8e255a6f8d227121b7f168e2ea99a9449578e8a39d2916a257e3d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/nodejs-lts-jod-22.23.5-1-aarch64.pkg.tar.xz",
+      "version": "22.23.5-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 942812,
+      "filename": "openjpeg2-2.5.4-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause",
+        "MIT"
+      ],
+      "name": "openjpeg2",
+      "sha256": "aa64049214538bcb2830415891af2d494dfdbb1b930b0f251da4f99acf231f47",
+      "signatureBytes": 566,
+      "signatureSha256": "239b5b6d9db12968fe298b93dc34b1a18770a92aef917c1c2912fd469c937b18",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/openjpeg2-2.5.4-1-aarch64.pkg.tar.xz",
+      "version": "2.5.4-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 302292,
+      "filename": "orc-0.4.44-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-3-Clause"
+      ],
+      "name": "orc",
+      "sha256": "17d187c9a6381bf1bb991f5d98e1c3b19b636ed7bd05b5f4d6601bf41b19868f",
+      "signatureBytes": 566,
+      "signatureSha256": "d79eeac99a2d2d98e87e9d0fa2295dfee224a1c0f22e1368829f69ddbcedc062",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/orc-0.4.44-1-aarch64.pkg.tar.xz",
+      "version": "0.4.44-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 414852,
+      "filename": "pango-1:1.58.2-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.0-or-later"
+      ],
+      "name": "pango",
+      "sha256": "89712127cef41515a3a7b92bc632dcb9c635e9088126ee238d3b63f675d4e7eb",
+      "signatureBytes": 566,
+      "signatureSha256": "66cd7495ed7ffe2956a195c561459c296c5668e6000d65a7c5f5470cab49673f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/pango-1%3A1.58.2-1-aarch64.pkg.tar.xz",
+      "version": "1:1.58.2-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 16314036,
+      "filename": "perl-5.44.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Artistic-1.0-Perl",
+        "GPL-1.0-or-later"
+      ],
+      "name": "perl",
+      "sha256": "9b2156550793a373a7a288edc9143d20918bfc0503c78060ef6677926f04f4e2",
+      "signatureBytes": 566,
+      "signatureSha256": "0791e6c7337c7885e943d9bef45ddcae9376c664476a5cb68a899d026c17fef8",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/perl-5.44.0-1-aarch64.pkg.tar.xz",
+      "version": "5.44.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 181292,
+      "filename": "pixman-0.46.4-1.1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "pixman",
+      "sha256": "4d20f22998a75c9fe1d38c86cd6f4324120fc2bb02f4a749e4794daac6b87dd2",
+      "signatureBytes": 566,
+      "signatureSha256": "7a2580fee13f945802137098e91f7a8c8fd85cdd5eb10f7444f04947edb7c67e",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/pixman-0.46.4-1.1-aarch64.pkg.tar.xz",
+      "version": "0.46.4-1.1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 13730048,
+      "filename": "python-3.14.10-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "PSF-2.0"
+      ],
+      "name": "python",
+      "sha256": "4bb8ee4728ff1a4fb1e40ec24d5daf368e31f58d13e0966060f2aad14bdc3099",
+      "signatureBytes": 566,
+      "signatureSha256": "f0c881fddfa8dc6ddde5662859bb722e4834c2e632e0c22adbbd57faa14f97f9",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/python-3.14.10-1-aarch64.pkg.tar.xz",
+      "version": "3.14.10-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 1155372,
+      "filename": "rav1e-0.8.1-3-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause"
+      ],
+      "name": "rav1e",
+      "sha256": "a4cd3de43626582c42c89627a52bdf3856fed2e3f3a2d378c9e101911b6bb396",
+      "signatureBytes": 566,
+      "signatureSha256": "f75eedbca49f300f42685abc45ef26a5fd22486eb10122d07e436f66787538b3",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/rav1e-0.8.1-3-aarch64.pkg.tar.xz",
+      "version": "0.8.1-3"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 703476,
+      "filename": "shared-mime-info-2.5.1-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-or-later"
+      ],
+      "name": "shared-mime-info",
+      "sha256": "1a13b14aec99ae2c7666e73b7b5f74b6c899f80fc9bf26d089ea51fe2cb4d821",
+      "signatureBytes": 566,
+      "signatureSha256": "b4e41dbd55d09e84e3546575d4859fd42d588fd5a45cd8d0552225ba06ae4638",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/shared-mime-info-2.5.1-2-aarch64.pkg.tar.xz",
+      "version": "2.5.1-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 1961056,
+      "filename": "spirv-tools-1:1.4.363.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "spirv-tools",
+      "sha256": "d282448db01407a880b50ba5cc03b86bb1e36bf7d5b90ef7d0ab54644aecacfb",
+      "signatureBytes": 566,
+      "signatureSha256": "4e31df6a804da68ff1b3309cc443c1ffbd2f0539cbbbdd3a62eea785efe915e2",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/spirv-tools-1%3A1.4.363.0-1-aarch64.pkg.tar.xz",
+      "version": "1:1.4.363.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 983076,
+      "filename": "tinysparql-3.12.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "GPL-2.0-or-later"
+      ],
+      "name": "tinysparql",
+      "sha256": "1c8b9c410a1acacade255e52b19de54fd022929dc48bdc36b021a86439fd8fb5",
+      "signatureBytes": 566,
+      "signatureSha256": "e4e2decb082534325b75251f6335dab9a41db1c25d5d9c73174c381290c9dc5d",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/tinysparql-3.12.0-1-aarch64.pkg.tar.xz",
+      "version": "3.12.0-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 2476332,
+      "filename": "ttf-dejavu-2.37+18+g9b5d1b2f-8-any.pkg.tar.xz",
+      "licenses": [
+        "custom"
+      ],
+      "name": "ttf-dejavu",
+      "sha256": "4946f46257914f16fc61481766d2dd767963b64f58fdcb09ce6210624bce4830",
+      "signatureBytes": 566,
+      "signatureSha256": "f771f80d999abe0c166600a0780d2c19971c503d14f979168873e4e5762525ba",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/ttf-dejavu-2.37+18+g9b5d1b2f-8-any.pkg.tar.xz",
+      "version": "2.37+18+g9b5d1b2f-8"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 378412,
+      "filename": "vmaf-3.2.1-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause-Patent"
+      ],
+      "name": "vmaf",
+      "sha256": "5103e65332731cb568fd163b2d9fa074ebe2e821507c044e61048385a9a27c66",
+      "signatureBytes": 566,
+      "signatureSha256": "7ecdf542ca896eaf7e4d764bb663540ca2f933c827afada303047db6dd8fab83",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/vmaf-3.2.1-1-aarch64.pkg.tar.xz",
+      "version": "3.2.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 164352,
+      "filename": "vulkan-icd-loader-1.4.363.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "vulkan-icd-loader",
+      "sha256": "aac2d10b977d9a0e7f7e45a4dd0799aa0256f6df2a32baf8231cd027b342e993",
+      "signatureBytes": 566,
+      "signatureSha256": "c54f2edbc46f7ec2fddb001cec49804d233d66a1d1b140d26cbc3c668f07d969",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/vulkan-icd-loader-1.4.363.0-1-aarch64.pkg.tar.xz",
+      "version": "1.4.363.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 143632,
+      "filename": "wayland-1.26.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "wayland",
+      "sha256": "9382b38f97ee3841597f89aa6ca1fceea3d968ae759151eaab9c4b5373d1ce72",
+      "signatureBytes": 566,
+      "signatureSha256": "5ca988b59b191e409eb09d73fb3ea23a1d4a7e893066149e8310bce8f2271109",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/wayland-1.26.0-1-aarch64.pkg.tar.xz",
+      "version": "1.26.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 41234984,
+      "filename": "webkit2gtk-4.1-2.54.3-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "AFL-2.0 OR GPL-2.0-or-later",
+        "Apache-2.0",
+        "Apache-2.0 WITH LLVM-exception",
+        "BSD-2-Clause",
+        "BSD-2-Clause-Views",
+        "BSD-3-Clause",
+        "BSD-Source-Code",
+        "BSL-1.0",
+        "bzip2-1.0.6",
+        "GPL-2.0-only",
+        "GPL-3.0-only WITH Autoconf-exception-3.0",
+        "GPL-3.0-or-later WITH Bison-exception-2.2",
+        "ICU",
+        "ISC",
+        "LGPL-2.1-only",
+        "LGPL-2.1-or-later",
+        "MIT",
+        "MPL-1.1",
+        "MPL-2.0",
+        "NCSA",
+        "NCSA OR MIT",
+        "OFL-1.1",
+        "SunPro",
+        "Unicode-TOU"
+      ],
+      "name": "webkit2gtk-4.1",
+      "sha256": "20c60e3f9ed1e26c7347e7e0dd09903031c5f378849f2595221d240ec79887a8",
+      "signatureBytes": 566,
+      "signatureSha256": "a8fb4fd7aaf7807e9348362adfc96928e9f173e891fd6ea341c00e68c27ff516",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/webkit2gtk-4.1-2.54.3-1-aarch64.pkg.tar.xz",
+      "version": "2.54.3-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 55600,
+      "filename": "woff2-1.0.2-7-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT"
+      ],
+      "name": "woff2",
+      "sha256": "55316cc0862cd1321ce35bdc434d47ba5d2c9f1b3881b73d613f1dfc31d670fb",
+      "signatureBytes": 566,
+      "signatureSha256": "c6b430be08cae85ffc9f14311ce590b861af0df10a1b5bab0daac17e65590fe7",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/woff2-1.0.2-7-aarch64.pkg.tar.xz",
+      "version": "1.0.2-7"
+    },
+    {
+      "architecture": "any",
+      "bytes": 127676,
+      "filename": "xcb-proto-1.17.0-4-any.pkg.tar.xz",
+      "licenses": [
+        "X11-distribute-modifications-variant"
+      ],
+      "name": "xcb-proto",
+      "sha256": "c494c60bbb63fe42cd68a37710d389818611775fd74dcb228d901003958aa8ee",
+      "signatureBytes": 566,
+      "signatureSha256": "4d63a0e1d212d5bea7c4f590f9f80b5e3a7b9934446537c85016fd3a584b335e",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xcb-proto-1.17.0-4-any.pkg.tar.xz",
+      "version": "1.17.0-4"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 25768,
+      "filename": "xdg-dbus-proxy-0.1.9-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LGPL-2.1-or-later"
+      ],
+      "name": "xdg-dbus-proxy",
+      "sha256": "e757b530b6a388c94c4b1e249c9a57e2914a25dc08e3196fa0404aa73e278cdf",
+      "signatureBytes": 566,
+      "signatureSha256": "de3f2161701ee0a7f5ef5010d627e49d49f1caaa364cea41a69c8109b0739a82",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xdg-dbus-proxy-0.1.9-1-aarch64.pkg.tar.xz",
+      "version": "0.1.9-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 853120,
+      "filename": "xkeyboard-config-2.49-1-any.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-xkeyboard-config"
+      ],
+      "name": "xkeyboard-config",
+      "sha256": "56e9d10d3beaa0f868c88af397818ff8bd080a7563e39dfdf748d76168e89f7f",
+      "signatureBytes": 566,
+      "signatureSha256": "7c328e48e875b4b6623101f6521047d71434c566ab1351583540bfb20ca039e3",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xkeyboard-config-2.49-1-any.pkg.tar.xz",
+      "version": "2.49-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 578240,
+      "filename": "xorg-fonts-encodings-1.1.0-2-any.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-xorg-fonts-encodings"
+      ],
+      "name": "xorg-fonts-encodings",
+      "sha256": "1e6b1699140df659a049dc9094fc3b08a60b624db748bc004f28db51e5bfa641",
+      "signatureBytes": 566,
+      "signatureSha256": "1695ced7e3b87dbd164a29bcd9708df53744beaad9bcbff8e9d9036e1f21e54c",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-fonts-encodings-1.1.0-2-any.pkg.tar.xz",
+      "version": "1.1.0-2"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 27344,
+      "filename": "xorg-server-common-21.1.26-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-Adobe-Display-PostScript",
+        "BSD-3-Clause",
+        "LicenseRef-DEC-3-Clause",
+        "HPND",
+        "LicenseRef-HPND-sell-MIT-disclaimer-xserver",
+        "HPND-sell-variant",
+        "ICU",
+        "ISC",
+        "MIT",
+        "MIT-open-group",
+        "NTP",
+        "SGI-B-2.0",
+        "SMLNJ",
+        "X11",
+        "X11-distribute-modifications-variant"
+      ],
+      "name": "xorg-server-common",
+      "sha256": "69570daf3b8dd0b1e5a6d6ba9c488abe1ac35c1ce22ea5cefbfc523c4ec21d86",
+      "signatureBytes": 566,
+      "signatureSha256": "969f207c65737925a044d5102a9903beafff74ab0ce9c035d6be877d5ee81dd8",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-server-common-21.1.26-1-aarch64.pkg.tar.xz",
+      "version": "21.1.26-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 705736,
+      "filename": "xorg-server-xvfb-21.1.26-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT",
+        "GPL-2.0-only"
+      ],
+      "name": "xorg-server-xvfb",
+      "sha256": "c4729aaf327fae3f19795f4fbcad8035798316d4c812c56953c32796f1cf916c",
+      "signatureBytes": 566,
+      "signatureSha256": "b897acfedc03067a68f1c28bf7ad2d62ee78365fe83a4d48a081910dc57a90e7",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-server-xvfb-21.1.26-1-aarch64.pkg.tar.xz",
+      "version": "21.1.26-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 13496,
+      "filename": "xorg-setxkbmap-1.3.5-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "HPND"
+      ],
+      "name": "xorg-setxkbmap",
+      "sha256": "a3323ae651b0477c7c411e431d68debef85eef9d2f15ca90d89e383e2fad08a4",
+      "signatureBytes": 566,
+      "signatureSha256": "0e3156ed812aa3ecf2e861625766fabb55ce9b37b2cd7fde5d75aaa828fb8103",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-setxkbmap-1.3.5-1-aarch64.pkg.tar.xz",
+      "version": "1.3.5-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 24608,
+      "filename": "xorg-xauth-1.1.5-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group"
+      ],
+      "name": "xorg-xauth",
+      "sha256": "0384b75f97e0b659e85366698ced6028b13aa2964f6d7f1117548b942a062ac7",
+      "signatureBytes": 566,
+      "signatureSha256": "7068c984054f13fe13121fcf659acb77a5ced1afda01e75f560604ee4dfa197b",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-xauth-1.1.5-1-aarch64.pkg.tar.xz",
+      "version": "1.1.5-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 81536,
+      "filename": "xorg-xkbcomp-1.5.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "LicenseRef-xkbcomp"
+      ],
+      "name": "xorg-xkbcomp",
+      "sha256": "7c30d6aa484ff17ab36c3c33ae145195831458751e901b96b92b3398abc96611",
+      "signatureBytes": 566,
+      "signatureSha256": "6f0399b176194fc92bcdaed19fc08ccff28c1d3015b6a99a577df4fa283ae981",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-xkbcomp-1.5.0-1-aarch64.pkg.tar.xz",
+      "version": "1.5.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 26412,
+      "filename": "xorg-xprop-1.2.8-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "MIT-open-group"
+      ],
+      "name": "xorg-xprop",
+      "sha256": "5ab8f4c95ee0772592be2f9efc5ebe876083202ad6a06515bcc81bd0f0b6a15a",
+      "signatureBytes": 566,
+      "signatureSha256": "4f7e3337bfacd65bae7687e8fcf59da4e7150f672316f9d4f2ab2cf68b646123",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorg-xprop-1.2.8-1-aarch64.pkg.tar.xz",
+      "version": "1.2.8-1"
+    },
+    {
+      "architecture": "any",
+      "bytes": 238996,
+      "filename": "xorgproto-2026.1-1-any.pkg.tar.xz",
+      "licenses": [
+        "BSD-2-Clause",
+        "HPND",
+        "HPND-sell-variant",
+        "ICU",
+        "MIT",
+        "MIT-open-group",
+        "SGI-B-2.0",
+        "SMLNJ",
+        "X11",
+        "X11-distribute-modifications-variant"
+      ],
+      "name": "xorgproto",
+      "sha256": "8869e139c5f9fd2df006a01f45ec4d2173ef2f7f8e03d54bfcda9ab38370ae81",
+      "signatureBytes": 566,
+      "signatureSha256": "c3473472cf7a77271055254b73a4f8a489549345f1dd4d1cd3fd2887c245ba99",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/xorgproto-2026.1-1-any.pkg.tar.xz",
+      "version": "2026.1-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 6023968,
+      "filename": "openssl-4.1.0-1-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "openssl",
+      "sha256": "00550b8d3a4ff7b5c6aff3904baabbd499b51056bfe6fa4635bc4e9a2e44ae93",
+      "signatureBytes": 566,
+      "signatureSha256": "a93f560c3dd0807fe14e421df908eecf420d258171780de183d58204d6feba7f",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/openssl-4.1.0-1-aarch64.pkg.tar.xz",
+      "version": "4.1.0-1"
+    },
+    {
+      "architecture": "aarch64",
+      "bytes": 2758164,
+      "filename": "openssl-3-3.5.9-2-aarch64.pkg.tar.xz",
+      "licenses": [
+        "Apache-2.0"
+      ],
+      "name": "openssl-3",
+      "sha256": "47024588218118ba13ed610da728b2397a21edc0b7c6cb4c2609b038e703192f",
+      "signatureBytes": 566,
+      "signatureSha256": "822e132fe018cc70fc52560bfbfb835b6350c4b0303055c07ef124e44b8cd5e6",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/core/openssl-3-3.5.9-2-aarch64.pkg.tar.xz",
+      "version": "3.5.9-2"
+    }
+  ],
+  "publicSigningFingerprint": "68B3537F39A313B3E574D06777193F152BDBE6A6",
+  "rootNames": [
+    "fakeroot",
+    "python",
+    "nodejs-lts-jod",
+    "gtk3",
+    "webkit2gtk-4.1",
+    "xorg-server-xvfb"
+  ],
+  "schema": "tf.archarm-runtime-package-pins.v2",
+  "toolNodeVersion": "22.23.5",
+  "toolPythonVersion": "3.14.10",
+  "totalBytes": 210849784
+}
