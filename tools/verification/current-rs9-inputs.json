@@ -6,9 +6,9 @@
   "publication_authority": false,
   "rs9": {
     "repository": "Knowledge-Forge-AI/release-starport-9",
-    "source_commit": "6cbcc0576d5c4768ca5c75bde5ac20fbe3cf4330",
-    "source_tree": "59ffac3af4dd159ec877d41b04b391da5e947964",
-    "run_id": 44764763702,
+    "source_commit": "00bcfcd2572edf59c2a4ceb8a0338011ac15ee6e",
+    "source_tree": "334956ff1f26ad90f0dc6feb1c9d2a217ddbe0a2",
+    "run_id": 45869523067,
     "event": "push",
     "ref": "refs/heads/main",
     "attempt": 1,
@@ -17,9 +17,9 @@
     "workflow_path": ".github/workflows/rs9-current-distribution-tests.yml",
     "workflow_sha256": "bb3b767813be55820d4d6f2bebe97c9e6014f9bf5f9377693107d360bb2825e5",
     "contract_sha256": "990f7be08ba9818b3a72d4663a3d8f57e6e333afc658e13eee4ab576162c1502",
-    "builder_source_sha256": "0dd7771d991afc1534d121792e1b548a673d6ee8d2ddb72ccd115351610560fc",
+    "builder_source_sha256": "8c25b26f15a313c73ae2d78c989acbae81b1dc269f2aad615453e14c3ea08704",
     "configuration_sha256": "a62a2be808c57bf9e35a612f60e29477e082ba8d6d85f194aa6993349bab392c",
-    "release_ingestion_sha256": "21a10b3fd95b0a1ec5bd54f862df25b1d994c1bd0bc668fcce873272c4889f7e",
-    "not_before": "2026-11-20T15:35:15+00:00"
+    "release_ingestion_sha256": "b6a96247c9ad873b687af3a742ebd63d3dd645512fe969478b208b1e4e0fb5af",
+    "not_before": "2026-11-26T17:39:06+00:00"
   }
 }
