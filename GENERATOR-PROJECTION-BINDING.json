@@ -10,12 +10,12 @@
   "generationOverlayManifestSha256": "db9db56a08ef7062366259374fbb62d8f6c2786f6376b394d186bc4d8e81f4e2",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "db9db56a08ef7062366259374fbb62d8f6c2786f6376b394d186bc4d8e81f4e2",
+  "treeManifestSha256": "af8ba30fa31a49227f0b0d8a175169eea60b1ce176510f93b5d3dab83102bfa4",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
   },
-  "totalFiles": 278,
+  "totalFiles": 279,
   "files": [
     {
       "path": ".github/scripts/p-linux-userns-apparmor-guard.sh",
@@ -46,6 +46,11 @@
       "path": ".github/workflows/probe-current-archarm-runtime-successor-20261109.yml",
       "bytes": 2179,
       "sha256": "ada652d68d4ee9108f80469358729528b9ec83a09855badac1d20b544c01dd54"
+    },
+    {
+      "path": ".github/workflows/probe-current-archarm-runtime-successor-20261123.yml",
+      "bytes": 2233,
+      "sha256": "4bf7160af5bf3c077599af0f7cc3c29d201e876b1fd6c2420dc47a9c3449e6fc"
     },
     {
       "path": ".github/workflows/probe-current-archarm-runtime.yml",
@@ -1165,7 +1170,7 @@
     {
       "path": "tools/verification/current-rs9-inputs.json",
       "bytes": 1215,
-      "sha256": "6b1e5b1fead56b55e8e429376f75113dfab0002dd2f671722616b505bd601886"
+      "sha256": "320becab3b0216731d09921299a398ed0fad037b0731d380b6c947c0ac8c990e"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
