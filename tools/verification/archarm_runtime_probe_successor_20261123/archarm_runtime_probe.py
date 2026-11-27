@@ -33,7 +33,7 @@ BASE_CONTRACT = ("Refusal", "require", "NoRedirect", "inspect_members", "check_f
                  "download", "command", "remove_fresh_docker_home")
 PACKAGE_PINS_PATH = HERE / "PACKAGE-PINS.json"
 PACKAGE_PINS_BYTES = 79740
-PACKAGE_PINS_SHA256 = "1471e21504ac0edb5d1abf9602f0266e6efce42e8c9398aff7f5efadda6cb17a"
+PACKAGE_PINS_SHA256 = "c1b59ee9fa35a6af5062341e7261abfdbed0520f5b7c1f6121bf8bece8abd27a"
 ROOTFS_PIN_PATH = BASE_HELPER_PATH.parent / "ROOTFS-PIN.json"
 CERTIFICATE_PATH = BASE_HELPER_PATH.parent / "archlinuxarm-builder-public.gpg"
 
@@ -108,7 +108,7 @@ CONNECT_TIMEOUT_SECONDS = 30
 # Real expectations; tests substitute a synthetic dict of the same shape.
 REAL_EXPECT = {
     "packageCount": 141,
-    "packageBytes": 210849784,
+    "packageBytes": 210849968,
     "rootfsUrl": "https://fl.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
     "rootfsBytes": 829367415,
     "rootfsSha256": "42a4eeaa038994ffd31fa173256ef2f0ef511358eeb41b9ea1f8626391b9b319",

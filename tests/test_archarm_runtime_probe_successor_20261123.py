@@ -396,7 +396,7 @@ class RealPinClosure(unittest.TestCase):
         self.assertEqual(sha256(raw), P.PACKAGE_PINS_SHA256)
         doc = P.validate_package_pins(P.load_json(raw), P.REAL_EXPECT)
         self.assertEqual(len(doc["packages"]), 141)
-        self.assertEqual(sum(p["bytes"] for p in doc["packages"]), 210849784)
+        self.assertEqual(sum(p["bytes"] for p in doc["packages"]), 210849968)
         self.assertTrue(set(P.ROOT_NAMES) <= {p["name"] for p in doc["packages"]})
 
     def test_exact_pin_file_bytes_refuse_mutation_or_truncation(self):
@@ -1201,7 +1201,7 @@ class MainEntry(TempCase):
             result["digests"].update(kwargs["digests"])
             result["digests"]["packagePinsSha256"] = "f" * 64
             result["flags"].update({key: True for key in P.FLAG_KEYS})
-            result["counts"].update(packagesPinned=141, packageBytesPinned=210849784,
+            result["counts"].update(packagesPinned=141, packageBytesPinned=210849968,
                                     packagesDownloaded=141, packageSignaturesVerified=141)
             return result
 

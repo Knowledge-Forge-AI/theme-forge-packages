@@ -739,17 +739,17 @@
     },
     {
       "architecture": "aarch64",
-      "bytes": 257476,
-      "filename": "libcups-2:2.4.20-1-aarch64.pkg.tar.xz",
+      "bytes": 257660,
+      "filename": "libcups-2:2.4.20-2-aarch64.pkg.tar.xz",
       "licenses": [
         "Apache-2.0 WITH LLVM-exception AND BSD-3-Clause AND Zlib AND BSD-2-Clause"
       ],
       "name": "libcups",
-      "sha256": "f280995b8d7426dc9f40c70ca8d19dead27aa8a116cfeb94afa0149028709e66",
+      "sha256": "e7b28e90298fa87b2268709d98a5cdfad641c538154b4ac5d178d02a9b5537c3",
       "signatureBytes": 566,
-      "signatureSha256": "db214904615d2428f3c93556b6abe1e01fcb446d32c370c2765b2006a885c506",
-      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libcups-2%3A2.4.20-1-aarch64.pkg.tar.xz",
-      "version": "2:2.4.20-1"
+      "signatureSha256": "8c3a1a2717e725db0532c5fb7a33e2acf9433732fdf15837ed4a01a052f91470",
+      "url": "https://fl.us.mirror.archlinuxarm.org/aarch64/extra/libcups-2%3A2.4.20-2-aarch64.pkg.tar.xz",
+      "version": "2:2.4.20-2"
     },
     {
       "architecture": "aarch64",
@@ -2070,5 +2070,5 @@
   "schema": "tf.archarm-runtime-package-pins.v2",
   "toolNodeVersion": "22.23.5",
   "toolPythonVersion": "3.14.10",
-  "totalBytes": 210849784
+  "totalBytes": 210849968
 }

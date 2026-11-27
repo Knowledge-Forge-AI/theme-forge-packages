@@ -21,7 +21,7 @@ or imply any authorization.
 The probe answers one question: on a native `ubuntu-24.04-arm` runner, can the
 pinned ArchARM base rootfs plus exactly 141 pinned, signed packages (six runtime roots:
 `fakeroot`, `python`, `nodejs-lts-jod`, `gtk3`, `webkit2gtk-4.1`,
-`xorg-server-xvfb`; 210,849,784 package bytes) be installed by pacman with
+`xorg-server-xvfb`; 210,849,968 package bytes) be installed by pacman with
 signature enforcement in an isolated container, then run a small set of SDK and
 headless runtime checks as an unprivileged user?
 
@@ -64,10 +64,10 @@ Out of scope, not exercised, and not implied:
     encoded as `%3A`; size and SHA-256 of both the package and its detached
     signature.
   - Count equals 141, and the sum of package bytes equals `totalBytes`, which
-    equals 210,849,784.
+    equals 210,849,968.
   - The root set and the tool versions match fixed constants.
   - The exact committed pin file is 79,740 bytes, SHA-256
-    `1471e21504ac0edb5d1abf9602f0266e6efce42e8c9398aff7f5efadda6cb17a`. The controller refuses other pin bytes and
+    `c1b59ee9fa35a6af5062341e7261abfdbed0520f5b7c1f6121bf8bece8abd27a`. The controller refuses other pin bytes and
     requires the result's `packagePinsSha256` to equal this value.
   - Caps: 64 MiB per package, 4 KiB per signature, 256 MiB aggregate, 1 MiB pin
     file, 16 KiB result.
