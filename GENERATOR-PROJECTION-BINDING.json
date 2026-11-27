@@ -10,7 +10,7 @@
   "generationOverlayManifestSha256": "db9db56a08ef7062366259374fbb62d8f6c2786f6376b394d186bc4d8e81f4e2",
   "packageMatrixSha256": "7e74cd3c676cc57dad275b5123f71c89227d101c024676c012a7fb4c7d93d091",
   "publicationStatus": "held_pending_rs9_production_bridge",
-  "treeManifestSha256": "af8ba30fa31a49227f0b0d8a175169eea60b1ce176510f93b5d3dab83102bfa4",
+  "treeManifestSha256": "8c9ab055a6364d33d82d1f6f1bc008f84bf68ca823f1f8dfd75a3936089f099f",
   "authority": {
     "authoritativeIdentity": "treeManifestSha256",
     "tarballSha256Description": "convenience archive digest; non-authoritative"
@@ -100,12 +100,12 @@
     {
       "path": ".github/workflows/publish.yml",
       "bytes": 10494,
-      "sha256": "32edbd72e3a6edc7b650b8e6cc97c878977045e07b389e6faf05729bc5a5b7fb"
+      "sha256": "e5a3211fa43dd0ca132b97892f84380f81e8676a4a4163d06fac00f14e8af8fd"
     },
     {
       "path": ".github/workflows/qualify-current-signer.yml",
       "bytes": 8496,
-      "sha256": "dc2e89ad4387533f38d104418a3beea46debe260a33eb6f1dd1402030ca2f6a2"
+      "sha256": "f7e822b39bebe1d617f7f300cec22bf0514472028a0659a35d1b04dc6e3f5749"
     },
     {
       "path": ".github/workflows/validate.yml",
@@ -500,7 +500,7 @@
     {
       "path": "tests/test_current_signer_archarm_client.py",
       "bytes": 47288,
-      "sha256": "d5738e3626b788c5f06ae4acbe8fd2fac2e073e8323ac92ef4d6eb6be1fe84af"
+      "sha256": "d5a64685b657121b58306035d6221002adbd02558a7f88525b061a24b967942d"
     },
     {
       "path": "tests/test_current_signer_bootstrap.py",
@@ -845,7 +845,7 @@
     {
       "path": "tools/verification/current_import_routing.py",
       "bytes": 98612,
-      "sha256": "c57fb709085dd23f3fe3c84df79c05fa4a33c1ae3ed6081ae850f0829171cdb9"
+      "sha256": "f11dccc844b67c8991efd7746a79cc0ceb956ab67e714d9c714756b09c543a23"
     },
     {
       "path": "tools/verification/current_signer/apt_signature_adapter.py",
@@ -900,7 +900,7 @@
     {
       "path": "tools/verification/current_signer/leaf-manifest.json",
       "bytes": 6262,
-      "sha256": "e0e79d8cc3242ccbd4c6033b9144bf6d2ed06709058150ef6e5a3eaf789a661d"
+      "sha256": "9b33e87c97c97626b682242fab53e8ed72216f821791afc82188bbf84b088833"
     },
     {
       "path": "tools/verification/current_signer/owned_gpg_agent.py",
@@ -910,7 +910,7 @@
     {
       "path": "tools/verification/current_signer/package_client_qualification.py",
       "bytes": 50861,
-      "sha256": "ca098b7918a84e400deddd829075e9e33f6a44e2512e3270aebb371808a235b1"
+      "sha256": "9a1a2c1998d0cc6d5ba1b5249104eab8539dddb75fcf403bc344fb29ffc92903"
     },
     {
       "path": "tools/verification/current_signer/protected_passphrase_fd.py",
@@ -1170,7 +1170,7 @@
     {
       "path": "tools/verification/current-rs9-inputs.json",
       "bytes": 1215,
-      "sha256": "320becab3b0216731d09921299a398ed0fad037b0731d380b6c947c0ac8c990e"
+      "sha256": "23e7e87d6e9e22d639bdddd6a894ec11ee3c2fb6eafedea305b89dc60c3666bc"
     },
     {
       "path": "tools/verification/fetch-locked-assets.mjs",
@@ -1185,7 +1185,7 @@
     {
       "path": "tools/verification/isolation_probe/current_signer_isolation_probe.py",
       "bytes": 83965,
-      "sha256": "da95df863a47bb9553d596b1407f20e323a527d2e25609fcb339267a096423ff"
+      "sha256": "e74d4e418bad1f6525281f792471908f43c58ea79397f0f4642e5584f53e2da8"
     },
     {
       "path": "tools/verification/isolation_probe/test_current_signer_isolation_probe.py",
